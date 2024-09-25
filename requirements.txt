@@ -1,4 +1,0 @@
-pytest
-pytest-cov
-Flask
-flake8
