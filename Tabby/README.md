@@ -11,7 +11,7 @@ the package manager and wsl.
 
 ## setup wsl enviornment
 1. open wsl ubunutu terminal and create username and password
-2. update ubuntut 
+2. update ubuntu
 ```bash
    sudo apt update
 ```
