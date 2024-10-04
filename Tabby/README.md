@@ -53,7 +53,7 @@ the package manager and wsl.
 ```bash
 echo -e "\n# Android\nexport ANDROID_HOME=/mnt/c/Users/<name>/AppData/Local/Android/Sdk\nexport WSLENV=ANDROID_HOME/p" >> $HOME/.bashrc && source $HOME/.bashrc
  ```
-2. run this command
+2. run this command, but also find out your name as a user on your windows machine and fill in
 ```bash
 sudo cp /mnt/c/Users/<name>/AppData/Local/Android/sdk/platform-tools/adb.exe /mnt/c/Users/<name>/AppData/Local/Android/sdk/platform-tools/adb
  ```
