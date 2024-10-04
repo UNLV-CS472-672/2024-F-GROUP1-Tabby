@@ -86,11 +86,11 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
 ```bash
     npx expo start --tunnel
 ```
-   - to run app on android make sure project is open in android studio and emulator is running
+   - to run app in android studio, make sure some project is open in android studio and the emulator in there (device) is running
    - when project is running with: npx expo start --tunnel
    - press a and android url will pop up and emulator will automatically show app on android studio
-   - if app is not loading can put android url in the expo app on the emulator
-   - if that does not work make sure emulator is connected to the internet (android wifi)
+   - if the app is not loading you can put the android url in the expo app on the emulator
+   - if that does not work, make sure the emulator is connected to the internet (android wifi)
 
 In the output, you'll find options to open the app in a
 
