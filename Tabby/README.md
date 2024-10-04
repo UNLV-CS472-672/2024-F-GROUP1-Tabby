@@ -70,7 +70,7 @@ sudo cp /mnt/c/Users/<name>/AppData/Local/Android/sdk/platform-tools/adb.exe /mn
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
 ## Get started 
-- after cloning the project go to the directory where tabby is in (if in wsl can open vs code in directory you are in by using this command) 
+- after cloning the project go to the directory where tabby is in (if you are using wsl, you can open vs code in the current directory you are in by using this command) 
 ```bash
    code .
 ```
