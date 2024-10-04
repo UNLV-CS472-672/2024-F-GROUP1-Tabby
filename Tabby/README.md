@@ -49,7 +49,7 @@ the package manager and wsl.
 - apply changes and press ok 
 
 ## connecting android sdk on windows to wsl 😐
-1. run this command find out your name as a user on your windows machine and fill in
+1. run this command, but find out your name as a user on your windows machine and fill in
 ```bash
 echo -e "\n# Android\nexport ANDROID_HOME=/mnt/c/Users/<name>/AppData/Local/Android/Sdk\nexport WSLENV=ANDROID_HOME/p" >> $HOME/.bashrc && source $HOME/.bashrc
  ```
