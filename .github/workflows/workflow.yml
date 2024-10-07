@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: read
+
 jobs:
   build:
     strategy:
@@ -27,7 +30,6 @@ jobs:
       - name: Install dependencies
         run: |
           cd server
-          python -m pip install --upgrade pip
           poetry install
       - name: Lint with flake8
         run: |
