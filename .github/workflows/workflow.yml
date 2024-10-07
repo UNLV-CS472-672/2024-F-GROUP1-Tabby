@@ -33,4 +33,5 @@ jobs:
           poetry install
       - name: Lint with flake8
         run: |
-          flake8 server --exclude=venv
+          cd server
+          poetry run flake8 . --exclude=venv
