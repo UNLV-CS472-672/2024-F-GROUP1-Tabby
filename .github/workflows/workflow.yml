@@ -35,3 +35,7 @@ jobs:
         run: |
           cd server
           poetry run flake8 . --exclude=venv
+      - name: Run with pytest
+        run: |
+          cd server
+          poetry run pytest
