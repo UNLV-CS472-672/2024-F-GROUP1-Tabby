@@ -8,6 +8,10 @@ app = Flask(__name__)
 def members():
     return {"members" : ["Member1", "Member2", "Member3"]}, HTTPStatus.OK
 
+@app.route("/api/test", methods = ['POST'])
+def test():
+    return {}, HTTPStatus.OK
+
 if __name__ == "__main__":
     app.run(debug = True)
 
