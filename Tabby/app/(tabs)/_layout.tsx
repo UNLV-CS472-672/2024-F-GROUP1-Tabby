@@ -1,37 +1,41 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import { Entypo, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Tabs } from "expo-router";
+import Colors from "@/constants/Colors";
+import React from "react";
 
-import { TabBarIcon } from '@/components/navigation/TabBarIcon';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+export const unstable_settings = {
+    // Ensure that reloading on `/modal` keeps a back button present.
+    initialRouteName: "(tabs)",
+};
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+const Page = () => {
+    return (
+        <Tabs
+            screenOptions={{
+                headerShown: false,
+                tabBarActiveTintColor: Colors.primary,
+            }}
+        >
+            <Tabs.Screen
+                name="categories"
+                options={{
+                    tabBarLabel: "Library",
+                    tabBarIcon: ({ color }) => (
+                        <Entypo name="open-book" size={24} color={color} />
+                    )
+                }}
+            />
+            <Tabs.Screen
+                name="recomendations"
+                options={{
+                    tabBarLabel: "Recomendations",
+                    tabBarIcon: ({ color }) => (
+                        <Entypo name="open-book" size={24} color={color} />
+                    ),
+                }}
+            />
+        </Tabs>
+    );
+};
 
-  return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'home' : 'home-outline'} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'code-slash' : 'code-slash-outline'} color={color} />
-          ),
-        }}
-      />
-    </Tabs>
-  );
-}
+export default Page;
