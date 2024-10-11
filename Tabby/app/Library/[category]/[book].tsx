@@ -6,7 +6,7 @@ export default function book() {
     const { book: slug } = useLocalSearchParams();
     console.log(slug);
     return (
-        <View>
+        <View className='flex-1 justify-center items-center'>
             <Text>Specific book is {slug}</Text>
         </View>
     )

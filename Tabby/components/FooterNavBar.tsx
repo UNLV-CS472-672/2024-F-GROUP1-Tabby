@@ -1,16 +1,8 @@
-import { useFonts } from "expo-font";
-import { TouchableOpacity } from "react-native";
-import { SplashScreen, Slot, useRouter, Stack } from "expo-router";
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import { NativeWindStyleSheet } from "nativewind";
-import { View, Text } from 'react-native';
-import Footer from '@/components/FooterNavBar';
-NativeWindStyleSheet.setOutput({
-    default: "native",
-});
+import { View, Text, TouchableOpacity } from 'react-native'
+import { useRouter } from "expo-router";
 
 
-const FooterNavBar = () => {
+const Footer = () => {
     const router = useRouter();
 
     const navigateToCategories = () => {
@@ -21,7 +13,7 @@ const FooterNavBar = () => {
         router.push(`(tabs)/recommendations`);
     };
     return (
-        <View className="flex-row ">
+        <View className="flex-row h-full">
             <TouchableOpacity
                 onPress={navigateToCategories}
                 className="bg-blue-500 p-4 rounded"
@@ -37,15 +29,5 @@ const FooterNavBar = () => {
         </View>
     )
 }
-export default function RootLayout() {
 
-
-    return (
-        <>
-            <Slot />
-            <FooterNavBar />
-            <Footer />
-
-        </>
-    );
-}
+export default Footer

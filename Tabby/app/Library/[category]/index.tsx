@@ -14,7 +14,7 @@ const index = () => {
         router.push(`/Library/${slug}/${title}`);
     }
     return (
-        <View>
+        <View className='flex-1 pt-20'>
             <Text>Specfic category is {slug}</Text>
             <TouchableOpacity
                 onPress={() => handleBookPress('book1')}

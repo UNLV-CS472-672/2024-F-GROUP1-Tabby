@@ -1,15 +1,15 @@
 import { useRouter } from "expo-router";
 import { View, Text, TouchableOpacity } from 'react-native';
 
-const Categories = () => {
+const Recommendations = () => {
     const router = useRouter();
 
     const handleRecommendationPress = (reccommendation: string) => {
-        router.push(`/Reccomendations/${reccommendation}`);
+        router.push(`/Reccomended/${reccommendation}`);
     };
 
     return (
-        <View>
+        <View className='flex-1 pt-20'>
             <TouchableOpacity
                 onPress={() => handleRecommendationPress('book1')}
                 className="bg-blue-600 py-2 px-4 rounded"
@@ -28,4 +28,4 @@ const Categories = () => {
     );
 };
 
-export default Categories;
+export default Recommendations;
