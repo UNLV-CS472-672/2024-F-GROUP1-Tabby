@@ -3,6 +3,14 @@ from http import HTTPStatus
 
 app = Flask(__name__)
 
+
+# These import the extended python files.
+
+import test_routes
+from services import resource_format
+from services import gcloud_api_generation
+
+
 # Members API route
 @app.route("/members", methods = ['GET'])
 def members():
