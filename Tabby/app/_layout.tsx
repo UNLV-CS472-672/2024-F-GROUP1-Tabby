@@ -1,51 +1,31 @@
-import { useFonts } from "expo-font";
-import { TouchableOpacity } from "react-native";
-import { SplashScreen, Slot, useRouter, Stack } from "expo-router";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import React from 'react';
+import { View } from 'react-native';
+import { Slot } from 'expo-router';
+import { usePathname } from 'expo-router';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import FooterNavBar from '@/components/FooterNavBar';
+import { styled } from 'nativewind';
 import { NativeWindStyleSheet } from "nativewind";
-import { View, Text } from 'react-native';
-import Footer from '@/components/FooterNavBar';
+
+
 NativeWindStyleSheet.setOutput({
     default: "native",
 });
+const Container = styled(View, 'flex-1 bg-[#1E1E1E]'); // Replace 'bg-yourColorHere' with your desired Tailwind class
 
-
-const FooterNavBar = () => {
-    const router = useRouter();
-
-    const navigateToCategories = () => {
-        router.push(`(tabs)/categories`);
-    };
-
-    const navigateToRecommendations = () => {
-        router.push(`(tabs)/recommendations`);
-    };
-    return (
-        <View className="flex-row ">
-            <TouchableOpacity
-                onPress={navigateToCategories}
-                className="bg-blue-500 p-4 rounded"
-            >
-                <Text className="text-white">Go to Categories</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-                onPress={navigateToRecommendations}
-                className="bg-green-500 p-4 rounded"
-            >
-                <Text className="text-white">Go to Recommendations</Text>
-            </TouchableOpacity>
-        </View>
-    )
-}
 export default function RootLayout() {
-
-
+    const pathname = usePathname();
+    // flag to check if the current route is in index, welcome page
+    const isWelcomePage = pathname === '/';
     return (
-        <>
-            <Slot />
-            <FooterNavBar />
-            <Footer />
+        <SafeAreaProvider>
+            <Container>
+                <Slot />
 
-        </>
+                {/* Only show the footer if the current route is not the welcome page */}
+                {!isWelcomePage && <FooterNavBar />}
+            </Container>
+        </SafeAreaProvider>
+
     );
 }
