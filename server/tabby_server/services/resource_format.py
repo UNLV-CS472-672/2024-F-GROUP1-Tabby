@@ -31,7 +31,7 @@ api_key = ""    # Look in Discord for this. ------- NEEDED TO WORK -------
 api_search = "flowers+inauthor:keyes"
 api_results = "40" # 40 is the maximum. 10 is default. Won't allways return this many.
 api_url = "https://www.googleapis.com/books/v1/volumes?q="+api_search+"&key="+api_key+"&maxResults="+api_results
-# "https://www.googleapis.com/books/v1/volumes?q=flowers+inauthor:keyes&key=AIzaSyBtLaFgVD8IuvZiR5JTZNAjXXjEhchI3sM&maxResults=40
+# "https://www.googleapis.com/books/v1/volumes?q=flowers+inauthor:keyes&key=&maxResults=40
 
 
 # Empty for now. Will hold the result from google books.
