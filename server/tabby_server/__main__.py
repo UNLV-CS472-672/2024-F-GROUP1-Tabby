@@ -44,7 +44,7 @@ def books_search():
     """Receives a query representing a title and returns a list of possible
     books that could match.
 
-    Expected fields in JSON:
+    Expected query parameters:
     - `"title"`: Title query from user.
     """
 
