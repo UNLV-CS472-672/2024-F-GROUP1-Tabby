@@ -1,7 +1,10 @@
+import logging
 import pytest
 
 from http import HTTPStatus
 from tabby_server.__main__ import app
+from flask import send_file
+from flask.testing import FlaskClient
 
 
 @pytest.fixture()
@@ -21,3 +24,42 @@ class TestAPIEndPoint:
         result = client.post("/api/test")
 
         assert result.status_code == HTTPStatus.OK
+
+    def test_scan_cover(self, client: FlaskClient):
+
+        response = client.get("/books/scan_cover")
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert "message" in response.json
+        logging.info(response.json)
+
+        response = client.get("/books/search", json={})
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert "message" in response.json
+        logging.info(response.json)
+
+        response = client.get(
+            "/books/scan_cover", json={"image": "pixel data goes here"}
+        )
+        assert response.status_code == HTTPStatus.OK
+        assert "books" in response.json
+        logging.info(response.json)
+
+    def test_search(self, client: FlaskClient):
+
+        response = client.get("/books/search")
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert "message" in response.json
+        logging.info(response.json)
+
+        response = client.get("/books/search", json={})
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert "message" in response.json
+        logging.info(response.json)
+
+        response = client.get(
+            "/books/search",
+            json={"title": "All Quiet on the Western Front"},
+        )
+        assert response.status_code == HTTPStatus.OK
+        assert "books" in response.json
+        logging.info(response.json)
