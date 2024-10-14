@@ -32,7 +32,7 @@ class TestAPIEndPoint:
         assert "message" in response.json
         logging.info(response.json)
 
-        response = client.get("/books/search", json={})
+        response = client.get("/books/scan_cover", json={})
         assert response.status_code == HTTPStatus.BAD_REQUEST
         assert "message" in response.json
         logging.info(response.json)
