@@ -41,7 +41,7 @@ class TestAPIEndPoint:
             "/books/scan_cover", json={"image": "pixel data goes here"}
         )
         assert response.status_code == HTTPStatus.OK
-        assert "books" in response.json
+        assert "results" in response.json
         logging.info(response.json)
 
     def test_search(self, client: FlaskClient):
@@ -62,5 +62,5 @@ class TestAPIEndPoint:
             json={"title": "All Quiet on the Western Front"},
         )
         assert response.status_code == HTTPStatus.OK
-        assert "books" in response.json
+        assert "results" in response.json
         logging.info(response.json)

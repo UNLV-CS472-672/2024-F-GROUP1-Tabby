@@ -36,7 +36,7 @@ def books_scan_cover():
             "message": "Must specify 'image' as a non-empty string in body."
         }, HTTPStatus.BAD_REQUEST
 
-    return {"books": "This is a placeholder result."}, HTTPStatus.OK
+    return {"results": []}, HTTPStatus.OK
 
 
 @app.route("/books/search", methods=["GET"])
@@ -60,7 +60,7 @@ def books_search():
             "message": "Must specify 'title' as a non-empty string in body."
         }, HTTPStatus.BAD_REQUEST
 
-    return {"books": "This is a placeholder result."}, HTTPStatus.OK
+    return {"results": []}, HTTPStatus.OK
 
 
 if __name__ == "__main__":
