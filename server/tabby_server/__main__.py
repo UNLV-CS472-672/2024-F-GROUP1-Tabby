@@ -15,7 +15,7 @@ def test():
     return {}, HTTPStatus.OK
 
 
-@app.route("/books/scan_cover", methods=["GET"])
+@app.route("/books/scan_cover", methods=["POST"])
 def books_scan_cover():
     """Receives an image and returns a list of possible books that the image
     could represent.
