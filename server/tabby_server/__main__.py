@@ -1,6 +1,5 @@
 from flask import Flask, request
 from http import HTTPStatus
-import logging
 
 app = Flask(__name__)
 

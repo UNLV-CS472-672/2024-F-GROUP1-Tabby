@@ -3,7 +3,6 @@ import pytest
 
 from http import HTTPStatus
 from tabby_server.__main__ import app
-from flask import send_file
 from flask.testing import FlaskClient
 
 
