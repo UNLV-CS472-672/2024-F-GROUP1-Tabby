@@ -26,6 +26,7 @@ class TestAPIEndPoint:
         assert result.status_code == HTTPStatus.OK
 
     def test_scan_cover(self, client: FlaskClient):
+        """Tests endpoint /books/scan_cover"""
 
         response = client.get("/books/scan_cover")
         assert response.status_code == HTTPStatus.BAD_REQUEST
@@ -45,6 +46,7 @@ class TestAPIEndPoint:
         logging.info(response.json)
 
     def test_search(self, client: FlaskClient):
+        """Tests endpoint /books/search"""
 
         response = client.get("/books/search")
         assert response.status_code == HTTPStatus.BAD_REQUEST

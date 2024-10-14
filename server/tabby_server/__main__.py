@@ -18,6 +18,12 @@ def test():
 
 @app.route("/books/scan_cover", methods=["GET"])
 def books_scan_cover():
+    """Receives an image and returns a list of possible books that the image
+    could represent.
+
+    Expected fields in JSON:
+    - `"image"`: Base64 data representing the image.
+    """
 
     if not request.is_json:
         return {
@@ -36,6 +42,13 @@ def books_scan_cover():
 
 @app.route("/books/search", methods=["GET"])
 def books_search():
+    """Receives a query representing a title and returns a list of possible
+    books that could match.
+
+    Expected fields in JSON:
+    - `"title"`: Title query from user.
+    """
+
     if not request.is_json:
         return {
             "message": "Content type must be JSON."
