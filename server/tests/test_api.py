@@ -1,5 +1,4 @@
 import logging
-from flask import url_for
 import pytest
 
 from http import HTTPStatus
