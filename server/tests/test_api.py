@@ -1,4 +1,5 @@
 import logging
+from flask import url_for
 import pytest
 
 from http import HTTPStatus
@@ -61,6 +62,15 @@ class TestAPIEndPoint:
             "/books/search",
             json={"title": "All Quiet on the Western Front"},
         )
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert "message" in response.json
+        logging.info(response.json)
+
+        response = client.get(
+            "/books/search",
+            query_string={"title": "All Quiet on the Western Front"},
+        )
+
         assert response.status_code == HTTPStatus.OK
         assert "results" in response.json
         logging.info(response.json)

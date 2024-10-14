@@ -48,19 +48,13 @@ def books_search():
     - `"title"`: Title query from user.
     """
 
-    if not request.is_json:
-        return {
-            "message": "Content type must be JSON."
-        }, HTTPStatus.BAD_REQUEST
-    data = request.get_json()
-
-    title = data.get("title")
+    title = request.args.get("title")
     if not title:
         return {
-            "message": "Must specify 'title' as a non-empty string in body."
+            "message": "Must specify 'title' as a non-empty query parameter."
         }, HTTPStatus.BAD_REQUEST
 
-    return {"results": []}, HTTPStatus.OK
+    return {"results": []}, HTTPStatus.OK  # TODO: remove placeholder
 
 
 if __name__ == "__main__":
