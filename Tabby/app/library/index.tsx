@@ -13,7 +13,7 @@ const Categories = () => {
     const [favoritedCategories, setFavoritedCategories] = useState<string[]>([]);
 
     const handleCategoryPress = (category: string) => {
-        router.push(`/Library/${category}`);
+        router.push(`/library/${category}`);
     };
 
     const handleFavoritePress = (category: string) => {

@@ -6,8 +6,8 @@ const FooterNavBar = () => {
 
     return (
         <View className=" flex-1 flex-row items-end">
-            <Link href="/(tabs)/categories" className="p-5 text-white"> Library</Link>
-            <Link href="/(tabs)/recommendations" className="p-5 text-white"> Reccomendations</Link>
+            <Link href="/library" className="p-5 text-white"> Library</Link>
+            <Link href="/recommendations" className="p-5 text-white"> Reccomendations</Link>
         </View>
     )
 }

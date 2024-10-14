@@ -2,12 +2,11 @@ import { useRouter } from "expo-router";
 import { Text, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-
 const Recommendations = () => {
     const router = useRouter();
 
     const handleRecommendationPress = (reccommendation: string) => {
-        router.push(`/Reccomended/${reccommendation}`);
+        router.push(`/recommendations/${reccommendation}`);
     };
 
     return (

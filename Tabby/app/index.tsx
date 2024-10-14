@@ -1,8 +1,8 @@
-// import 'nativewind/tailwind.css'; // Ensure this import is at the top
 import React from 'react';
 import { Text, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Link } from 'expo-router';
 
 const WelcomeScreen = () => {
     const router = useRouter();
@@ -13,12 +13,12 @@ const WelcomeScreen = () => {
             <Text className="text-lg text-center mb-8 text-white">
                 Scan books and store your book information effortlessly.
             </Text>
-            <Pressable
-                onPress={() => router.push('/categories')}
-                className="bg-blue-600 py-2 px-4 rounded"
+            <Link
+                className="bg-blue-600 py-2 px-4 rounded text-white text-lg font-semibold"
+                href={'/library'}
             >
-                <Text className="text-white text-lg font-semibold">Get Started</Text>
-            </Pressable>
+                Get Started
+            </Link>
         </SafeAreaView>
     );
 };
