@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FlatList, Text, Pressable } from 'react-native';
+import { FlatList, Pressable } from 'react-native';
 import BookCard from '@/components/BookCard'; // Adjust the path as necessary
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FavoriteButtonIcon from '@/components/FavoriteButtonIcon'; // Assuming you have a custom favorite button component
@@ -49,7 +49,6 @@ const CategoryPage: React.FC = () => {
 
     const renderBookButton = (book: { id: string; isFavorite: boolean }) => (
         <Pressable onPress={() => handleFavoritePress(book.id)} className="ml-4">
-            {/* You can either use the FavoriteButton component or customize this */}
             <FavoriteButtonIcon isFavorite={book.isFavorite} />
         </Pressable>
     );

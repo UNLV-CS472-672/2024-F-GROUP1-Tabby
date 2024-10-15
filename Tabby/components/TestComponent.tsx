@@ -8,3 +8,5 @@ const TestComponent = () => {
         </View>
     )
 }
+
+export default TestComponent

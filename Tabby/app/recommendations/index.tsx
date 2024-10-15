@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FlatList, Text, Pressable } from 'react-native';
+import { FlatList, Pressable } from 'react-native';
 import BookCard from '@/components/BookCard'; // Adjust the path as necessary
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AddButtonIcon from '@/components/AddButtonIcon';
