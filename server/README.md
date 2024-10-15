@@ -7,17 +7,48 @@ For some users, it may be possible to simply use
 to start the server if dependences are already installed.
 Otherwise...
 
-### Ensure that you have a venv
-Go into the `/../server/tabby_server` location.
-If a venv folder already exist, skip this step. If not,
+### Install Poetry
+We use Poetry as the package manager for this project. You can install it
+[here](https://python-poetry.org/docs/#installation). I recommend installing
+it using the **official installer**.
+
+### Check that you have the right version
+Make sure you have the right version of Python installed. We use
+Python 3.12.
 
 Mac/Linux
-* `python3 -m venv venv`
+* `python3 --version`
 
 Windows
-* `python -m venv venv`
+* `python --version`
 
-### Now enter the venv environment
+### Go into the server folder
+
+Go into the server folder using `cd`.
+
+```
+cd server
+```
+
+### Ensure that you have a Virtual Environment.
+
+Make sure you are in `server/`, NOT `server/tabby_server`.
+
+Mac/Linux
+
+```
+python3 -m venv venv
+```
+
+Windows
+```
+python -m venv venv
+```
+
+This will create a folder called `venv/` which contain all of the dependencies
+you can install locally.
+
+### Activate the Virtual Environment
 
 Mac/Linux
 * `source venv/bin/activate`
@@ -35,13 +66,20 @@ By using the command you are allowing only signed scripts from remote
 and unsigned in local to run.
 
 ### Run the server
-You should now be in the venv environment. From there ensure Flask is installed.
 
-`pip3 install Flask`
+In the `server/` folder, do:
+
+```
+poetry install
+```
+
+This will install all of the dependencies, by reading `server/pyproject.toml`.
 
 Now everything is setup, run it.
 
-`python3 __main__.py`
+```
+python -m tabby_server
+```
 
 ## Disclaimer
 Per Python's best practices, it is no longer encouraged to pip install
