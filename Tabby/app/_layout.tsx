@@ -1,37 +1,31 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
+import React from 'react';
+import { View } from 'react-native';
+import { Slot } from 'expo-router';
+import { usePathname } from 'expo-router';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import FooterNavBar from '@/components/FooterNavBar';
+import { styled } from 'nativewind';
+import { NativeWindStyleSheet } from "nativewind";
 
-import { useColorScheme } from '@/hooks/useColorScheme';
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+NativeWindStyleSheet.setOutput({
+    default: "native",
+});
+const Container = styled(View, 'flex-1 bg-[#1E1E1E]'); // Replace 'bg-yourColorHere' with your desired Tailwind class
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+    const pathname = usePathname();
+    // flag to check if the current route is in index, welcome page
+    const isWelcomePage = pathname === '/';
+    return (
+        <SafeAreaProvider>
+            <Container>
+                <Slot />
 
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
+                {/* Only show the footer if the current route is not the welcome page */}
+                {!isWelcomePage && <FooterNavBar />}
+            </Container>
+        </SafeAreaProvider>
 
-  if (!loaded) {
-    return null;
-  }
-
-  return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-    </ThemeProvider>
-  );
+    );
 }
