@@ -1,4 +1,8 @@
-from __main__ import app
+from tabby_server.__main__ import app     # Use when running pytest
+#from __main__ import app    # Use when actually running the server
+
+
+from flask import Flask
 from http import HTTPStatus
 
 @app.route('/testpage', methods=['GET'])

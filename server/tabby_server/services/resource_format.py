@@ -1,23 +1,22 @@
-from __main__ import app
+from tabby_server.__main__ import app     # Use when running pytest
+#from __main__ import app    # Use when actually running the server
+
+
 from http import HTTPStatus
-import requests     # import requests (python -m pip install requests)
-import json         # Unused in this. May be used later though. Default with Python I believe.
+import requests
+import os
+from dotenv import load_dotenv, dotenv_values
+load_dotenv()   # Use 'os.getenv("KEY")' to get values.
+
+# Apparently necessary to import from a .env file?
+# If there is a better way, do tell please.
+
+
 
 '''
 Test bed to creating what may be returned by the GoogleBooks API.
 Likely to be deleted later.
 '''
-
-# Outline of what a book class may be.
-
-class TestBook:
-    def __init__(title, author, summary, reviews, isbn, thumbnail):
-        self.title = title
-        self.author = author
-        self.summary = summary
-        self.reviews = reviews
-        self.isbn = isbn
-        self.thumbnail = thumbnail
 
 
 # This call is an example given by Google Books documentation.
@@ -27,86 +26,116 @@ class TestBook:
 
 # To prevent unncessary call usage, I have copied the output of this query into .txt files.
 
-api_key = ""    # Look in Discord for this. ------- NEEDED TO WORK -------
-api_search = "flowers+inauthor:keyes"
-api_results = "40" # 40 is the maximum. 10 is default. Won't allways return this many.
-api_url = "https://www.googleapis.com/books/v1/volumes?q="+api_search+"&key="+api_key+"&maxResults="+api_results
-# "https://www.googleapis.com/books/v1/volumes?q=flowers+inauthor:keyes&key=&maxResults=40
 
 
-# Empty for now. Will hold the result from google books.
+# Class variable to hold the result of the api call
+class api_testing:
+    # Empty for now. Will hold the result from google books.
+    output_dict = {}    # dict
 
-output_dict = {}    # dict
-output_list = []    # list
+# Declares the class variable.
+result_dict = api_testing()
+
+
 
 # Makes the request to google books if not already done.
 # In actual code, this may come in the form of checking that
 # search terms are different to prevent unncessary calling.
 
-@app.route('/google_test_make_request', methods=['GET'])
+@app.route('/test/make_request', methods=['GET'])
 def GoogleBooksTestCallAPI():
-    if bool(output_dict):
-        return "A call has already been made with these terms!", HTTPStatus.OK
-    else:
-        GoogleBooksTestRequestHardCoded()
-        return "A call has just been made!", HTTPStatus.OK
+    if not bool(result_dict.output_dict):
+        # In reality, it would check if the search terms are exactly the same as before.
+        # If they are, it would just call an easy return that was gotten previously.
+        # Thus saving an API call and processing.
 
-# Does use a second function to make the actual call.
-# Not entirely sure if this is appropriate for CRUD.
-# But this API call does create data to be used.
-# POST calls are also not allowed via URL. Hence this method.
+        api_key_var = "&key="           # Look in Discord for this. ------- NEEDED TO WORK -------
+        api_key = os.getenv("API_KEY")  # Retrieve the API key
+        api_http = "https://www.googleapis.com/books/v1/volumes?q=" # http set up
+        api_search = "flowers+inauthor:keyes"   # Search terms
+        api_max_var = "&maxResults="            # Max Var
+        api_results = "40"                      # 40 is the maximum. 10 is default. Won't allways return this many.
 
-#@app.route('/google_test_make_request', methods=['POST'])
-def GoogleBooksTestRequestHardCoded():
-    global output_dict
-    global output_list
-    response = requests.get(api_url)        # Makes a request to the Google Books API
-    output_dict = response.json()           # Converts the output to a dict.
-    output_list = output_dict.get('items')  # Gets the actual book results in the form of a list.
+        api_url = api_http+api_search+api_key_var+api_key+api_max_var+api_results
 
-
-# Returns the output of the google books api call.
-# Only works if a call has already been made.
-# Calls are made with the GoogleBooksTestRequestHardCoded, not here.
-
-@app.route('/google_test_all_results', methods=['GET'])
-def GoogleBooksTestCallResults():
-    if bool(output_dict):
-        return output_dict, HTTPStatus.OK
-    else:
-        return "A call has not been made yet!", HTTPStatus.OK
+        response = requests.get(api_url)        # Makes a request to the Google Books API
+        result_dict.output_dict = response.json()           # Converts the output to a dict.
+                                                # Saves to global variable so other functions can access it
+        
+    # Returns the complete output of the API call.
+    return result_dict.output_dict, HTTPStatus.OK
 
 
-# Returns the first results title.
-# For test purposes, this should be "Flowers of Algernon".
-# Only works if a call has already been made.
-
-@app.route('/google_test_first_title', methods=['GET'])
-def GoogleBooksTestFirstTitle():
-    if bool(output_dict):
-        temp_title = output_list[0].get('volumeInfo').get('title')  # This is one method of getting resources.
-        # temp_title = output_list[0]["volumeInfo"]["title"]        # This is another. Both return the same thing.
-        return temp_title, HTTPStatus.OK
-    else:
-        return "A call must be made for me to get a title!", HTTPStatus.OK
 
 
-# Returns a list of all the titles of all the books received from
-# Google Books. Only works if a call has been made.
+# This grabs some settings of the books entered found from Google Books.
+# This has a check to skip a book if the isbn does not exist.
+# All information is in a try_except because not all results have the
+# necessary variables to return.
 
-@app.route('/google_test_all_titles', methods=['GET'])
-def GoogleBooksTestCallAllTitles():
-    if bool(output_dict):
-        title_list = []
+@app.route('/test/all_books', methods=['GET'])
+def GoogleBooksTestAllBooks():
+    # Gets the actual book results in the form of a list.
+    output_list = []
+    try:
+        output_list = result_dict.output_dict["items"]
+    except KeyError:
+        pass
+
+    if bool(output_list):
+        # List that holds all the dicts for each book.
+        all_books = []
+
         for i in range(len(output_list)):
-            book_title = output_list[i]["volumeInfo"]["title"]
-            title_list.append(book_title)
+            # Dict to hold the individual book attributes
+            full_book = {}
 
-            #print("Book Title:", book_title)
-        return title_list, HTTPStatus.OK
+            try:
+                full_book['isbn'] = output_list[i]["volumeInfo"]["industryIdentifiers"]
+            except KeyError:
+                continue
+
+            try:
+                full_book['title'] = output_list[i]["volumeInfo"]["title"]
+            except KeyError:
+                pass
+
+            try:
+                full_book['author'] = output_list[i]["volumeInfo"]["authors"]
+            except KeyError:
+                pass
+
+            try:
+                full_book['summary'] = output_list[i]["volumeInfo"]["description"]
+            except KeyError:
+                pass
+
+            try:
+                full_book['publisher'] = output_list[i]["volumeInfo"]["publisher"]
+            except KeyError:
+                pass
+
+            try:
+                full_book['reviews'] = output_list[i]["volumeInfo"]["averageRating"]
+            except KeyError:
+                pass
+
+            try:
+                full_book['thumbnail'] = output_list[i]["volumeInfo"]["imageLinks"]
+            except KeyError:
+                pass
+
+            # Once the attributes are obtained, that book is added to a list.
+            all_books.append(full_book)
+
+            # Prints the title of each book obtained.
+            #print("Book Title:", full_book['title'])
+
+        # Adds a key with a list that holds a dict for all the books and their attributes.
+        complete_list = { "books" : all_books , "number" : len(output_list)}
+
+        return complete_list, HTTPStatus.OK
     else:
-        return "No titles to read!", HTTPStatus.OK
+        # Call to Google Books not made.
+        return {"empty" : "none"}, HTTPStatus.BAD_REQUEST
 
-# https://chatgpt.com/share/670a045f-2d1c-800f-812f-d613d64a5781
-# This chatGPT chat has shown that this method of attribution handling is, in fact, the
-# best that can be done. Although it can be formatted to look a little nicer.

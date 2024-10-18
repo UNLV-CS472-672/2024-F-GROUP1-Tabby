@@ -6,10 +6,18 @@ app = Flask(__name__)
 
 # These import the extended python files.
 
-import test_routes
-from services import resource_format
-from services import gcloud_api_generation
+#from tabby_server import test_routes
 
+
+#from services import resource_format   # Use when actually running the server
+from .services import resource_format   # Use when running pytest
+
+# Need to also swap test_routes, test_api
+# Issue seems to be with how pytest functions. This will need looking into.
+#   https://stackoverflow.com/questions/25827160/importing-correctly-with-pytest
+#   https://stackoverflow.com/questions/43728431/relative-imports-modulenotfounderror-no-module-named-x
+#   https://stackoverflow.com/questions/2349991/how-do-i-import-other-python-files
+#   https://stackoverflow.com/questions/50190485/flask-importerror-cannot-import-name-app
 
 # Members API route
 @app.route("/members", methods = ['GET'])
