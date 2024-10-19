@@ -8,6 +8,7 @@ const FooterNavBar = () => {
         <View className=" flex-1 flex-row items-end">
             <Link href="/library" className="p-5 text-white"> Library</Link>
             <Link href="/recommendations" className="p-5 text-white"> Reccomendations</Link>
+            <Link href="/setting" className="p-5 text-white"> Setting</Link>
         </View>
     )
 }
