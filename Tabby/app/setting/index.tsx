@@ -1,6 +1,6 @@
-import { Settings, View } from "react-native";
+import { View } from "react-native";
 import SettingBar from "@/components/SettingBar";
-import { Link, LinkProps } from "expo-router";
+import { Link } from "expo-router";
 
 const setting = () => {
 
@@ -9,13 +9,22 @@ const setting = () => {
             <SettingBar 
                 pageLink={
                     <Link href="/setting/settingDisplay">
-                        Some type of value
+                        Appearance
                     </Link>
                 }
                 description="This is the settings description."
-                icon="hello"
+                icon={require("../../assets/icons/eye.png")}
             />
 
+            <SettingBar
+                pageLink={
+                    <Link href="/setting/settingDisplay">
+                        Security
+                    </Link>
+                }
+                description="This is the settings description."
+                icon={require("../../assets/images/react-logo.png")}
+            />
         </View>
     )
 }
