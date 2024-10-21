@@ -32,6 +32,7 @@ class api_testing:
     # Empty for now. Will hold the result from google books.
     output_dict = {}    # dict
 
+
 # Declares the class variable.
 result_dict = api_testing()
 
@@ -43,25 +44,23 @@ result_dict = api_testing()
 @app.route('/test/make_request', methods=['GET'])
 def GoogleBooksTestCallAPI():
     if not bool(result_dict.output_dict):
-        # In reality, it would check if the search terms are exactly the same as
-        # before. If they are, it would just call an easy return that was gotten
-        # previously. Thus saving an API call and processing.
+        # In reality, it would check if the search terms are exactly the same
+        # as before. If they are, it would just call an easy return that was
+        # gotten previously. Thus saving an API call and processing.
 
         # ------- NEEDED TO WORK -------
-        api_key_var = "&key="           # Look in Discord for this. 
-        api_key = os.getenv("API_KEY")  # Retrieve the API key
+        api_key_var = "&key=" # Look in Discord for this.
+        api_key = os.getenv("API_KEY") # Retrieve the API key.
         api_http = "https://www.googleapis.com/books/v1/volumes?q=" # http
-        api_search = "flowers+inauthor:keyes"   # Search terms
-        api_max_var = "&maxResults="            # Max Var
-        api_results = "40"  # 40 is the maximum.
-                            # 10 is default. Won't allways return this many.
+        api_search = "flowers+inauthor:keyes" # Search terms
+        api_max = "&maxResults=" # Max Var
+        api_results = "40" # 40 is the maximum. 10 is default.
 
-        api_url =api_http+api_search+api_key_var+api_key+api_max_var+api_results
+        api_url = api_http+api_search+api_key_var+api_key+api_max+api_results
 
-        response = requests.get(api_url)        # Google Books API Request
-        result_dict.output_dict = response.json()   # Converts output to a dict.
-            # Saves to global variable so other functions can access it
-        
+        response = requests.get(api_url) # Google Books API Request
+        result_dict.output_dict = response.json() # Converts output to a dict.
+
     # Returns the complete output of the API call.
     return result_dict.output_dict, HTTPStatus.OK
 
@@ -86,45 +85,45 @@ def GoogleBooksTestAllBooks():
 
         for i in range(len(items)):
             # Dict to hold the individual book attributes
-            full_book = {}
+            entry = {}
 
             try:
-                full_book['isbn'] =items[i]["volumeInfo"]["industryIdentifiers"]
+                entry['isbn'] = items[i]["volumeInfo"]["industryIdentifiers"]
             except KeyError:
                 continue
 
             try:
-                full_book['title'] = items[i]["volumeInfo"]["title"]
+                entry['title'] = items[i]["volumeInfo"]["title"]
             except KeyError:
                 pass
 
             try:
-                full_book['author'] = items[i]["volumeInfo"]["authors"]
+                entry['author'] = items[i]["volumeInfo"]["authors"]
             except KeyError:
                 pass
 
             try:
-                full_book['summary'] = items[i]["volumeInfo"]["description"]
+                entry['summary'] = items[i]["volumeInfo"]["description"]
             except KeyError:
                 pass
 
             try:
-                full_book['publisher'] = items[i]["volumeInfo"]["publisher"]
+                entry['publisher'] = items[i]["volumeInfo"]["publisher"]
             except KeyError:
                 pass
 
             try:
-                full_book['reviews'] = items[i]["volumeInfo"]["averageRating"]
+                entry['reviews'] = items[i]["volumeInfo"]["averageRating"]
             except KeyError:
                 pass
 
             try:
-                full_book['thumbnail'] = items[i]["volumeInfo"]["imageLinks"]
+                entry['thumbnail'] = items[i]["volumeInfo"]["imageLinks"]
             except KeyError:
                 pass
 
             # Once the attributes are obtained, that book is added to a list.
-            all_books.append(full_book)
+            all_books.append(entry)
 
             # Prints the title of each book obtained.
             # print("Book Title:", full_book['title'])
@@ -137,4 +136,3 @@ def GoogleBooksTestAllBooks():
     else:
         # Call to Google Books not made.
         return {"empty": "none"}, HTTPStatus.BAD_REQUEST
-
