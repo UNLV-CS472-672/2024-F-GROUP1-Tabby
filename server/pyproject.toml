@@ -21,3 +21,8 @@ requests-mock = "^1.12.1"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+log_cli = 1
+log_file = "logs/pytest.log"
+log_file_level = "INFO"
