@@ -1,18 +1,16 @@
 import logging
 import pytest
-
-from tabby_server.__main__ import app     # Use when running pytest
-#from __main__ import app    # Use when actually running the server
-
 from tabby_server.services.resource_format import result_dict
-
 from http import HTTPStatus
 from flask.testing import FlaskClient
 import requests_mock
 import os
-from dotenv import load_dotenv, dotenv_values
-load_dotenv()
+from dotenv import load_dotenv
+from tabby_server.__main__ import app     # Use when running pytest
+# from __main__ import app    # Use when actually running the server
 
+
+load_dotenv()
 
 
 @pytest.fixture()
@@ -32,7 +30,6 @@ class TestAPIEndPoint:
         result = client.post("/api/test")
 
         assert result.status_code == HTTPStatus.OK
-
 
     def test_scan_cover(self, client: FlaskClient):
         """Tests endpoint /books/scan_cover"""
@@ -84,13 +81,14 @@ class TestAPIEndPoint:
         assert "results" in response.json
         logging.info(response.json)
 
-
     # Makes a call to Google Books API
     def test_GoogleBooksTestCallAPI(self, client):
+
         with requests_mock.Mocker() as m:
+            # Call redirection
             local_api = os.getenv("API_KEY")
-            m.get("https://www.googleapis.com/books/v1/volumes?q=flowers+inauthor:keyes&key=" + local_api +"&maxResults=40", json={"books": [ 0 , 1 ] })
-            #requests.get('http://test.com').text
+            m.get("https://www.googleapis.com/books/v1/volumes?q=flowers+inauthor:keyes&key=" +
+                  local_api +"&maxResults=40", json={"books": [0, 1]})
             
             # First Call - Should pass. Just calls the Google APU.
             result = client.get('/test/make_request')
@@ -98,7 +96,6 @@ class TestAPIEndPoint:
             # Should be a successful search.
             assert result.status_code == HTTPStatus.OK
             assert "books" in result.json
-
 
     # Returns a dict with a key for a list which itself holds
     # a dict for each book returned.
@@ -112,9 +109,8 @@ class TestAPIEndPoint:
 
         # Second Call - Should pass. List of books.
         # This time makes an API call prior.
-        
-        
-        result_dict.output_dict = {"items" : [ {"volumeInfo" : {"industryIdentifiers" : 1} } , {"volumeInfo" : {"industryIdentifiers" : 2} } ] }
+        result_dict.output_dict = {"items": [{"volumeInfo": {"industryIdentifiers": 1}},
+                                             {"volumeInfo": {"industryIdentifiers" : 2}}]}
         result = client.get("/test/all_books")
 
         # Returns a json with book attributes.

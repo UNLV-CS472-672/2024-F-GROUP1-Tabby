@@ -1,16 +1,15 @@
-from tabby_server.__main__ import app     # Use when running pytest
-#from __main__ import app    # Use when actually running the server
-
-
 from http import HTTPStatus
 import requests
 import os
-from dotenv import load_dotenv, dotenv_values
+from dotenv import load_dotenv
+from tabby_server.__main__ import app     # Use when running pytest
+# from __main__ import app    # Use when actually running the server
+
+
 load_dotenv()   # Use 'os.getenv("KEY")' to get values.
 
 # Apparently necessary to import from a .env file?
 # If there is a better way, do tell please.
-
 
 
 '''
@@ -24,8 +23,8 @@ Likely to be deleted later.
 # These are some Optional parameters.
 #   https://developers.google.com/books/docs/v1/using#st_params
 
-# To prevent unncessary call usage, I have copied the output of this query into .txt files.
-
+# To prevent unncessary call usage, I have copied the output of
+# this query into .txt files.
 
 
 # Class variable to hold the result of the api call
@@ -37,7 +36,6 @@ class api_testing:
 result_dict = api_testing()
 
 
-
 # Makes the request to google books if not already done.
 # In actual code, this may come in the form of checking that
 # search terms are different to prevent unncessary calling.
@@ -45,27 +43,27 @@ result_dict = api_testing()
 @app.route('/test/make_request', methods=['GET'])
 def GoogleBooksTestCallAPI():
     if not bool(result_dict.output_dict):
-        # In reality, it would check if the search terms are exactly the same as before.
-        # If they are, it would just call an easy return that was gotten previously.
-        # Thus saving an API call and processing.
+        # In reality, it would check if the search terms are exactly the same as
+        # before. If they are, it would just call an easy return that was gotten
+        # previously. Thus saving an API call and processing.
 
-        api_key_var = "&key="           # Look in Discord for this. ------- NEEDED TO WORK -------
+        # ------- NEEDED TO WORK -------
+        api_key_var = "&key="           # Look in Discord for this. 
         api_key = os.getenv("API_KEY")  # Retrieve the API key
-        api_http = "https://www.googleapis.com/books/v1/volumes?q=" # http set up
+        api_http = "https://www.googleapis.com/books/v1/volumes?q=" # http
         api_search = "flowers+inauthor:keyes"   # Search terms
         api_max_var = "&maxResults="            # Max Var
-        api_results = "40"                      # 40 is the maximum. 10 is default. Won't allways return this many.
+        api_results = "40"  # 40 is the maximum.
+                            # 10 is default. Won't allways return this many.
 
-        api_url = api_http+api_search+api_key_var+api_key+api_max_var+api_results
+        api_url =api_http+api_search+api_key_var+api_key+api_max_var+api_results
 
-        response = requests.get(api_url)        # Makes a request to the Google Books API
-        result_dict.output_dict = response.json()           # Converts the output to a dict.
-                                                # Saves to global variable so other functions can access it
+        response = requests.get(api_url)        # Google Books API Request
+        result_dict.output_dict = response.json()   # Converts output to a dict.
+            # Saves to global variable so other functions can access it
         
     # Returns the complete output of the API call.
     return result_dict.output_dict, HTTPStatus.OK
-
-
 
 
 # This grabs some settings of the books entered found from Google Books.
@@ -76,52 +74,52 @@ def GoogleBooksTestCallAPI():
 @app.route('/test/all_books', methods=['GET'])
 def GoogleBooksTestAllBooks():
     # Gets the actual book results in the form of a list.
-    output_list = []
+    items = []
     try:
-        output_list = result_dict.output_dict["items"]
+        items = result_dict.output_dict["items"]
     except KeyError:
         pass
 
-    if bool(output_list):
+    if bool(items):
         # List that holds all the dicts for each book.
         all_books = []
 
-        for i in range(len(output_list)):
+        for i in range(len(items)):
             # Dict to hold the individual book attributes
             full_book = {}
 
             try:
-                full_book['isbn'] = output_list[i]["volumeInfo"]["industryIdentifiers"]
+                full_book['isbn'] =items[i]["volumeInfo"]["industryIdentifiers"]
             except KeyError:
                 continue
 
             try:
-                full_book['title'] = output_list[i]["volumeInfo"]["title"]
+                full_book['title'] = items[i]["volumeInfo"]["title"]
             except KeyError:
                 pass
 
             try:
-                full_book['author'] = output_list[i]["volumeInfo"]["authors"]
+                full_book['author'] = items[i]["volumeInfo"]["authors"]
             except KeyError:
                 pass
 
             try:
-                full_book['summary'] = output_list[i]["volumeInfo"]["description"]
+                full_book['summary'] = items[i]["volumeInfo"]["description"]
             except KeyError:
                 pass
 
             try:
-                full_book['publisher'] = output_list[i]["volumeInfo"]["publisher"]
+                full_book['publisher'] = items[i]["volumeInfo"]["publisher"]
             except KeyError:
                 pass
 
             try:
-                full_book['reviews'] = output_list[i]["volumeInfo"]["averageRating"]
+                full_book['reviews'] = items[i]["volumeInfo"]["averageRating"]
             except KeyError:
                 pass
 
             try:
-                full_book['thumbnail'] = output_list[i]["volumeInfo"]["imageLinks"]
+                full_book['thumbnail'] = items[i]["volumeInfo"]["imageLinks"]
             except KeyError:
                 pass
 
@@ -129,13 +127,14 @@ def GoogleBooksTestAllBooks():
             all_books.append(full_book)
 
             # Prints the title of each book obtained.
-            #print("Book Title:", full_book['title'])
+            # print("Book Title:", full_book['title'])
 
-        # Adds a key with a list that holds a dict for all the books and their attributes.
-        complete_list = { "books" : all_books , "number" : len(output_list)}
+        # Adds a key with a list that holds a dict for all the books and their
+        # attributes.
+        complete_list = {"books": all_books, "number": len(items)}
 
         return complete_list, HTTPStatus.OK
     else:
         # Call to Google Books not made.
-        return {"empty" : "none"}, HTTPStatus.BAD_REQUEST
+        return {"empty": "none"}, HTTPStatus.BAD_REQUEST
 

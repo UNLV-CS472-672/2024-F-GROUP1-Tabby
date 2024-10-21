@@ -1,9 +1,8 @@
-from tabby_server.__main__ import app     # Use when running pytest
-#from __main__ import app    # Use when actually running the server
-
-
-from flask import Flask
+from flask import Flask     # noqa
 from http import HTTPStatus
+from tabby_server.__main__ import app     # Use when running pytest
+# from __main__ import app    # Use when actually running the server
+
 
 @app.route('/testpage', methods=['GET'])
 def TestPage():

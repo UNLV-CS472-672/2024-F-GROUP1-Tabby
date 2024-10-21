@@ -1,5 +1,5 @@
-from __main__ import app
-from http import HTTPStatus
+from __main__ import app    # noqa
+from http import HTTPStatus # noqa
 
 # General API Credentiual creation info.
 #   https://developers.google.com/books/docs/v1/using#APIKey
