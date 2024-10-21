@@ -1,29 +1,23 @@
 import { View } from "react-native";
 import SettingBar from "@/components/SettingBar";
-import { Link } from "expo-router";
+import { Svg, Path } from 'react-native-svg';
 
 const setting = () => {
 
     return (
-        <View className="text-[#065f46]">
+        <View>
             <SettingBar 
-                pageLink={
-                    <Link href="/setting/settingDisplay">
-                        Appearance
-                    </Link>
-                }
-                description="This is the settings description."
-                icon={require("../../assets/icons/eye.png")}
+                settingName="Appearances"
+                settingLink="settingDisplay"
+                description="Theme, language, formatting"
+                icon={require("@/assets/icons/eye.png")}
             />
 
             <SettingBar
-                pageLink={
-                    <Link href="/setting/settingDisplay">
-                        Security
-                    </Link>
-                }
-                description="This is the settings description."
-                icon={require("../../assets/images/react-logo.png")}
+                settingName="Security"
+                settingLink="settingDisplay"
+                description="App lock, Secure screen"
+                icon={require("@/assets/icons/shield.png")}
             />
         </View>
     )
