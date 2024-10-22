@@ -4,12 +4,12 @@ from tabby_server.services.resource_format import result_dict as r_d
 from http import HTTPStatus
 from flask.testing import FlaskClient
 import requests_mock
-import os
-from dotenv import load_dotenv
+# import os
+# from dotenv import load_dotenv
 from tabby_server.__main__ import app
 
 
-load_dotenv()
+# load_dotenv()
 
 
 @pytest.fixture()
