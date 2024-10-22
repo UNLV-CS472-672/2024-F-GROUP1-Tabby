@@ -81,7 +81,7 @@ class TestAPIEndPoint:
         logging.info(response.json)
 
     # Makes a call to Google Books API
-    def test_GoogleBooksTestCallAPI(self, client):
+    def test_google_books_test_call_api(self, client):
 
         # This holds some great insight.
         # If this method fails later on, use this.
@@ -101,7 +101,7 @@ class TestAPIEndPoint:
 
     # Returns a dict with a key for a list which itself holds
     # a dict for each book returned.
-    def test_GoogleBooksTestAllBooks(self, client):
+    def test_google_books_test_all_books(self, client):
         # First Call - Should fail. No books.
         result = client.get("/test/all_books")
 

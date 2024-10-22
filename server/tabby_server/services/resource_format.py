@@ -49,13 +49,19 @@ def google_books_test_call_api():
         # gotten previously. Thus saving an API call and processing.
 
         # ------- NEEDED TO WORK -------
+        # I break it up so it doesn't go over the Flake8 character limit.
         api_key_var = "&key="  # Look in Discord for this.
-        api_key = os.getenv("API_KEY")  # Retrieve the API key.
         api_http = "https://www.googleapis.com/books/v1/volumes?q="  # http
         api_search = "flowers+inauthor:keyes"  # Search terms
         api_max = "&maxResults="  # Max Var
         api_results = "40"  # 40 is the maximum. 10 is default.
 
+        api_key = os.getenv("API_KEY")  # Retrieve the API key.
+        # This tests for none type. If it nonetype, then it makes it a string
+        # https://stackoverflow.com/questions/23086383/how-to-test-nonetype-in-python
+        if api_key is None:
+            api_key = " "
+        
         api_url = api_http+api_search+api_key_var+api_key+api_max+api_results
 
         response = requests.get(api_url)  # Google Books API Request
