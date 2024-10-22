@@ -3,7 +3,6 @@ from http import HTTPStatus
 # from __main__ import app    # Use when actually running the server
 
 
-
 def alternate_page():
     return 'it works!', HTTPStatus.OK
 
