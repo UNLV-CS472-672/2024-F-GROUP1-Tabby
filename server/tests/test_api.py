@@ -89,8 +89,8 @@ class TestAPIEndPoint:
             local_api = os.getenv("API_KEY")
             m.get("https://www.googleapis.com/books/v1/volumes?q=flowers+" +
                   "inauthor:keyes&key=" + local_api +
-                  "&maxResults=40", json = {"books": [0, 1]})
-            
+                  "&maxResults=40", json={"books": [0, 1]})
+
             # First Call - Should pass. Just calls the Google APU.
             result = client.get('/test/make_request')
 
@@ -110,8 +110,9 @@ class TestAPIEndPoint:
 
         # Second Call - Should pass. List of books.
         # This time makes an API call prior.
-        r_d.output_dict = {"items": [{"volumeInfo": {"industryIdentifiers": 1}},
-                                   {"volumeInfo": {"industryIdentifiers": 2}}]}
+        r_d.output_dict = {"items": [
+            {"volumeInfo": {"industryIdentifiers": 1}},
+            {"volumeInfo": {"industryIdentifiers": 2}}]}
         result = client.get("/test/all_books")
 
         # Returns a json with book attributes.

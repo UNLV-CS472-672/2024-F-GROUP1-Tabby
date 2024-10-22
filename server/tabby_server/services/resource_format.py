@@ -49,17 +49,17 @@ def GoogleBooksTestCallAPI():
         # gotten previously. Thus saving an API call and processing.
 
         # ------- NEEDED TO WORK -------
-        api_key_var = "&key=" # Look in Discord for this.
-        api_key = os.getenv("API_KEY") # Retrieve the API key.
-        api_http = "https://www.googleapis.com/books/v1/volumes?q=" # http
-        api_search = "flowers+inauthor:keyes" # Search terms
-        api_max = "&maxResults=" # Max Var
-        api_results = "40" # 40 is the maximum. 10 is default.
+        api_key_var = "&key="  # Look in Discord for this.
+        api_key = os.getenv("API_KEY")  # Retrieve the API key.
+        api_http = "https://www.googleapis.com/books/v1/volumes?q="  # http
+        api_search = "flowers+inauthor:keyes"  # Search terms
+        api_max = "&maxResults="  # Max Var
+        api_results = "40"  # 40 is the maximum. 10 is default.
 
         api_url = api_http+api_search+api_key_var+api_key+api_max+api_results
 
-        response = requests.get(api_url) # Google Books API Request
-        result_dict.output_dict = response.json() # Converts output to a dict.
+        response = requests.get(api_url)  # Google Books API Request
+        result_dict.output_dict = response.json()  # Converts output to a dict.
 
     # Returns the complete output of the API call.
     return result_dict.output_dict, HTTPStatus.OK
