@@ -61,7 +61,7 @@ def google_books_test_call_api():
         # https://stackoverflow.com/questions/23086383/how-to-test-nonetype-in-python
         if api_key is None:
             api_key = " "
-        
+
         api_url = api_http+api_search+api_key_var+api_key+api_max+api_results
 
         response = requests.get(api_url)  # Google Books API Request
