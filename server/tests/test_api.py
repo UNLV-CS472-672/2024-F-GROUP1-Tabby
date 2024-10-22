@@ -6,8 +6,7 @@ from flask.testing import FlaskClient
 import requests_mock
 import os
 from dotenv import load_dotenv
-from tabby_server.__main__ import app     # Use when running pytest
-# from __main__ import app    # Use when actually running the server
+from tabby_server.__main__ import app
 
 
 load_dotenv()

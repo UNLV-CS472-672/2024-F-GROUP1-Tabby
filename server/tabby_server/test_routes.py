@@ -1,11 +1,10 @@
-from flask import Flask     # noqa
 from http import HTTPStatus
-from tabby_server.__main__ import app     # Use when running pytest
+# from tabby_server.__main__ import app     # Use when running pytest
 # from __main__ import app    # Use when actually running the server
 
 
-@app.route('/testpage', methods=['GET'])
-def TestPage():
+
+def alternate_page():
     return 'it works!', HTTPStatus.OK
 
 

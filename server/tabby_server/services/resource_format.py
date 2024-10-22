@@ -2,7 +2,7 @@ from http import HTTPStatus
 import requests
 import os
 from dotenv import load_dotenv
-from tabby_server.__main__ import app     # Use when running pytest
+# from tabby_server.__main__ import app     # Use when running pytest
 # from __main__ import app    # Use when actually running the server
 
 
@@ -28,21 +28,21 @@ Likely to be deleted later.
 
 
 # Class variable to hold the result of the api call
-class api_testing:
+class ApiTesting:
     # Empty for now. Will hold the result from google books.
     output_dict = {}    # dict
 
 
 # Declares the class variable.
-result_dict = api_testing()
+result_dict = ApiTesting()
 
 
 # Makes the request to google books if not already done.
 # In actual code, this may come in the form of checking that
 # search terms are different to prevent unncessary calling.
 
-@app.route('/test/make_request', methods=['GET'])
-def GoogleBooksTestCallAPI():
+
+def google_books_test_call_api():
     if not bool(result_dict.output_dict):
         # In reality, it would check if the search terms are exactly the same
         # as before. If they are, it would just call an easy return that was
@@ -70,8 +70,8 @@ def GoogleBooksTestCallAPI():
 # All information is in a try_except because not all results have the
 # necessary variables to return.
 
-@app.route('/test/all_books', methods=['GET'])
-def GoogleBooksTestAllBooks():
+
+def google_books_test_all_books():
     # Gets the actual book results in the form of a list.
     items = []
     try:
