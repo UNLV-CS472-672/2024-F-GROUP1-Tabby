@@ -85,6 +85,7 @@ class TestAPIEndPoint:
 
         with requests_mock.Mocker() as m:
             # Call redirection
+            local_api = "KEY"
             local_api = os.getenv("API_KEY")
             m.get("https://www.googleapis.com/books/v1/volumes?q=flowers+" +
                   "inauthor:keyes&key=" + local_api +
