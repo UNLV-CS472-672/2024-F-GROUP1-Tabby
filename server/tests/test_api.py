@@ -83,13 +83,14 @@ class TestAPIEndPoint:
     # Makes a call to Google Books API
     def test_GoogleBooksTestCallAPI(self, client):
 
+        # This holds some great insight.
+        # If this method fails later on, use this.
+        # https://stackoverflow.com/questions/15753390/how-can-i-mock-requests-and-the-response
+
         with requests_mock.Mocker() as m:
             # Call redirection
-            local_api = "KEY"
-            local_api = os.getenv("API_KEY")
-            m.get("https://www.googleapis.com/books/v1/volumes?q=flowers+" +
-                  "inauthor:keyes&key=" + local_api +
-                  "&maxResults=40", json={"books": [0, 1]})
+            # local_api = os.getenv("API_KEY")
+            m.get(requests_mock.ANY, json={"books": [0, 1]})
 
             # First Call - Should pass. Just calls the Google APU.
             result = client.get('/test/make_request')
