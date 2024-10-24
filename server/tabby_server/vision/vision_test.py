@@ -1,6 +1,3 @@
-#from tabby_server.__main__ import app     # Use when running pytest
-from __main__ import app    # Use when actually running the server
-
 import os
 from http import HTTPStatus
 from google.cloud import vision
@@ -8,7 +5,6 @@ from google.cloud import vision
 # To my understanding, you do not need Google Cloud CLI.
 # But just in case, here is the installation link.
 # https://cloud.google.com/sdk/docs/install
-
 
 # Documentation
 #   https://cloud.google.com/vision/docs
@@ -20,14 +16,13 @@ from google.cloud import vision
 # https://cloud.google.com/vision/docs/detect-labels-image-client-libraries#local-shell
 # https://cloud.google.com/vision/docs/libraries
 
-
 # Example Video
 # https://youtu.be/hkKKfEqZvn4
 
 
 # Necessary to authenticate to our project.
 # This is a different API key than Google Books
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "vision/vision_key.json"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = ""
 # Change "vision/vision_key.json" to be whatever path is to your service key token json
 
 
@@ -79,7 +74,6 @@ def detect_text(path):
     return ocr_result
 
 
-
 # Class to hold data
 class books_sides:
     covers = []
@@ -108,8 +102,7 @@ book.shells.append("vision/example_covers/None-of-This-Is-True-BACK-resized.jpg"
 
 # This output is in a text file in /vision
 
-@app.route('/test/vision_test', methods=['GET'])
-def GoogleVisionTest():
+def google_vision_ocr_test():
     # Only calls if nothing has been returned
     if not bool(book.texts):
         
