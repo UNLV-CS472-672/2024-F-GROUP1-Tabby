@@ -63,7 +63,7 @@ def detect_text(path):
         # Says where it found it.
         vertices = [
             f"({vertex.x},{vertex.y})" for vertex
-                in text.bounding_poly.vertices
+            in text.bounding_poly.vertices
         ]
         ocr_text["bounds"] = format(",".join(vertices))
 
@@ -74,7 +74,7 @@ def detect_text(path):
         raise Exception(
             "{}\nFor more info on error messages, check: "
             "https://cloud.google.com/apis/design/errors".format
-                (response.error.message)
+            (response.error.message)
         )
 
     # Returns the list
@@ -91,23 +91,23 @@ class books_sides:
 book = books_sides()
 
 # Add books to be checked
-book.covers.append("vision/example_covers/chamber-of-secrets-us-childrens-"+
-                    "edition-1050x0-c-default.jpg")
-book.covers.append("vision/example_covers/deathly-hallows-ebook-cover-1050x0"+
-                    "-c-default.jpg")
-book.covers.append("vision/example_covers/goblet-of-fire-uk-childrens-edition"+
-                    "-2014.jpg")
+book.covers.append("vision/example_covers/chamber-of-secrets-us-childrens-" + 
+                   "edition-1050x0-c-default.jpg")
+book.covers.append("vision/example_covers/deathly-hallows-ebook-cover" + 
+                   "-1050x0-c-default.jpg")
+book.covers.append("vision/example_covers/goblet-of-fire-uk-childrens" + 
+                   "-edition-2014.jpg")
 book.covers.append("vision/example_covers/half-blood-prince-adult-edition.jpg")
-book.covers.append("vision/example_covers/order-of-the-phoenix-us-childrens"+
-                    "-edition-1050x0-c-default.jpg")
-book.covers.append("vision/example_covers/prisoner-of-azkaban-uk-childrens"+
-                    "-edition-1050x0-c-default.jpg")
-book.covers.append("vision/example_covers/sorcerers-stone-school-market"+
-                    "-edition.jpg")
+book.covers.append("vision/example_covers/order-of-the-phoenix-us-childrens" + 
+                   "-edition-1050x0-c-default.jpg")
+book.covers.append("vision/example_covers/prisoner-of-azkaban-uk-childrens" + 
+                   "-edition-1050x0-c-default.jpg")
+book.covers.append("vision/example_covers/sorcerers-stone-school-market" + 
+                   "-edition.jpg")
 book.shells.append("vision/example_covers/Lightlark-BACK-resized.jpg")
 book.shells.append("vision/example_covers/The-New-Couple-BACK-resized.jpg")
-book.shells.append("vision/example_covers/None-of-This-Is-True-BACK"+
-                    "-resized.jpg")
+book.shells.append("vision/example_covers/None-of-This-Is-True-BACK" + 
+                   "-resized.jpg")
 
 
 # Calls the above function for a check of each book and returns the results.
