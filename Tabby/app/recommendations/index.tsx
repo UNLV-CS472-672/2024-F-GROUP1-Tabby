@@ -3,6 +3,7 @@ import { FlatList, Pressable } from 'react-native';
 import BookCard from '@/components/BookCard'; // Adjust the path as necessary
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AddButtonIcon from '@/components/AddButtonIcon';
+
 type Book = {
     id: string;
     title: string;

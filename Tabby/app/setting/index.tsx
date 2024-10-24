@@ -1,6 +1,7 @@
 import { View } from "react-native";
 import SettingBar from "@/components/SettingBar";
-import { Svg, Path } from 'react-native-svg';
+import EyeIcon from "@/assets/icons/EyeIcon";
+import ShieldIcon from "@/assets/icons/ShieldIcon";
 
 const setting = () => {
 
@@ -10,14 +11,14 @@ const setting = () => {
                 settingName="Appearances"
                 settingLink="settingDisplay"
                 description="Theme, language, formatting"
-                icon={require("@/assets/icons/eye.png")}
+                svg_icon={<EyeIcon/>}
             />
 
             <SettingBar
                 settingName="Security"
                 settingLink="settingDisplay"
                 description="App lock, Secure screen"
-                icon={require("@/assets/icons/shield.png")}
+                svg_icon={<ShieldIcon/>}
             />
         </View>
     )
