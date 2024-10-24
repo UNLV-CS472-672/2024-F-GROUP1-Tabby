@@ -1,7 +1,9 @@
 from flask import Flask, request
 from http import HTTPStatus
-# from services import resource_format  # Use when actually running the server
-from .services import resource_format  # Use when running pytest
+from services import resource_format  # Use when actually running the server
+# from .services import resource_format  # Use when running pytest
+
+from vision import vision_test
 # import test_routes
 
 # --- IF USING PYTEST VS PYTHON ---
@@ -21,7 +23,9 @@ app.add_url_rule('/test/all_books',
                  view_func=resource_format.google_books_test_all_books)
 
 
+
 # Only need to swap here. Don't swap it in other files!
+
 # Issue seems to be with how pytest functions. This will need looking into.
 #   https://stackoverflow.com/questions/25827160/importing-correctly-with-pytest
 #   https://stackoverflow.com/questions/43728431/relative-imports-modulenotfounderror-no-module-named-x
