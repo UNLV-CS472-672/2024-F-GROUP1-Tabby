@@ -10,6 +10,9 @@ python = "^3.12"
 flask = "^3.0.3"
 requests = "^2.32.3"
 python-dotenv = "^1.0.1"
+google-api-python-client = "^2.149.0"
+google-cloud = "^0.34.0"
+google-cloud-vision = "^3.7.4"
 
 
 [tool.poetry.group.dev.dependencies]
