@@ -119,5 +119,3 @@ class TestAPIEndPoint:
         # Returns a json with book attributes.
         assert result.status_code == HTTPStatus.OK
         assert "books" in result.json
-
-    

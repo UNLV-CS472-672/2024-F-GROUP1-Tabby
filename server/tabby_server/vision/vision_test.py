@@ -62,19 +62,21 @@ def detect_text(path):
 
         # Says where it found it.
         vertices = [
-            f"({vertex.x},{vertex.y})" for vertex in text.bounding_poly.vertices
+            f"({vertex.x},{vertex.y})" for vertex
+                in text.bounding_poly.vertices
         ]
         ocr_text["bounds"] = format(",".join(vertices))
-        
+
         # Appends it to the end of the list to be returned.
         ocr_result.append(ocr_text)
 
     if response.error.message:
         raise Exception(
             "{}\nFor more info on error messages, check: "
-            "https://cloud.google.com/apis/design/errors".format(response.error.message)
+            "https://cloud.google.com/apis/design/errors".format
+                (response.error.message)
         )
-    
+
     # Returns the list
     return ocr_result
 
@@ -85,20 +87,27 @@ class books_sides:
     shells = []
     texts = {}
 
+
 book = books_sides()
 
 # Add books to be checked
-book.covers.append("vision/example_covers/chamber-of-secrets-us-childrens-edition-1050x0-c-default.jpg")
-book.covers.append("vision/example_covers/deathly-hallows-ebook-cover-1050x0-c-default.jpg")
-book.covers.append("vision/example_covers/goblet-of-fire-uk-childrens-edition-2014.jpg")
+book.covers.append("vision/example_covers/chamber-of-secrets-us-childrens-"+
+                    "edition-1050x0-c-default.jpg")
+book.covers.append("vision/example_covers/deathly-hallows-ebook-cover-1050x0"+
+                    "-c-default.jpg")
+book.covers.append("vision/example_covers/goblet-of-fire-uk-childrens-edition"+
+                    "-2014.jpg")
 book.covers.append("vision/example_covers/half-blood-prince-adult-edition.jpg")
-book.covers.append("vision/example_covers/order-of-the-phoenix-us-childrens-edition-1050x0-c-default.jpg")
-book.covers.append("vision/example_covers/prisoner-of-azkaban-uk-childrens-edition-1050x0-c-default.jpg")
-book.covers.append("vision/example_covers/sorcerers-stone-school-market-edition.jpg")
+book.covers.append("vision/example_covers/order-of-the-phoenix-us-childrens"+
+                    "-edition-1050x0-c-default.jpg")
+book.covers.append("vision/example_covers/prisoner-of-azkaban-uk-childrens"+
+                    "-edition-1050x0-c-default.jpg")
+book.covers.append("vision/example_covers/sorcerers-stone-school-market"+
+                    "-edition.jpg")
 book.shells.append("vision/example_covers/Lightlark-BACK-resized.jpg")
 book.shells.append("vision/example_covers/The-New-Couple-BACK-resized.jpg")
-book.shells.append("vision/example_covers/None-of-This-Is-True-BACK-resized.jpg")
-
+book.shells.append("vision/example_covers/None-of-This-Is-True-BACK"+
+                    "-resized.jpg")
 
 
 # Calls the above function for a check of each book and returns the results.
@@ -110,7 +119,7 @@ book.shells.append("vision/example_covers/None-of-This-Is-True-BACK-resized.jpg"
 def google_vision_ocr_test():
     # Only calls if nothing has been returned
     if not bool(book.texts):
-        
+
         # Loops through front covers.
         i = 0
         for front in range(len(book.covers)):
@@ -122,6 +131,6 @@ def google_vision_ocr_test():
         for back in range(len(book.shells)):
             book.texts["back " + str(i)] = detect_text(book.shells[back])
             i = i + 1
-        
+
     # Returns the complete output of the API call.
     return book.texts, HTTPStatus.OK
