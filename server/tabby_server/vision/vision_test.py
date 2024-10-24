@@ -91,22 +91,22 @@ class books_sides:
 book = books_sides()
 
 # Add books to be checked
-book.covers.append("vision/example_covers/chamber-of-secrets-us-childrens-" + 
+book.covers.append("vision/example_covers/chamber-of-secrets-us-childrens-" +
                    "edition-1050x0-c-default.jpg")
-book.covers.append("vision/example_covers/deathly-hallows-ebook-cover" + 
+book.covers.append("vision/example_covers/deathly-hallows-ebook-cover" +
                    "-1050x0-c-default.jpg")
-book.covers.append("vision/example_covers/goblet-of-fire-uk-childrens" + 
+book.covers.append("vision/example_covers/goblet-of-fire-uk-childrens" +
                    "-edition-2014.jpg")
 book.covers.append("vision/example_covers/half-blood-prince-adult-edition.jpg")
-book.covers.append("vision/example_covers/order-of-the-phoenix-us-childrens" + 
+book.covers.append("vision/example_covers/order-of-the-phoenix-us-childrens" +
                    "-edition-1050x0-c-default.jpg")
-book.covers.append("vision/example_covers/prisoner-of-azkaban-uk-childrens" + 
+book.covers.append("vision/example_covers/prisoner-of-azkaban-uk-childrens" +
                    "-edition-1050x0-c-default.jpg")
-book.covers.append("vision/example_covers/sorcerers-stone-school-market" + 
+book.covers.append("vision/example_covers/sorcerers-stone-school-market" +
                    "-edition.jpg")
 book.shells.append("vision/example_covers/Lightlark-BACK-resized.jpg")
 book.shells.append("vision/example_covers/The-New-Couple-BACK-resized.jpg")
-book.shells.append("vision/example_covers/None-of-This-Is-True-BACK" + 
+book.shells.append("vision/example_covers/None-of-This-Is-True-BACK" +
                    "-resized.jpg")
 
 
