@@ -2,6 +2,11 @@ import os
 from http import HTTPStatus
 from google.cloud import vision
 
+'''
+This is nothing more than a template for future reference in the event we ever
+decide to make use of google vision ocr.
+'''
+
 # To my understanding, you do not need Google Cloud CLI.
 # But just in case, here is the installation link.
 # https://cloud.google.com/sdk/docs/install
@@ -23,7 +28,7 @@ from google.cloud import vision
 # Necessary to authenticate to our project.
 # This is a different API key than Google Books
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = ""
-# Change "vision/vision_key.json" to be whatever path is to your service key token json
+# Change "" to be whatever path is to your service key token json
 
 
 # This is the given function from the google website on how to implement
