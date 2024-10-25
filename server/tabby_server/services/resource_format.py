@@ -17,6 +17,7 @@ Likely to be deleted later.
 '''
 
 # Blueprint for this file. Adds the 'test' prefix in __main__.py.
+# To call functions in this file use "/test/<function_route>"
 books_test = Blueprint('books_test', __name__)
 
 
