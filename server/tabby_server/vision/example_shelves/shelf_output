@@ -1,9 +1,9 @@
 {
-  "shelf 0": [],
   "shelf 1": [],
   "shelf 2": [],
   "shelf 3": [],
-  "shelf 4": [
+  "shelf 4": [],
+  "shelf 5": [
     {
       "bounds": {
         "vertex_1": {
@@ -27,6 +27,6 @@
       "name": "Book"
     }
   ],
-  "shelf 5": [],
-  "shelf 6": []
+  "shelf 6": [],
+  "shelf 7": []
 }
