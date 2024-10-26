@@ -4,8 +4,6 @@ from io import BytesIO
 from http import HTTPStatus
 from google.cloud import vision
 import json
-
-#from Pillow_Library import draw_borders
 from PIL import Image, ImageFont, ImageDraw
 from numpy import random
 
@@ -48,7 +46,7 @@ https://cloud.google.com/vision/docs/object-localizer
 
 This covers Object Localization for google vision api.
 
-localize_objects is a given function from the docs. 
+localize_objects is a given function from the docs.
 Use google_vision_obj_test to make an api call and get a return.
 
 localize_objects has been slightly modified to provide a useful return.
@@ -58,6 +56,7 @@ https://youtu.be/i2yFD8PsMvQ?list=PLkTmsEazx3GVcEtCSLauTw4x4NgTSEGqM
 https://youtu.be/nyTiWOZYHfE?list=PL3JVwFmb_BnSLFyVThMfEavAEZYHBpWEd
 
 '''
+
 
 def localize_objects(path):
     # This is a given function from the google website on how to implement
@@ -80,11 +79,7 @@ def localize_objects(path):
     # Stores all results in a list.
     obj_result = []
 
-    #print(f"Number of objects found: {len(obj)}")
     for object_ in obj:
-        #print(f"\n{object_.name} (confidence: {object_.score})")
-        #print("Normalized bounding polygon vertices: ")
-
         # For each object found, it will save the name and confidence in a
         # dict. Along with the bounding vertices.
         obj_object = {}
@@ -94,7 +89,6 @@ def localize_objects(path):
 
         i = 1
         for vertex in object_.bounding_poly.normalized_vertices:
-            #print(f" - ({vertex.x}, {vertex.y})")
             obj_object['bounds']["vertex_" + str(i)] = {'x': vertex.x,
                                                         'y': vertex.y}
             i = i + 1
@@ -156,6 +150,7 @@ file.
 
 Example Video: https://youtu.be/hkKKfEqZvn4
 '''
+
 
 def detect_text(path):
     # This is the given function from the google website on how to implement
@@ -261,6 +256,7 @@ pre-determined test output instead.
 https://pillow.readthedocs.io/en/stable/
 '''
 
+
 # Global variables for the range of the randomly generated color shapes.
 upp_lim = 255
 bot_lim = 150
@@ -309,7 +305,7 @@ def draw_obj():
         # No local images. Retrieve the test outputs.
         with open("vision/example_shelves/shelf_output", 'r') as json_file:
             pre_gen = json.load(json_file)
-        
+
         # Only sample 4 has any results.
         shelf_img = pre_gen["shelf " + str(index)]
     else:
@@ -339,15 +335,15 @@ def draw_obj():
             poly_xy.append(shelf_img[i]["bounds"][key]['y'] * back_pic.height)
 
         # Draw the rectangle with a colored border and a width of 25 pixels
-        draw.polygon(poly_xy, outline=(r, g, b), width=5)
+        draw.polygon(poly_xy, outline = (r, g, b), width = 5)
 
         # Add text label to rectangle to display what google thinks this is
         # and how confident they are in that guess.
-        text_coords =((poly_xy[0] + poly_xy[4])/2, poly_xy[1] - 50)
+        text_coords =((poly_xy[0] + poly_xy[4]) / 2, poly_xy[1] - 50)
         fnt = ImageFont.truetype("arial.ttf", 50)
         draw.text(text_coords, shelf_img[i]["name"] + "\n" +
-                  str(shelf_img[i]["confidence"]), font=fnt, fill=(r, g, b),
-                  anchor = 'mm', align = 'center')
+                  str(shelf_img[i]["confidence"]), font = fnt,
+                  fill = (r, g, b), anchor = 'mm', align = 'center')
 
     # Creates buffer object and saves the drawing to it.
     buffer = BytesIO()
@@ -359,6 +355,7 @@ def draw_obj():
 
     # Returns drawn image.
     return response, HTTPStatus.OK
+
 
 # Uses query parameters to return the desired book. Loads it into the web
 # browser.
@@ -404,25 +401,25 @@ def draw_ocr():
             image_path = "vision/example_covers/front_1.jpg"
 
     # List to hold all found objects from google vision.
-    cover_img = []
+    cov_img = []
 
     # Checks if the localize_objects function has been called in this session.
     if not bool(book.texts):
         # No local images. Retrieve the test outputs.
         with open("vision/example_covers/test_output", 'r') as json_file:
             pre_gen = json.load(json_file)
-        
+
         # Load the pregenerated test output
         if index > 3:
-            cover_img = pre_gen["front " + str(index - 3)]
+            cov_img = pre_gen["front " + str(index - 3)]
         else:
-            cover_img = pre_gen["back " + str(index)]
+            cov_img = pre_gen["back " + str(index)]
     else:
         # Local api call found. Retrieving info.
         if index > 3:
-            cover_img = book.texts["front " + str(index - 3)]
+            cov_img = book.texts["front " + str(index - 3)]
         else:
-            cover_img = book.texts["back " + str(index)]
+            cov_img = book.texts["back " + str(index)]
 
     # Loads the image.
     with open(image_path, "rb") as image_file:
@@ -434,24 +431,24 @@ def draw_ocr():
 
     # Loops for number of text objects detected and draws a box around each
     # of them. The color is random.
-    for i in range(len(cover_img)):
+    for i in range(len(cov_img)):
         # Random color generator.
         r = random.randint(bot_lim, upp_lim)
         g = random.randint(bot_lim, upp_lim)
         b = random.randint(bot_lim, upp_lim)
 
         # Translates the bounds of each text box into integers.
-        str_xy = cover_img[i]["bounds"].translate(str.maketrans(",", " ","()"))
+        str_xy = cov_img[i]["bounds"].translate(str.maketrans(",", " ", "()"))
         int_xy = list(map(int, str_xy.split()))
 
         # Draw the rectangle with a colored border and a width of 5 pixels
-        draw.polygon(int_xy, outline=(r, g, b), width=5)
+        draw.polygon(int_xy, outline = (r, g, b), width = 5)
 
         # Add text to rectangle to display what google thinks this is.
-        text_coords =((int_xy[0] + int_xy[4])/2, (int_xy[1] + int_xy[5])/2)
+        text_coords =((int_xy[0] + int_xy[4]) / 2, (int_xy[1] + int_xy[5]) / 2)
         fnt = ImageFont.truetype("arial.ttf", 25)
-        draw.text(text_coords, cover_img[i]["text"], font=fnt, fill=(r, g, b),
-        anchor = 'mm', align = 'center')
+        draw.text(text_coords, cov_img[i]["text"], font=fnt, fill=(r, g, b),
+                  anchor = 'mm', align = 'center')
 
     # Creates buffer object and saves the drawing to it.
     buffer = BytesIO()
