@@ -3,7 +3,7 @@ from http import HTTPStatus
 # from services.resource_format import books_test   # --- Use with python ---
 # from vision.vision_test import vision_test        # --- Use with python ---
 from .services.resource_format import books_test    # /-/ Use with pytest /-/
-from .vision.vision_test import vision_test          # /-/ Use with pytest /-/
+from .vision.vision_test import vision_test         # /-/ Use with pytest /-/
 
 
 # --- IF USING PYTEST OR PYTHON ---

@@ -446,9 +446,9 @@ def draw_ocr():
         draw.polygon(int_xy, outline=(r, g, b), width=5)
 
         # Add text to rectangle to display what google thinks this is.
-        text_coords = ((int_xy[0] + int_xy[4]) / 2, (int_xy[1] + int_xy[5]) / 2)
+        txt_coords = ((int_xy[0] + int_xy[4]) / 2, (int_xy[1] + int_xy[5]) / 2)
         fnt = ImageFont.truetype("arial.ttf", 25)
-        draw.text(text_coords, cov_img[i]["text"], font=fnt, fill=(r, g, b),
+        draw.text(txt_coords, cov_img[i]["text"], font=fnt, fill=(r, g, b),
                   anchor='mm', align='center')
 
     # Creates buffer object and saves the drawing to it.
