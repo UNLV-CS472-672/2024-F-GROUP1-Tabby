@@ -4,13 +4,13 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Book } from "@/types/book";
 
 
-type BookCardProps = {
+type BookPreviewProps = {
     book: Book;
     button: React.ReactElement<typeof Pressable>; // Expecting a Pressable component
     isReccommendation?: boolean;
 };
 
-const BookCard: React.FC<BookCardProps> = ({ book, button, isReccommendation }) => {
+const BookPreview: React.FC<BookPreviewProps> = ({ book, button, isReccommendation }) => {
     const router = useRouter();
     const { category } = useLocalSearchParams();
 
@@ -29,10 +29,10 @@ const BookCard: React.FC<BookCardProps> = ({ book, button, isReccommendation }) 
     };
 
     return (
-        <Pressable onPress={handleBookPress} className="flex-row items-center p-4 rounded-lg mb-4">
+        <Pressable onPress={handleBookPress} className="flex-row items-center p-4 rounded-lg">
             <Image
                 source={{ uri: book.image }}
-                className="w-16 h-24 mr-4"
+                className="w-28 h-40 mr-4"
                 resizeMode="cover"
                 alt="book cover"
             />
@@ -46,4 +46,4 @@ const BookCard: React.FC<BookCardProps> = ({ book, button, isReccommendation }) 
     );
 };
 
-export default BookCard;
+export default BookPreview;

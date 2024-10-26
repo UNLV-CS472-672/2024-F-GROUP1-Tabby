@@ -12,11 +12,6 @@ const FavoriteButtonIcon: React.FC<{ isFavorite: boolean }> = ({ isFavorite }) =
 
     )
 
-
-
-
-
-
 };
 
 export default FavoriteButtonIcon;
