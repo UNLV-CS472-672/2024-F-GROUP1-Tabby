@@ -261,6 +261,7 @@ https://pillow.readthedocs.io/en/stable/
 upp_lim = 255
 bot_lim = 150
 
+
 # Uses query parameters to return the desired book. Loads it into the web
 # browser.
 # To use add "?index=<1-7>" after "/obj_draw"
@@ -335,15 +336,15 @@ def draw_obj():
             poly_xy.append(shelf_img[i]["bounds"][key]['y'] * back_pic.height)
 
         # Draw the rectangle with a colored border and a width of 25 pixels
-        draw.polygon(poly_xy, outline = (r, g, b), width = 5)
+        draw.polygon(poly_xy, outline=(r, g, b), width=5)
 
         # Add text label to rectangle to display what google thinks this is
         # and how confident they are in that guess.
-        text_coords =((poly_xy[0] + poly_xy[4]) / 2, poly_xy[1] - 50)
+        text_coords = ((poly_xy[0] + poly_xy[4]) / 2, poly_xy[1] - 50)
         fnt = ImageFont.truetype("arial.ttf", 50)
         draw.text(text_coords, shelf_img[i]["name"] + "\n" +
-                  str(shelf_img[i]["confidence"]), font = fnt,
-                  fill = (r, g, b), anchor = 'mm', align = 'center')
+                  str(shelf_img[i]["confidence"]), font=fnt,
+                  fill=(r, g, b), anchor='mm', align='center')
 
     # Creates buffer object and saves the drawing to it.
     buffer = BytesIO()
@@ -442,13 +443,13 @@ def draw_ocr():
         int_xy = list(map(int, str_xy.split()))
 
         # Draw the rectangle with a colored border and a width of 5 pixels
-        draw.polygon(int_xy, outline = (r, g, b), width = 5)
+        draw.polygon(int_xy, outline=(r, g, b), width=5)
 
         # Add text to rectangle to display what google thinks this is.
-        text_coords =((int_xy[0] + int_xy[4]) / 2, (int_xy[1] + int_xy[5]) / 2)
+        text_coords = ((int_xy[0] + int_xy[4]) / 2, (int_xy[1] + int_xy[5]) / 2)
         fnt = ImageFont.truetype("arial.ttf", 25)
         draw.text(text_coords, cov_img[i]["text"], font=fnt, fill=(r, g, b),
-                  anchor = 'mm', align = 'center')
+                  anchor='mm', align='center')
 
     # Creates buffer object and saves the drawing to it.
     buffer = BytesIO()
