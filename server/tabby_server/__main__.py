@@ -1,9 +1,7 @@
 from flask import Flask, request
 from http import HTTPStatus
 # from services.resource_format import books_test   # --- Use with python ---
-# from vision.vision_test import vision_test        # --- Use with python ---
 from .services.resource_format import books_test    # /-/ Use with pytest /-/
-from .vision.vision_test import vision_test         # /-/ Use with pytest /-/
 
 
 # --- IF USING PYTEST OR PYTHON ---
@@ -15,7 +13,6 @@ app = Flask(__name__)
 
 # Retrieves the blueprint for resource format.
 app.register_blueprint(books_test, url_prefix='/test')
-app.register_blueprint(vision_test, url_prefix='/test')
 
 # Blueprints documentation
 # https://flask.palletsprojects.com/en/stable/blueprints/
