@@ -33,6 +33,46 @@ const initialBooks: Book[] = [
         image: 'https://m.media-amazon.com/images/I/81aY1lxk+9L._AC_UF1000,1000_QL80_.jpg',
         isAddedToLibrary: false,
     },
+    {
+        id: '3',
+        title: 'The Great Gatsby',
+        author: 'F. Scott Fitzgerald',
+        summary: 'A novel about the American dream.',
+        excerpt: 'A novel about the American dream.',
+        image: 'https://m.media-amazon.com/images/I/81QuEGw8VPL._AC_UF1000,1000_QL80_.jpg',
+        isAddedToLibrary: false,
+    },
+    {
+        id: '4',
+        title: 'To Kill a Mockingbird',
+        author: 'Harper Lee',
+        excerpt: 'A novel about racism and injustice.',
+        summary: 'A novel about racism and injustice.',
+
+        image: 'https://m.media-amazon.com/images/I/81aY1lxk+9L._AC_UF1000,1000_QL80_.jpg',
+        isAddedToLibrary: false,
+    },
+
+    {
+        id: '5',
+        title: 'The Great Gatsby',
+        author: 'F. Scott Fitzgerald',
+        summary: 'A novel about the American dream.',
+        excerpt: 'A novel about the American dream.',
+        image: 'https://m.media-amazon.com/images/I/81QuEGw8VPL._AC_UF1000,1000_QL80_.jpg',
+        isAddedToLibrary: false,
+    },
+    {
+        id: '6',
+        title: 'To Kill a Mockingbird',
+        author: 'Harper Lee',
+        excerpt: 'A novel about racism and injustice.',
+        summary: 'A novel about racism and injustice.',
+
+        image: 'https://m.media-amazon.com/images/I/81aY1lxk+9L._AC_UF1000,1000_QL80_.jpg',
+        isAddedToLibrary: false,
+    },
+
 
 ];
 

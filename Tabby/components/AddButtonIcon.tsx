@@ -3,8 +3,8 @@ import { Svg, Path } from 'react-native-svg';
 const AddButtonIcon: React.FC<{ isAdded: boolean }> = ({ isAdded }) => {
 
 
-    const colorFirstPath = isAdded ? "green" : "#C3C6CF";
-    const colorSecondPath = isAdded ? "green" : "#BCBFC8";
+    const colorFirstPath = isAdded ? "#57d356" : "#C3C6CF";
+    const colorSecondPath = isAdded ? "#57d356" : "#BCBFC8";
 
 
     return (

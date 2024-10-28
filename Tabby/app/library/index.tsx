@@ -1,5 +1,6 @@
 import { useRouter } from "expo-router";
-import { View, Text, Pressable, FlatList } from "react-native";
+import { View, Text, Pressable, FlatList, Image } from "react-native";
+import { Link } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome } from "@expo/vector-icons";
 import { useState, useRef } from "react";
@@ -7,6 +8,7 @@ import PinnedIcon from "@/components/categories/PinnedIcon";
 import RenameModal from "@/components/categories/RenameModal"; // Import the modal
 import DeleteConfirmationModal from "@/components/categories/DeleteConfirmationModal";
 import { Category } from "@/types/category"; // Import the Category interface
+import SelectedMenu from "@/components/categories/SelectedMenu";
 
 const Categories = () => {
   const router = useRouter();
@@ -147,7 +149,7 @@ const Categories = () => {
   };
 
   // will be passed into RenameModal to delete new category if renaming was cancelled
-  const handleDeletingNewCategoryThatWasNotRenamed = () => {
+  const handleDeletingNewCategoryInRenameModal = () => {
     // Filter out any categories that were just added but not renamed if rename was canceled
     if (isAddingCategory) {
       const remainingCategories = categories.filter(
@@ -158,8 +160,9 @@ const Categories = () => {
     }
   };
 
-  const handleAddingNewCategoryThatWasNotRenamed = () => {
-    // just add new category and do not filter out any categories
+  // will be passed into RenameModal to deselect the newly added category
+  const handleDeselectingNewCategory = () => {
+
     if (isAddingCategory) {
       setIsAddingCategory(false); // Reset flag
       deselectAllCategories();
@@ -173,15 +176,18 @@ const Categories = () => {
     return allSelectedCategories;
   };
 
-  // this is in vh units to set the height of each category in the FlatList and will only show 7 in view
-  const heightOfCategory = 85;
-  const maxHeightOfCategories = heightOfCategory * 7;
+
   return (
     <>
-      <SafeAreaView>
-        {/* Plus icon to add category cannot add category if there are selected categories */}
-        <View className="flex-row justify-end">
-          <Pressable className="p-2" onPress={() => handleAddCategory()}>
+
+
+      <SafeAreaView className="flex-1">
+
+
+
+        {/* Top row for add category icon */}
+        <View className="flex-row justify-end p-2">
+          <Pressable onPress={() => handleAddCategory()}>
             <FontAwesome
               name="plus"
               size={areAnyCategoriesSelected() || isAddingCategory ? 0 : 46}
@@ -190,79 +196,55 @@ const Categories = () => {
           </Pressable>
         </View>
 
-        {/* Scrollable FlatList with fixed height */}
-        <FlatList
-          data={categories}
-          keyExtractor={(item) => item.name}
-          renderItem={({ item, index }) => (
-            <View className="">
-              <Pressable
-                onPress={() => handleCategoryPress(item)}
-                onLongPress={() => handleLongPress(item.name)}
-                className={`flex-row items-center justify-between py-4 px-6 
-                                ${
-                                  item.isSelected
-                                    ? "bg-blue-500"
-                                    : index % 2 === 0
-                                    ? "bg-black"
-                                    : "bg-gray-300"
-                                } opacity-5`}
-                style={{ opacity: item.isSelected ? 0.7 : 1 }}
-              >
-                <View className="items-center flex-1">
-                  <Text
-                    className={`text-xl font-semibold ${
-                      index % 2 === 0 ? "text-white" : "text-black"
-                    }`}
-                  >
-                    {item.name}
-                  </Text>
-                </View>
+        {/* Content area to allow FlatList and menu to stack correctly */}
+        <View className="flex-1">
+          {/* Scrollable FlatList */}
+          <FlatList
+            data={categories}
+            keyExtractor={(item) => item.name}
+            renderItem={({ item, index }) => (
+              <View>
                 <Pressable
-                  className="p-1"
-                  disabled={areAnyCategoriesSelected()}
-                  onPress={() => handlePinPress(item.name)}
+                  onPress={() => handleCategoryPress(item)}
+                  onLongPress={() => handleLongPress(item.name)}
+                  className={`flex-row items-center justify-between py-4 px-6 
+                          ${item.isSelected ? "bg-blue-500" : index % 2 === 0 ? "bg-black" : "bg-gray-300"}`}
                 >
-                  <PinnedIcon isPinned={item.isPinned} />
+                  <View className="items-center flex-1">
+                    <Text className={`text-xl font-semibold ${index % 2 === 0 ? "text-white" : "text-black"}`}>
+                      {item.name}
+                    </Text>
+                  </View>
+                  <Pressable
+                    className="p-1"
+                    disabled={areAnyCategoriesSelected()}
+                    onPress={() => handlePinPress(item.name)}
+                  >
+                    <PinnedIcon isPinned={item.isPinned} />
+                  </Pressable>
                 </Pressable>
-              </Pressable>
-            </View>
-          )}
-          style={{ maxHeight: maxHeightOfCategories }}
-        />
+              </View>
+            )}
+          />
+        </View>
+
+        {/* Bottom menu: shown when categories are selected */}
+        {categories.some((category) => category.isSelected) && (
+
+
+          <SelectedMenu openDeleteModal={() => setIsDeleteModalVisible(true)} openRenameModal={() => setIsRenameModalVisible(true)} openCancelModal={() => deselectAllCategories()} />
+        )}
       </SafeAreaView>
 
-      {/* Rename/Delete options hidden but shown when a category is selected */}
-      {categories.some((category) => category.isSelected) && (
-        <View className="absolute flex-row w-full p-4 bg-blue-900 bottom-16 justify-evenly">
-          <Pressable
-            onPress={() => setIsDeleteModalVisible(true)}
-            className="mb-4"
-          >
-            <Text className="text-center text-white">Delete</Text>
-          </Pressable>
-          <Pressable onPress={() => setIsRenameModalVisible(true)}>
-            <Text className="text-center text-white">Rename</Text>
-          </Pressable>
-          <Pressable onPress={() => deselectAllCategories()}>
-            <Text className="text-center text-white">Cancel</Text>
-          </Pressable>
-        </View>
-      )}
-
-      {/* Rename Modal hidden at start but opens when the rename button is clicked */}
+      {/* Rename Modal */}
       {isRenameModalVisible && (
         <RenameModal
           categoriesBeingRenamed={getAllSelectedCategories()}
           onRename={handleRename}
           onCancel={() => setIsRenameModalVisible(false)}
-          deleteNewCategoryIfNotRenamedOnCancel={
-            handleDeletingNewCategoryThatWasNotRenamed
-          }
-          addNewCategoryIfNotRenamedOnOk={
-            handleAddingNewCategoryThatWasNotRenamed
-          }
-          resetIsAddingCategory={() => setIsAddingCategory(false)}
+          deleteNewCategoryOnCancel={handleDeletingNewCategoryInRenameModal}
+          isAddingNewCategory={isAddingCategory}
+          handleDeselectingNewCategory={handleDeselectingNewCategory}
         />
       )}
 
@@ -271,10 +253,11 @@ const Categories = () => {
         <DeleteConfirmationModal
           onConfirm={handleDelete}
           onCancel={() => setIsDeleteModalVisible(false)}
-          selectedCategories={getAllSelectedCategories()} // Pass selected categories
+          selectedCategories={getAllSelectedCategories()}
         />
       )}
     </>
+
   );
 };
 

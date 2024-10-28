@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View, Image } from 'react-native';
+import { Text, View, Image, ScrollView } from 'react-native';
 import { Book } from "@/types/book";
 
 import StarsRating from '@/components/book/StarsRating';
@@ -27,10 +27,12 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
                 </View>
             </View>
 
-            {/* Ensure this section takes up the remaining space */}
             <View className="pt-2">
                 <Text className="text-lg text-white">Summary</Text>
-                <Text className="text-sm text-white">{book.summary}</Text>
+                <ScrollView className='max-h-40'>
+                    <Text className="text-sm text-white">{book.summary}</Text>
+                </ScrollView>
+
             </View>
         </View>
 

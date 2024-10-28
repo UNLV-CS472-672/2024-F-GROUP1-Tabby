@@ -7,25 +7,25 @@ import FooterNavBar from '@/components/FooterNavBar';
 import { styled } from 'nativewind';
 import { NativeWindStyleSheet } from "nativewind";
 
-
 NativeWindStyleSheet.setOutput({
     default: "native",
 });
-const Container = styled(View, 'flex-1 bg-[#1E1E1E]'); // Replace 'bg-yourColorHere' with your desired Tailwind class
+
+const Container = styled(View, 'flex-1 bg-[#1E1E1E]');
+const ContentContainer = styled(View, 'flex-grow');
 
 export default function RootLayout() {
     const pathname = usePathname();
-    // flag to check if the current route is in index, welcome page
     const isWelcomePage = pathname === '/';
+
     return (
         <SafeAreaProvider>
             <Container>
-                <Slot />
-
-                {/* Only show the footer if the current route is not the welcome page */}
+                <ContentContainer>
+                    <Slot />
+                </ContentContainer>
                 {!isWelcomePage && <FooterNavBar />}
             </Container>
         </SafeAreaProvider>
-
     );
 }
