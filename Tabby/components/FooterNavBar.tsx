@@ -2,6 +2,7 @@ import { View, Pressable, Text } from "react-native";
 import { Link, usePathname} from "expo-router";
 import { Image } from "expo-image"
 import React from "react";
+import CameraButton from "@/components/CameraButton";
 
 const FooterNavBar = () => {
   const pathname = usePathname();
@@ -21,7 +22,6 @@ const FooterNavBar = () => {
             <Text className="text-white">Library</Text>
           </Pressable>
         </Link>
-
         <Link href="/recommendations" asChild>
           <Pressable className="flex-col px-3">
             <Image 
@@ -35,18 +35,9 @@ const FooterNavBar = () => {
             <Text className="text-white">Favorites</Text>
           </Pressable>
         </Link>
-
-        <Link href="/camera" asChild>
-          <Pressable className="flex-1">
-            <View className="w-16 h-16 bg-white rounded-full">
-              <Image
-              className="w-14 h-14 left-1"
-              source={require("@/assets/navbar-images/camera.svg")}
-              />
-            </View>
-          </Pressable>
-        </Link>
-        
+        <View className="w-16 h-16">
+          <CameraButton/>
+        </View>
         <Link href="/setting" asChild>
           <Pressable className="flex-col px-3">
             <Image className="flex-1" source={require("@/assets/navbar-images/settings.svg")}/>
