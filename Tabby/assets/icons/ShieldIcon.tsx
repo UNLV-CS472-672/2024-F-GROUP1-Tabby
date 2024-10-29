@@ -1,11 +1,16 @@
 import React from 'react';
 import { Svg, Path } from 'react-native-svg';
 
-const ShieldIcon: React.FC<{}> = () => {
+type ShieldIconProps = {
+    width?: number;
+    height?: number;
+};
+
+const ShieldIcon: React.FC<ShieldIconProps> = ({width = 55, height = 55}) => {
     return (
         <Svg
-            width="55"
-            height="55"
+            width={width}
+            height={height}
             viewBox="0 0 55 55"
             fill="none">
 

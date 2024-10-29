@@ -1,5 +1,9 @@
 import { View } from "react-native";
 import SettingBar from "@/components/SettingBar";
+
+/// ********** SVGs **********
+/// All SVGs should be passed here and used like so
+/// for the settings Icon. 
 import EyeIcon from "@/assets/icons/EyeIcon";
 import ShieldIcon from "@/assets/icons/ShieldIcon";
 
@@ -7,6 +11,9 @@ const setting = () => {
 
     return (
         <View>
+            {/* Each component will create a button complete with
+                a working redirect to a specified page.
+            */}
             <SettingBar 
                 settingName="Appearances"
                 settingLink="settingDisplay"
