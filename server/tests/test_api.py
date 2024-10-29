@@ -4,6 +4,7 @@ from tabby_server.services.resource_format import result_dict as r_d
 from http import HTTPStatus
 from flask.testing import FlaskClient
 import requests_mock
+
 # import os
 # from dotenv import load_dotenv
 from tabby_server.__main__ import app
@@ -93,7 +94,7 @@ class TestAPIEndPoint:
             m.get(requests_mock.ANY, json={"books": [0, 1]})
 
             # First Call - Should pass. Just calls the Google APU.
-            result = client.get('/test/make_request')
+            result = client.get("/test/make_request")
 
             # Should be a successful search.
             assert result.status_code == HTTPStatus.OK
@@ -111,9 +112,12 @@ class TestAPIEndPoint:
 
         # Second Call - Should pass. List of books.
         # This time makes an API call prior.
-        r_d.output_dict = {"items": [
-            {"volumeInfo": {"industryIdentifiers": 1}},
-            {"volumeInfo": {"industryIdentifiers": 2}}]}
+        r_d.output_dict = {
+            "items": [
+                {"volumeInfo": {"industryIdentifiers": 1}},
+                {"volumeInfo": {"industryIdentifiers": 2}},
+            ]
+        }
         result = client.get("/test/all_books")
 
         # Returns a json with book attributes.
