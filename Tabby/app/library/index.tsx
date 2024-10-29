@@ -1,6 +1,5 @@
 import { useRouter } from "expo-router";
-import { View, Text, Pressable, FlatList, Image } from "react-native";
-import { Link } from "expo-router";
+import { View, Text, Pressable, FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome } from "@expo/vector-icons";
 import { useState, useRef } from "react";
@@ -9,13 +8,14 @@ import RenameModal from "@/components/categories/RenameModal"; // Import the mod
 import DeleteConfirmationModal from "@/components/categories/DeleteConfirmationModal";
 import { Category } from "@/types/category"; // Import the Category interface
 import SelectedMenu from "@/components/categories/SelectedMenu";
+import BarsIcon from "@/components/categories/BarsIcon"
 
 const Categories = () => {
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([
-    { name: "Fiction", isPinned: false, isSelected: false },
-    { name: "Fantasy", isPinned: false, isSelected: false },
-    { name: "Science Fiction", isPinned: false, isSelected: false },
+    { name: "Fiction", isPinned: false, isSelected: false, position: 0 },
+    { name: "Fantasy", isPinned: false, isSelected: false, position: 0 },
+    { name: "Science Fiction", isPinned: false, isSelected: false, position: 0 },
   ]);
   const [isRenameModalVisible, setIsRenameModalVisible] = useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -31,7 +31,7 @@ const Categories = () => {
   };
 
   const handleCategoryPress = (category: Category) => {
-    // Check if any categories are selected then make category selected instead of going to itspage
+    // Check if any categories are selected then make category selected instead of going to its page
     if (areAnyCategoriesSelected()) {
       const updatedCategories = categories.map((currentCategory) => {
         if (currentCategory.name === category.name) {
@@ -128,7 +128,7 @@ const Categories = () => {
     // updating the current category name
     NewCategoryNameRef.current = uniqueName;
 
-    const newCategory = { name: uniqueName, isPinned: false, isSelected: true };
+    const newCategory = { name: uniqueName, isPinned: false, isSelected: true, position: 0 };
     // updating the categories with newly made cateogry
     setCategories(sortCategories([...categories, newCategory]));
 
@@ -210,6 +210,10 @@ const Categories = () => {
                   className={`flex-row items-center justify-between py-4 px-6 
                           ${item.isSelected ? "bg-blue-500" : index % 2 === 0 ? "bg-black" : "bg-gray-300"}`}
                 >
+                  <Pressable disabled={areAnyCategoriesSelected()}>
+                    <BarsIcon height={30} width={30} color={index % 2 === 0 ? "white" : "black"} />
+                  </Pressable>
+
                   <View className="items-center flex-1">
                     <Text className={`text-xl font-semibold ${index % 2 === 0 ? "text-white" : "text-black"}`}>
                       {item.name}
