@@ -1,6 +1,5 @@
 import { View, Pressable, Text } from "react-native";
 import { Link, usePathname } from "expo-router";
-import { Image } from "expo-image"
 import React from "react";
 import SelectedLibrary from "@/assets/navbar-images/selectedLibrary.svg";
 import NotSelectedLibrary from "@/assets/navbar-images/notSelectedLibrary.svg";

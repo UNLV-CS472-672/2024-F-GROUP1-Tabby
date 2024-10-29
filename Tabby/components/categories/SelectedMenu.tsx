@@ -1,5 +1,4 @@
 import { View, Pressable, Text } from "react-native";
-import { Image } from "expo-image"
 import React from "react";
 import DeleteIcon from "@/assets/categories/delete-icon.svg";
 import RenameIcon from "@/assets/categories/rename-icon.svg";

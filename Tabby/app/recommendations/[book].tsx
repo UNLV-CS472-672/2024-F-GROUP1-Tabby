@@ -1,4 +1,4 @@
-import { View, Pressable, Image, Text } from 'react-native'
+import { View, Pressable } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import React from 'react'
 import { useLocalSearchParams } from 'expo-router';
@@ -9,7 +9,6 @@ import { Book } from "@/types/book";
 import { Review } from "@/types/review";
 import { useState } from 'react';
 import FavoriteButtonIcon from '@/components/FavoriteButtonIcon';
-import MenuIcon from '@/components/book/MenuIcon';
 import DropdownMenu from '@/components/book/DropDownMenu';
 import DeleteIcon from "@/assets/categories/delete-icon.svg";
 import DeleteBookModal from '@/components/book/DeleteBookModal';
