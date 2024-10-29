@@ -27,9 +27,11 @@ class TestAPIEndPoint:
         assert result.status_code == HTTPStatus.OK
 
     def test_test(self, client):
-        result = client.post("/api/test")
+        response = client.post("/api/test")
 
-        assert result.status_code == HTTPStatus.OK
+        logging.info(response.json)
+        assert response.json is not None and "message" in response.json
+        assert response.status_code == HTTPStatus.OK
 
     def test_scan_cover(self, client: FlaskClient):
         """Tests endpoint /books/scan_cover"""

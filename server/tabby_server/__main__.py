@@ -49,7 +49,7 @@ def members():
 
 @app.route("/api/test", methods=["POST"])
 def test():
-    return {}, HTTPStatus.OK
+    return {"message": "Hello world!"}, HTTPStatus.OK
 
 
 if __name__ == "__main__":
