@@ -37,51 +37,50 @@ class TestAPIEndPoint:
         """Tests endpoint /books/scan_cover"""
 
         response = client.post("/books/scan_cover")
+        logging.info(response.json)
         assert response.status_code == HTTPStatus.BAD_REQUEST
         assert response.json is not None and "message" in response.json
-        logging.info(response.json)
 
         response = client.post("/books/scan_cover", json={})
+        logging.info(response.json)
         assert response.status_code == HTTPStatus.BAD_REQUEST
         assert response.json is not None and "message" in response.json
-        logging.info(response.json)
 
         response = client.post(
             "/books/scan_cover", json={"image": "pixel data goes here"}
         )
+        logging.info(response.json)
         assert response.status_code == HTTPStatus.OK
         assert response.json is not None and "results" in response.json
-        logging.info(response.json)
 
     def test_search(self, client: FlaskClient):
         """Tests endpoint /books/search"""
 
         response = client.get("/books/search")
+        logging.info(response.json)
         assert response.status_code == HTTPStatus.BAD_REQUEST
         assert response.json is not None and "message" in response.json
-        logging.info(response.json)
 
         response = client.get("/books/search", json={})
+        logging.info(response.json)
         assert response.status_code == HTTPStatus.BAD_REQUEST
         assert response.json is not None and "message" in response.json
-        logging.info(response.json)
 
         response = client.get(
             "/books/search",
             json={"title": "All Quiet on the Western Front"},
         )
+        logging.info(response.json)
         assert response.status_code == HTTPStatus.BAD_REQUEST
         assert response.json is not None and "message" in response.json
-        logging.info(response.json)
 
         response = client.get(
             "/books/search",
             query_string={"title": "All Quiet on the Western Front"},
         )
-
+        logging.info(response.json)
         assert response.status_code == HTTPStatus.OK
         assert response.json is not None and "results" in response.json
-        logging.info(response.json)
 
     # Makes a call to Google Books API
     def test_google_books_test_call_api(self, client):
