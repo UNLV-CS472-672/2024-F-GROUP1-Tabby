@@ -35,3 +35,6 @@ lint = "flake8 tabby_server tests"
 type = "mypy tabby_server tests"
 format = "black tabby_server tests --line-length 79"
 ci = ["lint", "type", "test"]
+
+[tool.mypy]
+disable_error_code = ["import-untyped"]
