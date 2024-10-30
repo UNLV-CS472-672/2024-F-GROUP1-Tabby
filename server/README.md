@@ -92,3 +92,23 @@ This video goes through the entire process to setup the server as well
 as the react app.
 
 [Video](https://www.youtube.com/watch?v=7LNl2JlZKHA)
+
+
+### Poe Scripts
+
+Below are the scripts for Poe:
+
+```bash
+poe test  # Runs unit tests
+poe lint  # Runs flake8 linter
+poe type  # Runs type checks using mypy
+poe format  # Formats all files in `tabby_server/` and `tests/`
+poe ci  # Runs the CI pipeline (lint, type, test)
+poe dev  # Runs the development server.
+```
+
+**Before committing/making a pull request, make sure you use `poe ci`!**
+
+This will run the linter checks, type checker, and unit tests on your local
+machine. This saves time from having Github Actions do the work through the
+workflow.
