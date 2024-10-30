@@ -1,5 +1,5 @@
 import { Text, View, Pressable } from 'react-native'
-import React from 'react'
+import React, { useCallback } from 'react'
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -10,15 +10,18 @@ interface Prop {
     svg_icon: React.ReactElement<React.FC<{width: number, height: number}>>       // Pass the SVG as a imported component
 }
 
-const SettingBar:React.FC<Prop> = ({settingName, svg_icon, settingLink, description}) => {
+function SettingBar ({settingName, svg_icon, settingLink, description}:Prop) {
     // Use Expo Router to assist with navigation
     const router = useRouter();
 
-    const handleSettingPress = () => {
+    const handleSettingPress = useCallback(() => {
         // Upon pressing the button, it should redirect to an
         // existing page within the same directory
         router.push(`./${settingLink}`);
-    }
+        // router.navigate(`./${settingLink}`)
+    },
+    [settingLink],     // Tells React to memorize regardless of arguments. Apparently...
+    );
 
     return (
         <SafeAreaView>
@@ -28,7 +31,7 @@ const SettingBar:React.FC<Prop> = ({settingName, svg_icon, settingLink, descript
                 Entire component will be pressable including the images.
             */}
 
-            <Pressable onPress={handleSettingPress} className="max-w-xs items-left flex-row my-0">
+            <Pressable testID='SettingButton' onPress={handleSettingPress} className="max-w-xs items-left flex-row my-0">
                 {/* The setup for the settings will be the following
                     Icon       Name
                             Description
@@ -37,11 +40,11 @@ const SettingBar:React.FC<Prop> = ({settingName, svg_icon, settingLink, descript
 
                 {/* Allow for the text to lay below eachother. Wrapped in view.*/}
                 <View>
-                    <Text className={`text-textWhite text-left mt-2 mb-1`}>
+                    <Text className={`text-white text-left mt-2 mb-1`}>
                         {settingName}
                     </Text>
 
-                    <Text className={`text-textGray`}>
+                    <Text className={`text-gray-500`}>
                         {description}
                     </Text>
                 </View>
