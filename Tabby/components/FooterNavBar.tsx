@@ -11,8 +11,6 @@ import NotSelectedFavorite from "@/assets/navbar-images/notSelectedFavorite.svg"
 import Settings from "@/assets/navbar-images/settings.svg";
 
 const FooterNavBar = () => {
-  // getting the current page will be used to determine which icon is renedered in the nav bar
-  // ex: favorites icon will be selected if the current page is one of the favorites page that is why startsWith is used to see if the pathname starts with /favorites
   const pathname = usePathname();
   const size = 40;
   return (
@@ -23,7 +21,7 @@ const FooterNavBar = () => {
       <Link href="/library" className="" asChild>
         <Pressable className="flex-col mx-auto">
 
-          {pathname.startsWith("/library") ? <SelectedLibrary height={size} width={size} /> : <NotSelectedLibrary height={size} width={size} />}
+          {pathname.includes("/library") ? <SelectedLibrary height={size} width={size} /> : <NotSelectedLibrary height={size} width={size} />}
 
           <Text className="text-white text-center">Library</Text>
         </Pressable>
@@ -31,7 +29,7 @@ const FooterNavBar = () => {
 
       <Link href="/recommendations" asChild>
         <Pressable className="flex-col mx-auto">
-          {pathname.startsWith("/recommendations") ? <SelectedExplore height={size} width={size} /> : <NotSelectedExplore height={size} width={size} />}
+          {pathname.includes("/recommendations") ? <SelectedExplore height={size} width={size} /> : <NotSelectedExplore height={size} width={size} />}
 
           <Text className="text-white text-center">Explore</Text>
         </Pressable>
@@ -47,7 +45,7 @@ const FooterNavBar = () => {
 
       <Link href="/favorites" asChild>
         <Pressable className="flex-col mx-auto">
-          {pathname.startsWith("/favorites") ? <SelectedFavorite height={size} width={size} /> : <NotSelectedFavorite height={size} width={size} />}
+          {pathname.includes("/favorites") ? <SelectedFavorite height={size} width={size} /> : <NotSelectedFavorite height={size} width={size} />}
 
           <Text className="text-white text-center">Liked</Text>
         </Pressable>

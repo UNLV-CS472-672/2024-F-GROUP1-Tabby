@@ -7,7 +7,6 @@ import FooterNavBar from '@/components/FooterNavBar';
 import { styled } from 'nativewind';
 import { NativeWindStyleSheet } from "nativewind";
 
-// use to make nativewind styles work on the web
 NativeWindStyleSheet.setOutput({
     default: "native",
 });
