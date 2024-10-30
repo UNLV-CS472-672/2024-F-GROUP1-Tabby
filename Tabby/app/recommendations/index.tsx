@@ -3,6 +3,7 @@ import { FlatList, Pressable } from 'react-native';
 import BookCard from '@/components/BookCard'; // Adjust the path as necessary
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AddButtonIcon from '@/components/AddButtonIcon';
+import { SearchBar } from "@rneui/themed";
 type Book = {
     id: string;
     title: string;
@@ -35,6 +36,12 @@ const Reccomendations: React.FC = () => {
     // State to keep track of books and their favorite status
     const [books, setBooks] = useState<Book[]>(initialBooks);
 
+    const [search, setSearch] = useState("");
+
+    const updateSearch = (search) => {
+        setSearch(search);
+    };
+
     const handleAddToLibraryPress = (bookId: string) => {
         setBooks((prevBooks) =>
             prevBooks.map((book) =>
@@ -53,6 +60,7 @@ const Reccomendations: React.FC = () => {
 
     return (
         <SafeAreaView className="flex-1 p-4">
+            <SearchBar placeholder="Type Here..." onChangeText={updateSearch} value={search}/>
             <FlatList
                 data={books}
                 keyExtractor={(item) => item.id}

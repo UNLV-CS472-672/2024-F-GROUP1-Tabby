@@ -7,6 +7,7 @@ import PinnedIcon from "@/components/categories/PinnedIcon";
 import RenameModal from "@/components/categories/RenameModal"; // Import the modal
 import DeleteConfirmationModal from "@/components/categories/DeleteConfirmationModal";
 import { Category } from "@/types/category"; // Import the Category interface
+import { SearchBar } from "@rneui/themed";
 
 const Categories = () => {
   const router = useRouter();
@@ -18,6 +19,7 @@ const Categories = () => {
   const [isRenameModalVisible, setIsRenameModalVisible] = useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [search, setSearch] = useState("");
   const defaultNewCategoryName = "New Category";
   const NewCategoryNameRef = useRef(defaultNewCategoryName);
 
@@ -172,6 +174,11 @@ const Categories = () => {
     );
     return allSelectedCategories;
   };
+  
+  const updateSearch = (search) => {
+    setSearch(search);
+    console.log(search);
+  };
 
   // this is in vh units to set the height of each category in the FlatList and will only show 7 in view
   const heightOfCategory = 85;
@@ -179,6 +186,7 @@ const Categories = () => {
   return (
     <>
       <SafeAreaView>
+        <SearchBar placeholder="Type Here..." onChangeText={updateSearch} value={search}/>
         {/* Plus icon to add category cannot add category if there are selected categories */}
         <View className="flex-row justify-end">
           <Pressable className="p-2" onPress={() => handleAddCategory()}>
