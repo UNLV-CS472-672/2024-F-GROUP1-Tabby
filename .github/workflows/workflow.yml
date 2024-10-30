@@ -31,14 +31,10 @@ jobs:
         run: |
           cd server
           poetry install
-      - name: Lint with flake8
+      - name: Run CI tasks
         run: |
           cd server
-          poetry run flake8 . --exclude=venv
-      - name: Run with pytest
-        run: |
-          cd server
-          poetry run pytest
+          poetry run poe ci
   build-app:
     runs-on: ubuntu-latest
     strategy:
