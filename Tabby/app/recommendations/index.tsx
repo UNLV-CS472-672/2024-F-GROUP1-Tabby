@@ -13,6 +13,7 @@ type Book = {
     isAddedToLibrary: boolean;
 };
 
+// test data to see how the recconmendation page would look
 const initialBooks: Book[] = [
     {
         id: '1',
@@ -80,16 +81,18 @@ const Reccomendations: React.FC = () => {
     // State to keep track of books and their favorite status
     const [books, setBooks] = useState<Book[]>(initialBooks);
 
+    // will change the state of the book to add to library
     const handleAddToLibraryPress = (bookId: string) => {
         setBooks((prevBooks) =>
             prevBooks.map((book) =>
                 book.id === bookId
-                    ? { ...book, isAddedToLibrary: !book.isAddedToLibrary } // Toggle favorite status
+                    ? { ...book, isAddedToLibrary: !book.isAddedToLibrary } // Toggle added to library status
                     : book
             )
         );
     };
 
+    // book add button to be passed as a prop to the book previews
     const renderBookButton = (book: { id: string; isAddedToLibrary: boolean }) => (
         <Pressable onPress={() => handleAddToLibraryPress(book.id)} className="ml-4">
             <AddButtonIcon isAdded={book.isAddedToLibrary} />

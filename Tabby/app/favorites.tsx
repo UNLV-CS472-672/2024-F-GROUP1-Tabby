@@ -2,7 +2,7 @@ import React from 'react';
 import { Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-
+// page to display pinned categories and books needs to be built
 const Favorites = () => {
 
     return (

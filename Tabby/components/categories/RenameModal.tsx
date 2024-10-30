@@ -18,6 +18,8 @@ const RenameModal: React.FC<RenameModalProps> = ({
     deleteNewCategoryOnCancel,
     isAddingNewCategory,
     handleDeselectingNewCategory }) => {
+    // if new category is being added then set initial name to empty or if there is more than one category being renamed
+    // otherwise set the initial name to the category name being renamed
     const [newName, setNewName] = useState(
         (categoriesBeingRenamed.length > 1 || isAddingNewCategory ? '' : categoriesBeingRenamed[0].name) as string);
     const [errorMessage, setErrorMessage] = useState(null as string | null);
@@ -46,9 +48,6 @@ const RenameModal: React.FC<RenameModalProps> = ({
             return
         }
 
-
-
-
         onRename(trimmedName);
         setNewName('');
 
@@ -65,6 +64,7 @@ const RenameModal: React.FC<RenameModalProps> = ({
         onCancel();
     }
 
+    // used to reset the error message if user starts typing stuff and then also set local state of the new name
     const handleChangeText = (text: string) => {
         setErrorMessage(null);
         setNewName(text);

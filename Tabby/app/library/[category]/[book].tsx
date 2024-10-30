@@ -19,7 +19,7 @@ const BookPage = () => {
     const [favorite, setFavorite] = useState(false);
     const [isMoveMenuVisible, setIsMoveMenuVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-
+    // test data for reviews to see how reviews would look
     const ReviewsArray: Review[] = [
         {
             name: 'John Doe',
@@ -63,7 +63,7 @@ const BookPage = () => {
         }
     ];
 
-
+    // test book data to see how the book page will look with all its components
     const BookObj: Book = {
         id: '2',
         title: 'To Kill a Mockingbird',

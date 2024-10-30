@@ -30,6 +30,7 @@ const Categories = () => {
     });
   };
 
+  // can go to specific book category page or just make category selected if any other categories are selected 
   const handleCategoryPress = (category: Category) => {
     // Check if any categories are selected then make category selected instead of going to its page
     if (areAnyCategoriesSelected()) {
@@ -50,6 +51,7 @@ const Categories = () => {
     router.push(`/library/${category.name}`);
   };
 
+  // will pin or unpin a category
   const handlePinPress = (categoryName: string) => {
     const updatedCategories = categories.map((category) =>
       category.name === categoryName
@@ -59,6 +61,7 @@ const Categories = () => {
     setCategories(sortCategories(updatedCategories));
   };
 
+  // will select or unselect a category by doing a long press
   const handleLongPress = (categoryName: string) => {
     const updatedCategories = categories.map((category) =>
       category.name === categoryName
@@ -68,6 +71,7 @@ const Categories = () => {
     setCategories(updatedCategories);
   };
 
+  // will delete all selected categories
   const handleDelete = () => {
     const remainingCategories = categories.filter(
       (category) => !category.isSelected
@@ -76,6 +80,7 @@ const Categories = () => {
     setIsDeleteModalVisible(false);
   };
 
+  // will be passed into RenameModal to handle renaming a category 
   const handleRename = (newName: string) => {
     // Create a copy of the current categories
     const updatedCategories = [...categories];
@@ -93,7 +98,7 @@ const Categories = () => {
           counter++;
         }
 
-        // Update the name in the copied array adn deselect the category since it has been renamed
+        // Update the name in the copied array and deselect the category since it has been renamed
         updatedCategories[index] = {
           ...category,
           name: uniqueName,
@@ -136,10 +141,12 @@ const Categories = () => {
     setIsRenameModalVisible(true);
   };
 
+  // to check if any category is selected
   const areAnyCategoriesSelected = () => {
     return categories.some((category) => category.isSelected);
   };
 
+  // to deselect all categories
   const deselectAllCategories = () => {
     const updatedCategories = categories.map((category) => ({
       ...category,
@@ -169,6 +176,7 @@ const Categories = () => {
     }
   };
 
+  // will return all selected categories
   const getAllSelectedCategories = () => {
     const allSelectedCategories = categories.filter(
       (category) => category.isSelected

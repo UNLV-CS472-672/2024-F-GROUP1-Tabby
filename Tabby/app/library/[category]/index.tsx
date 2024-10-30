@@ -67,6 +67,7 @@ const initialBooks: Book[] = [
 
 ];
 
+// to set book as favorite
 const CategoryPage: React.FC = () => {
     // State to keep track of books and their favorite status
     const [books, setBooks] = useState<Book[]>(initialBooks);
@@ -81,6 +82,7 @@ const CategoryPage: React.FC = () => {
         );
     };
 
+    // book heart button to be passed as a prop to the book previews
     const renderBookButton = (book: { id: string; isFavorite: boolean }) => (
         <Pressable onPress={() => handleFavoritePress(book.id)} className="ml-4">
             <FavoriteButtonIcon isFavorite={book.isFavorite} />

@@ -20,6 +20,7 @@ const BookPage = () => {
     const [isMoveMenuVisible, setIsMoveMenuVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
+    // test data for reviews to see how reviews would look
     const ReviewsArray: Review[] = [
         {
             name: 'John Doe',
@@ -63,7 +64,7 @@ const BookPage = () => {
         }
     ];
 
-
+    // test book data to see how the book page will look with all its components
     const BookObj: Book = {
         id: '2',
         title: 'To Kill a Mockingbird',
@@ -104,8 +105,7 @@ const BookPage = () => {
                         <DeleteIcon width={40} height={40} />
                     </Pressable>
 
-                    {/* Delete Modal */}
-
+                    {/* Delete Modal that shows up when delete button on the top right is pressed*/}
                     <DeleteBookModal
                         visible={isDeleteModalVisible}
                         onClose={() => setIsDeleteModalVisible(false)}
@@ -132,8 +132,6 @@ const BookPage = () => {
                     />
                 </View>
 
-
-
                 <View>
                     <BookCard book={BookObj} />
                 </View>
@@ -149,9 +147,6 @@ const BookPage = () => {
                         reviewSummary: 'This book is great!'
                     }]} />
                 </View>
-
-
-
 
             </SafeAreaView>
 

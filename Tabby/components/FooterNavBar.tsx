@@ -11,6 +11,7 @@ import NotSelectedFavorite from "@/assets/navbar-images/notSelectedFavorite.svg"
 import Settings from "@/assets/navbar-images/settings.svg";
 
 const FooterNavBar = () => {
+  // getting the current page to see the path and using that to make the icons change to selected if that path invloves the page that icon is related to 
   const pathname = usePathname();
   const size = 40;
   return (

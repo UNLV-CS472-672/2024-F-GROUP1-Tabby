@@ -8,6 +8,7 @@ type StarIconProps = {
 };
 
 const StarIcon: React.FC<StarIconProps> = ({ isRated, width = 25, height = 25 }) => {
+    // change color to yellow based on flag
     const fillColor = isRated ? "#9E9E00" : "none";
 
     return (

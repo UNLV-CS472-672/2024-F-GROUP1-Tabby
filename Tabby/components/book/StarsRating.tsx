@@ -11,6 +11,7 @@ type StarsRatingProps = {
 const StarsRating: React.FC<StarsRatingProps> = ({ rating, height = 25, width = 25 }) => {
     const stars = [1, 2, 3, 4, 5];
 
+    // used to make the correct stars yellow
     const renderStar = ({ item }: { item: number }) => (
         <StarIcon isRated={item <= rating} height={height} width={width} />
 
