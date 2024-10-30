@@ -17,7 +17,6 @@ const WelcomeScreen = () => {
             >
                 Get Started
             </Link>
-
         </SafeAreaView>
     );
 };

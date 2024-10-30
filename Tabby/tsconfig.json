@@ -13,7 +13,6 @@
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
-    "svg.d.ts", // Add this line if you want to explicitly include it
     "expo-env.d.ts"
   ]
 }
