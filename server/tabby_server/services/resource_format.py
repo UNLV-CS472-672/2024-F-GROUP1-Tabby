@@ -2,20 +2,21 @@ from http import HTTPStatus
 import requests
 import os
 from dotenv import load_dotenv
+
 # from tabby_server.__main__ import app     # Use when running pytest
 # from __main__ import app    # Use when actually running the server
 
 
-load_dotenv()   # Use 'os.getenv("KEY")' to get values.
+load_dotenv()  # Use 'os.getenv("KEY")' to get values.
 
 # Apparently necessary to import from a .env file?
 # If there is a better way, do tell please.
 
 
-'''
+"""
 Test bed to creating what may be returned by the GoogleBooks API.
 Likely to be deleted later.
-'''
+"""
 
 
 # This call is an example given by Google Books documentation.
@@ -30,7 +31,7 @@ Likely to be deleted later.
 # Class variable to hold the result of the api call
 class ApiTesting:
     # Empty for now. Will hold the result from google books.
-    output_dict = {}    # dict
+    output_dict = {}  # dict
 
 
 # Declares the class variable.
@@ -62,7 +63,7 @@ def google_books_test_call_api():
         if api_key is None:
             api_key = " "
 
-        api_url = api_http+api_search+api_key_var+api_key+api_max+api_results
+        api_url = api_http + api_search + api_key_var + api_key + api_max + api_results
 
         response = requests.get(api_url)  # Google Books API Request
         result_dict.output_dict = response.json()  # Converts output to a dict.
@@ -94,37 +95,37 @@ def google_books_test_all_books():
             entry = {}
 
             try:
-                entry['isbn'] = items[i]["volumeInfo"]["industryIdentifiers"]
+                entry["isbn"] = items[i]["volumeInfo"]["industryIdentifiers"]
             except KeyError:
                 continue
 
             try:
-                entry['title'] = items[i]["volumeInfo"]["title"]
+                entry["title"] = items[i]["volumeInfo"]["title"]
             except KeyError:
                 pass
 
             try:
-                entry['author'] = items[i]["volumeInfo"]["authors"]
+                entry["author"] = items[i]["volumeInfo"]["authors"]
             except KeyError:
                 pass
 
             try:
-                entry['summary'] = items[i]["volumeInfo"]["description"]
+                entry["summary"] = items[i]["volumeInfo"]["description"]
             except KeyError:
                 pass
 
             try:
-                entry['publisher'] = items[i]["volumeInfo"]["publisher"]
+                entry["publisher"] = items[i]["volumeInfo"]["publisher"]
             except KeyError:
                 pass
 
             try:
-                entry['reviews'] = items[i]["volumeInfo"]["averageRating"]
+                entry["reviews"] = items[i]["volumeInfo"]["averageRating"]
             except KeyError:
                 pass
 
             try:
-                entry['thumbnail'] = items[i]["volumeInfo"]["imageLinks"]
+                entry["thumbnail"] = items[i]["volumeInfo"]["imageLinks"]
             except KeyError:
                 pass
 

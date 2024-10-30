@@ -1,10 +1,11 @@
 from http import HTTPStatus
+
 # from tabby_server.__main__ import app     # Use when running pytest
 # from __main__ import app    # Use when actually running the server
 
 
 def alternate_page():
-    return 'it works!', HTTPStatus.OK
+    return "it works!", HTTPStatus.OK
 
 
 # This is a test format to creating a new page on the local server.
