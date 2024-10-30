@@ -12,15 +12,7 @@ module.exports = {
       fontFamily: {
         rmono: ['Roboto-Mono', 'sans-serif']
       }
-    }
-    // ,
-    // colors: {
-    //   "primary": "#1E1E1E",
-    //   "background": "#FFFFFF",
-    //   "textWhite": "#FFFFFF",
-    //   "textGray": "#9ca3af",
-    //   "textDark": "#1A1A1A"
-    // }
+    },
   },
   plugins: [],
 }
