@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask
 from http import HTTPStatus
 
 # from services import resource_format  # Use when actually running the server
