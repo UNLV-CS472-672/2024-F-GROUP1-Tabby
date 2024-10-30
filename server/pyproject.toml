@@ -28,3 +28,10 @@ build-backend = "poetry.core.masonry.api"
 log_cli = 1
 log_file = "logs/pytest.log"
 log_file_level = "INFO"
+
+[tool.poe.tasks]
+test = "pytest tests -vv --cov=tabby_server --cov-report=term-missing"
+lint = "flake8 tabby_server tests"
+type = "mypy tabby_server tests"
+format = "black tabby_server tests --line-length 79"
+ci = ["lint", "type", "test"]
