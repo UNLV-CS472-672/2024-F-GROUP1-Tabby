@@ -6,28 +6,40 @@ interface RenameModalProps {
     categoriesBeingRenamed: Category[];
     onRename: (newName: string) => void;
     onCancel: () => void;
-    deleteNewCategoryIfNotRenamedOnCancel: () => void;
-    addNewCategoryIfNotRenamedOnOk: () => void;
-    resetIsAddingCategory: () => void;
+    deleteNewCategoryOnCancel: () => void;
+    isAddingNewCategory: boolean;
+    handleDeselectingNewCategory: () => void;
 }
 
 const RenameModal: React.FC<RenameModalProps> = ({
     categoriesBeingRenamed,
     onRename,
     onCancel,
-    deleteNewCategoryIfNotRenamedOnCancel,
-    addNewCategoryIfNotRenamedOnOk,
-    resetIsAddingCategory }) => {
+    deleteNewCategoryOnCancel,
+    isAddingNewCategory,
+    handleDeselectingNewCategory }) => {
+    // if new category is being added then set initial name to empty or if there is more than one category being renamed
+    // otherwise set the initial name to the category name being renamed
     const [newName, setNewName] = useState(
-        (categoriesBeingRenamed.length > 1 ? '' : categoriesBeingRenamed[0].name) as string);
+        (categoriesBeingRenamed.length > 1 || isAddingNewCategory ? '' : categoriesBeingRenamed[0].name) as string);
     const [errorMessage, setErrorMessage] = useState(null as string | null);
 
     const handleConfirm = () => {
         setErrorMessage(null);
         const trimmedName = newName.trim();
 
-        // will add new category that was not renamed beacuse user pressd ok 
-        addNewCategoryIfNotRenamedOnOk()
+        // name cannot be empty
+        if (trimmedName === "") {
+            setErrorMessage("Category name cannot be empty.");
+            setNewName('');
+
+            return;
+        }
+
+        // will diselect the category if the new category being added is renamed
+        if (isAddingNewCategory) {
+            handleDeselectingNewCategory()
+        }
 
 
         // name did not change from initial name
@@ -36,31 +48,23 @@ const RenameModal: React.FC<RenameModalProps> = ({
             return
         }
 
-
-
-        if (trimmedName === "") {
-            setErrorMessage("Category name cannot be empty.");
-            setNewName('');
-
-            return;
-        }
         onRename(trimmedName);
         setNewName('');
-        // reset is setting category flag to false
-        resetIsAddingCategory();
+
     };
 
 
     const handleCancel = () => {
         setNewName('');
         // if adding a new category then delete if renaming of it was cancelled
-        deleteNewCategoryIfNotRenamedOnCancel()
-        // reset is setting addding category flag to false
-        resetIsAddingCategory()
+        if (isAddingNewCategory) {
+            deleteNewCategoryOnCancel();
+        }
 
         onCancel();
     }
 
+    // used to reset the error message if user starts typing stuff and then also set local state of the new name
     const handleChangeText = (text: string) => {
         setErrorMessage(null);
         setNewName(text);
