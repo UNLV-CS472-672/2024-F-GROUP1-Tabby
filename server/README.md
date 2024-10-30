@@ -103,7 +103,7 @@ poe ci  # Runs the CI pipeline (lint, type, test)
 poe dev  # Runs the development server.
 poe format  # Formats all files in `tabby_server/` and `tests/`
 poe lint  # Runs flake8 linter
-poe test  # Runs unit tests
+poe test  # Runs unit tests and produces a coverage report.
 poe type  # Runs type checks using mypy
 ```
 
