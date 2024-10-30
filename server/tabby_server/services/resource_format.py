@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from typing import Any
 import requests
 import os
 from dotenv import load_dotenv
@@ -31,7 +32,7 @@ Likely to be deleted later.
 # Class variable to hold the result of the api call
 class ApiTesting:
     # Empty for now. Will hold the result from google books.
-    output_dict = {}  # dict
+    output_dict: dict[str, Any] = {}  # dict
 
 
 # Declares the class variable.
