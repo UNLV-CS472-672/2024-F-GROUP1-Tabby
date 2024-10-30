@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "server"
+name = "tabby_server"
 version = "0.1.0"
 description = "Server for the Tabby app."
 authors = ["Ederic Oytas <edericoytas@gmail.com>"]
@@ -10,6 +10,7 @@ python = "^3.12"
 flask = "^3.0.3"
 requests = "^2.32.3"
 python-dotenv = "^1.0.1"
+poethepoet = "^0.29.0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -18,7 +19,6 @@ pytest = "^8.3.3"
 pytest-cov = "^5.0.0"
 requests-mock = "^1.12.1"
 mypy = "^1.13.0"
-tox = "^4.23.2"
 
 [build-system]
 requires = ["poetry-core"]
