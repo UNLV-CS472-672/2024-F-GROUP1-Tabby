@@ -83,7 +83,6 @@ class TestAPIEndPoint:
 
     # Makes a call to Google Books API
     def test_google_books_test_call_api(self, client):
-
         # This holds some great insight.
         # If this method fails later on, use this.
         # https://stackoverflow.com/questions/15753390/how-can-i-mock-requests-and-the-response

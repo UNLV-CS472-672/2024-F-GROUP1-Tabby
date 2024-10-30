@@ -63,7 +63,14 @@ def google_books_test_call_api():
         if api_key is None:
             api_key = " "
 
-        api_url = api_http + api_search + api_key_var + api_key + api_max + api_results
+        api_url = (
+            api_http
+            + api_search
+            + api_key_var
+            + api_key
+            + api_max
+            + api_results
+        )
 
         response = requests.get(api_url)  # Google Books API Request
         result_dict.output_dict = response.json()  # Converts output to a dict.

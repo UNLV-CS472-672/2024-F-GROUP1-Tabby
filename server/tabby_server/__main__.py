@@ -59,7 +59,9 @@ def books_scan_cover():
     """
 
     if not request.is_json:
-        return {"message": "Content type must be JSON."}, HTTPStatus.BAD_REQUEST
+        return {
+            "message": "Content type must be JSON."
+        }, HTTPStatus.BAD_REQUEST
     data = request.get_json()
 
     image = data.get("image")
