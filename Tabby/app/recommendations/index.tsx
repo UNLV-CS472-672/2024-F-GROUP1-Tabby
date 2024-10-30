@@ -38,7 +38,7 @@ const Reccomendations: React.FC = () => {
 
     const [search, setSearch] = useState("");
 
-    const updateSearch = (search) => {
+    const updateSearch = (search: string) => {
         setSearch(search);
     };
 
@@ -58,19 +58,27 @@ const Reccomendations: React.FC = () => {
         </Pressable>
     );
 
+    const renderItem = ({item}: {item: Book}) => {
+        console.log("Search: ", search.length);
+        console.log("title: ", item.title);
+        if(search == "" || item.title.toLowerCase() == search.toLowerCase()){
+            return (
+                <BookCard  
+                    book={item}
+                    button={renderBookButton(item)}
+                />
+            )
+        }
+        return(null);
+    }
+
     return (
         <SafeAreaView className="flex-1 p-4">
             <SearchBar placeholder="Type Here..." onChangeText={updateSearch} value={search}/>
             <FlatList
                 data={books}
                 keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                    <BookCard
-                        book={item}
-                        button={renderBookButton(item)} // Passing the Pressable button as a prop
-                        isReccommendation={true}
-                    />
-                )}
+                renderItem={renderItem}
             />
         </SafeAreaView>
     );

@@ -175,10 +175,52 @@ const Categories = () => {
     return allSelectedCategories;
   };
   
-  const updateSearch = (search) => {
+  const updateSearch = (search: string) => {
     setSearch(search);
     console.log(search);
   };
+
+  const renderItem = ({item, index}: {item: Category, index: number}) => {
+    console.log("Search: ", search.length);
+    console.log("title: ", item.name);
+    if(search == "" || item.name.toLowerCase() == search.toLowerCase()){
+        return (
+          <View className="">
+            <Pressable
+              onPress={() => handleCategoryPress(item)}
+              onLongPress={() => handleLongPress(item.name)}
+              className={`flex-row items-center justify-between py-4 px-6 
+                              ${
+                                item.isSelected
+                                  ? "bg-blue-500"
+                                  : index % 2 === 0
+                                  ? "bg-black"
+                                  : "bg-gray-300"
+                              } opacity-5`}
+              style={{ opacity: item.isSelected ? 0.7 : 1 }}
+            >
+            <View className="items-center flex-1">
+              <Text
+                className={`text-xl font-semibold ${
+                  index % 2 === 0 ? "text-white" : "text-black"
+                }`}
+              >
+                {item.name}
+              </Text>
+            </View>
+            <Pressable
+              className="p-1"
+              disabled={areAnyCategoriesSelected()}
+              onPress={() => handlePinPress(item.name)}
+            >
+              <PinnedIcon isPinned={item.isPinned} />
+            </Pressable>
+          </Pressable>
+        </View>
+        )
+    }
+    return(null);
+}
 
   // this is in vh units to set the height of each category in the FlatList and will only show 7 in view
   const heightOfCategory = 85;
@@ -202,40 +244,7 @@ const Categories = () => {
         <FlatList
           data={categories}
           keyExtractor={(item) => item.name}
-          renderItem={({ item, index }) => (
-            <View className="">
-              <Pressable
-                onPress={() => handleCategoryPress(item)}
-                onLongPress={() => handleLongPress(item.name)}
-                className={`flex-row items-center justify-between py-4 px-6 
-                                ${
-                                  item.isSelected
-                                    ? "bg-blue-500"
-                                    : index % 2 === 0
-                                    ? "bg-black"
-                                    : "bg-gray-300"
-                                } opacity-5`}
-                style={{ opacity: item.isSelected ? 0.7 : 1 }}
-              >
-                <View className="items-center flex-1">
-                  <Text
-                    className={`text-xl font-semibold ${
-                      index % 2 === 0 ? "text-white" : "text-black"
-                    }`}
-                  >
-                    {item.name}
-                  </Text>
-                </View>
-                <Pressable
-                  className="p-1"
-                  disabled={areAnyCategoriesSelected()}
-                  onPress={() => handlePinPress(item.name)}
-                >
-                  <PinnedIcon isPinned={item.isPinned} />
-                </Pressable>
-              </Pressable>
-            </View>
-          )}
+          renderItem={renderItem}
           style={{ maxHeight: maxHeightOfCategories }}
         />
       </SafeAreaView>

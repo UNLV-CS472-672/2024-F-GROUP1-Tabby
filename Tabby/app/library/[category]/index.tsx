@@ -54,8 +54,22 @@ const CategoryPage: React.FC = () => {
             <FavoriteButtonIcon isFavorite={book.isFavorite} />
         </Pressable>
     );
+    
+    const renderItem = ({item}: {item: Book}) => {
+        console.log("Search: ", search.length);
+        console.log("title: ", item.title);
+        if(search == "" || item.title.toLowerCase() == search.toLowerCase()){
+            return (
+                <BookCard  
+                    book={item}
+                    button={renderBookButton(item)}
+                />
+            )
+        }
+        return(null);
+    }
 
-    const updateSearch = (search) => {
+    const updateSearch = (search: string) => {
         setSearch(search);
       };
 
@@ -65,12 +79,7 @@ const CategoryPage: React.FC = () => {
             <FlatList
                 data={books}
                 keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                    <BookCard
-                        book={item}
-                        button={renderBookButton(item)} // Passing the Pressable button as a prop
-                    />
-                )}
+                renderItem={renderItem}
             />
         </SafeAreaView>
     );
