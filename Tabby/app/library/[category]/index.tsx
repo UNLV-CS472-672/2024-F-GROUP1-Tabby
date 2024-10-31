@@ -92,7 +92,7 @@ const CategoryPage: React.FC = () => {
 
     // if the string typed in the search bar is a part of a book title then render the book
     const renderItem = ({ item }: { item: Book }) => {
-        if (search == "" || item.title.toLowerCase().includes(search.toLowerCase())) {
+        if (search === "" || item.title.toLowerCase().includes(search.toLowerCase())) {
             return (
                 <BookPreview
                     book={item}
