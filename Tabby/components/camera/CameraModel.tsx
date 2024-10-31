@@ -59,20 +59,20 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal }) => {
             <TouchableWithoutFeedback onPress={closeModal}>
                 <View className="flex-1 justify-center items-center">
                     <TouchableWithoutFeedback>
-                        <View className="bg-[#1d232b] rounded-lg w-64 p-4 space-y-4">
+                        <View className="bg-white rounded-lg w-64 p-4 space-y-4">
                             <Pressable
                                 onPress={handleTakePicture}
                                 disabled={isProcessing}
-                                className={`p-2 rounded items-center bg-white`}
+                                className={`p-2 rounded items-center bg-blue-500`}
                             >
-                                <Text className="text-black">Take Picture</Text>
+                                <Text className="text-white">Take Picture</Text>
                             </Pressable>
                             <Pressable
                                 onPress={handlePickImage}
                                 disabled={isProcessing}
-                                className={`p-2 rounded items-center bg-white`}
+                                className={`p-2 rounded items-center bg-blue-500`}
                             >
-                                <Text className="text-black">Pick from Camera Roll</Text>
+                                <Text className="text-white">Pick from Camera Roll</Text>
                             </Pressable>
                             <Pressable onPress={closeModal} className="p-2 bg-red-500 rounded items-center">
                                 <Text className="text-white">Cancel</Text>
