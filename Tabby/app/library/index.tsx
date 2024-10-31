@@ -149,9 +149,7 @@ const Categories = () => {
             onPress={() => handleCategoryPress(item)}
             onLongPress={() => handleLongPress(item.name)}
             className={`flex-row items-center justify-between py-4 px-6 
-              ${item.isSelected ? "bg-blue-500" : index % 2 === 0 ? "bg-black" : "bg-gray-300"}`}
-            style={{ opacity: item.isSelected ? 0.7 : 1 }}
-          >
+              ${item.isSelected ? "bg-blue-500" : index % 2 === 0 ? "bg-black" : "bg-gray-300"}`}          >
             <View className="items-center flex-1">
               <Text
                 className={`text-xl font-semibold ${index % 2 === 0 ? "text-white" : "text-black"}`}
@@ -171,11 +169,20 @@ const Categories = () => {
 
   return (
     <>
-      <SafeAreaView>
+
+
+      <SafeAreaView className="flex-1">
+
+
+
+        {/* Top row for add category icon and search bar */}
         <View className="flex-row justify-end">
-          <View className="w-[85%]">
+
+          {/* only show search bar if no categories are selected */}
+
+          {!areAnyCategoriesSelected() && <View className="w-[85%]" >
             <SearchBar placeholder="Type Here..." onChangeText={updateSearch} value={search} />
-          </View>
+          </View>}
           <Pressable className="p-2" onPress={handleAddCategory}>
             <FontAwesome
               name="plus"
@@ -185,17 +192,20 @@ const Categories = () => {
           </Pressable>
         </View>
 
-        <FlatList data={categories} keyExtractor={(item) => item.name} renderItem={renderItem} />
+        {/* Content area to allow FlatList and menu to stack correctly */}
+        <View className="flex-1">
+          <FlatList data={categories} keyExtractor={(item) => item.name} renderItem={renderItem} />
+        </View>
 
+        {/* Bottom menu: shown when categories are selected */}
         {categories.some((category) => category.isSelected) && (
-          <SelectedMenu
-            openDeleteModal={() => setIsDeleteModalVisible(true)}
-            openRenameModal={() => setIsRenameModalVisible(true)}
-            openCancelModal={() => deselectAllCategories()}
-          />
+
+
+          <SelectedMenu openDeleteModal={() => setIsDeleteModalVisible(true)} openRenameModal={() => setIsRenameModalVisible(true)} openCancelModal={() => deselectAllCategories()} />
         )}
       </SafeAreaView>
 
+      {/* Rename Modal */}
       {isRenameModalVisible && (
         <RenameModal
           categoriesBeingRenamed={getAllSelectedCategories()}
@@ -207,6 +217,7 @@ const Categories = () => {
         />
       )}
 
+      {/* Delete Confirmation Modal */}
       {isDeleteModalVisible && (
         <DeleteConfirmationModal
           onConfirm={handleDelete}
@@ -215,6 +226,7 @@ const Categories = () => {
         />
       )}
     </>
+
   );
 };
 
