@@ -22,7 +22,7 @@ const FooterNavBar = () => {
 
           {pathname.includes("/library") ? <SelectedLibrary height={size} width={size} /> : <NotSelectedLibrary height={size} width={size} />}
 
-          <Text className="text-white text-center">Library</Text>
+          <Text className="text-center text-white">Library</Text>
         </Pressable>
       </Link>
 
@@ -35,18 +35,14 @@ const FooterNavBar = () => {
       </Link>
 
       <View className="w-16 h-16">
-          <CameraButton/>
-        </View>
-          <Text className="text-white text-center">Explore</Text>
-        </Pressable>
-      </Link>
-
+        <CameraButton/>
+      </View>
 
       <Link href="/favorites" asChild>
         <Pressable className="flex-col mx-auto">
           {pathname.includes("/favorites") ? <SelectedFavorite height={size} width={size} /> : <NotSelectedFavorite height={size} width={size} />}
 
-          <Text className="text-white text-center">Liked</Text>
+          <Text className="text-center text-white">Liked</Text>
         </Pressable>
       </Link>
 
@@ -54,7 +50,7 @@ const FooterNavBar = () => {
         <Pressable className="flex-col mx-auto">
 
           <Settings height={size} width={size} />
-          <Text className="text-white text-center">Settings</Text>
+          <Text className="text-center text-white">Settings</Text>
         </Pressable>
       </Link>
     </View>
