@@ -226,9 +226,11 @@ const Categories = () => {
   return (
     <>
       <SafeAreaView>
-        <SearchBar placeholder="Type Here..." onChangeText={updateSearch} value={search}/>
         {/* Plus icon to add category cannot add category if there are selected categories */}
         <View className="flex-row justify-end">
+          <View className="w-[85%]">
+            <SearchBar placeholder="Type Here..." onChangeText={updateSearch} value={search}/>
+          </View>
           <Pressable className="p-2" onPress={() => handleAddCategory()}>
             <FontAwesome
               name="plus"
