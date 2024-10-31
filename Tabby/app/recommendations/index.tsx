@@ -112,6 +112,7 @@ const Reccomendations: React.FC = () => {
                 <BookPreview
                     book={item}
                     button={renderBookButton(item)}
+                    isReccommendation={true}
                 />
             )
         }
