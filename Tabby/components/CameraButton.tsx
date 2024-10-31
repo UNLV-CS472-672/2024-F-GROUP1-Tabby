@@ -25,6 +25,7 @@ export default function CameraButton() {
     setVisibleModal(!visibleModal);
   };
 
+  // lets the user take a new picture
   let takePicture = async () => {
     let result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -33,14 +34,14 @@ export default function CameraButton() {
       base64: true,
     });
 
+    // if they didnt cancel then close the camera screen
     if (!result.canceled) {
-      console.log(result.assets[0].uri);
       setVisibleModal(!visibleModal);
     }
   };
 
+  // lets user pick an image from their camera roll
   let pickImage = async () => {
-    // no permissions request is necessary for launching image library
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -48,8 +49,8 @@ export default function CameraButton() {
       base64: true,
     });
 
+    // if they didnt cancel then close the camera screen
     if (!result.canceled) {
-      console.log(result.assets[0].uri);
       setVisibleModal(!visibleModal);
     }
   };
