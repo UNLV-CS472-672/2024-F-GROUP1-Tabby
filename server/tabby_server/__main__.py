@@ -1,7 +1,9 @@
 from flask import Flask, request
 from http import HTTPStatus
+
 # from services import resource_format  # Use when actually running the server
 from .services import resource_format  # Use when running pytest
+
 # import test_routes
 
 # --- IF USING PYTEST VS PYTHON ---
@@ -14,11 +16,13 @@ app = Flask(__name__)
 # @app.route('/testpage', methods=['GET'])
 # app.add_url_rule('/testpage', view_func=alternate_page.test_page)
 # @app.route('/test/make_request', methods=['GET'])
-app.add_url_rule('/test/make_request',
-                 view_func=resource_format.google_books_test_call_api)
+app.add_url_rule(
+    "/test/make_request", view_func=resource_format.google_books_test_call_api
+)
 # @app.route('/test/all_books', methods=['GET'])
-app.add_url_rule('/test/all_books',
-                 view_func=resource_format.google_books_test_all_books)
+app.add_url_rule(
+    "/test/all_books", view_func=resource_format.google_books_test_all_books
+)
 
 
 # Only need to swap here. Don't swap it in other files!
