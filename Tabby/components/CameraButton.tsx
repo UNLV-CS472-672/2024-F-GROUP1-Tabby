@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from 'react';
 import { Image } from "expo-image"
 import { BlurView } from 'expo-blur';
+import Camera from "@/assets/navbar-images/camera.svg";
 import * as ImagePicker from "expo-image-picker";
 
 export default function CameraButton() {
@@ -58,12 +59,7 @@ export default function CameraButton() {
   return (
     <View>
         <TouchableOpacity onPress={checkPermissions} className="flex-1">
-            <View className="w-16 h-16 bg-white rounded-full">
-                <Image
-                className="w-14 h-14 left-1"
-                source={require("@/assets/navbar-images/camera.svg")}
-                />
-            </View>
+            <Camera height={40} width={40}/>
         </TouchableOpacity>
         <Modal animationType="fade" transparent={true} visible={visibleModal}>
             <BlurView intensity={50} tint="dark" experimentalBlurMethod="dimezisBlurView" className="flex-1 w-screen h-screen">

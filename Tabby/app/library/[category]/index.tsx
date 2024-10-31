@@ -3,6 +3,7 @@ import { FlatList, Pressable } from 'react-native';
 import BookPreview from '@/components/BookPreview';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FavoriteButtonIcon from '@/components/FavoriteButtonIcon'; // Assuming you have a custom favorite button component
+import BookCard from '@/components/BookCard';
 import { SearchBar } from '@rneui/themed';
 
 type Book = {

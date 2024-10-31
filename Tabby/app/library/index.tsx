@@ -254,26 +254,8 @@ const Categories = () => {
           data={categories}
           keyExtractor={(item) => item.name}
           renderItem={renderItem}
-          style={{ maxHeight: maxHeightOfCategories }}
         />
       </SafeAreaView>
-                  <View className="items-center flex-1">
-                    <Text className={`text-xl font-semibold ${index % 2 === 0 ? "text-white" : "text-black"}`}>
-                      {item.name}
-                    </Text>
-                  </View>
-                  <Pressable
-                    className="p-1"
-                    disabled={areAnyCategoriesSelected()}
-                    onPress={() => handlePinPress(item.name)}
-                  >
-                    <PinnedIcon isPinned={item.isPinned} />
-                  </Pressable>
-                </Pressable>
-              </View>
-            )}
-          />
-        </View>
 
         {/* Bottom menu: shown when categories are selected */}
         {categories.some((category) => category.isSelected) && (
@@ -281,7 +263,6 @@ const Categories = () => {
 
           <SelectedMenu openDeleteModal={() => setIsDeleteModalVisible(true)} openRenameModal={() => setIsRenameModalVisible(true)} openCancelModal={() => deselectAllCategories()} />
         )}
-      </SafeAreaView>
 
       {/* Rename Modal */}
       {isRenameModalVisible && (
@@ -304,7 +285,6 @@ const Categories = () => {
         />
       )}
     </>
-
   );
 };
 

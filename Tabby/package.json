@@ -49,7 +49,6 @@
     "expo-camera": "~15.0.16",
     "expo-constants": "~16.0.2",
     "expo-font": "~12.0.9",
-    "expo-image": "~1.13.0",
     "expo-image-picker": "~15.0.7",
     "expo-linking": "~6.3.1",
     "expo-router": "~3.5.23",
@@ -66,8 +65,6 @@
     "react-native-safe-area-context": "^4.10.5",
     "react-native-screens": "3.31.1",
     "expo-image": "~1.13.0",
-    "expo-camera": "~15.0.16",
-    "expo-blur": "~13.0.2",
     "react-native-svg": "^15.8.0",
     "react-native-web": "~0.19.10"
   },
