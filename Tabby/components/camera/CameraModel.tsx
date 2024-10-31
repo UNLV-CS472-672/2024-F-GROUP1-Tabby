@@ -1,8 +1,7 @@
 import { View, Text, Pressable, Modal, TouchableWithoutFeedback } from "react-native";
-import { BlurView } from "expo-blur";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
-import { Camera, useCameraPermissions } from "expo-camera";
+import { useCameraPermissions } from "expo-camera";
 
 interface CameraModalProps {
     closeModal: () => void;
