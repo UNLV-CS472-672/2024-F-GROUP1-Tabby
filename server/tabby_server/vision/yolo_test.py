@@ -57,6 +57,7 @@ def predict_examples():
     return ({"Detected": "Go to vision/example_yolo for results"},
             HTTPStatus.OK)
 
+
 '''
 Ultralytics Credits
 @software{yolo11_ultralytics,
