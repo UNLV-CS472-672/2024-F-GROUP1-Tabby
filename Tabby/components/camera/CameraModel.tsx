@@ -10,9 +10,10 @@ interface CameraModalProps {
 
 const CameraModal: React.FC<CameraModalProps> = ({ closeModal }) => {
     const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+    // use to disable the buttons temporarily when clicking them to prevent multiple clicks
     const [isProcessing, setIsProcessing] = useState(false);
 
-    // Handle taking a picture
+    // Handle taking a picture by requesting permissions before taking the picture if necessary
     const handleTakePicture = async () => {
         setIsProcessing(true);
         if (!cameraPermission?.granted) {
@@ -34,7 +35,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal }) => {
         if (!result.canceled) closeModal();
     };
 
-    // Handle picking an image from the gallery
+    // Handle picking an image from the gallery by requesting permissions before picking the image if necessary
     const handlePickImage = async () => {
         setIsProcessing(true);
         const { granted } = await ImagePicker.requestMediaLibraryPermissionsAsync();
