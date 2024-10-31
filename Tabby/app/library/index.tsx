@@ -9,7 +9,7 @@ import DeleteConfirmationModal from "@/components/categories/DeleteConfirmationM
 import { Category } from "@/types/category";
 import { SearchBar } from "@rneui/themed";
 import SelectedMenu from "@/components/categories/SelectedMenu";
-import BarsIcon from "@/components/categories/BarsIcon";
+
 
 const Categories = () => {
   const router = useRouter();
