@@ -77,11 +77,11 @@ def google_books_test_call_api():
 # Generic function for (hopefully) cleaner readability when it comes to
 # retrieving info about books.
 
-def get_book_attributes(book_list, book_attr):
+def get_book_attribute(book_list, book_attr):
     try:
         return book_list["volumeInfo"][book_attr]
     except KeyError:
-        return {"NA": "Couldn't find!"}
+        return "None"
 
 
 # This grabs some settings of the books entered found from Google Books.
@@ -110,7 +110,7 @@ def google_books_test_all_books():
             # isbn 13.
             try:
                 # Purely to get under the Flake8 character limit.
-                ii = "industryIdentifiers"
+                isbnid = "industryIdentifiers"
 
                 # Initalizes isbn key
                 entry['isbn'] = ""
@@ -118,12 +118,12 @@ def google_books_test_all_books():
                 # If there is a list of isbn's, loop through it.
                 # Find the isbn with a tage of isbn_13 and save it.
                 # If none exist, then save none of them.
-                if type(items[i]["volumeInfo"][ii]) is list:
-                    for j in range(len(items[i]["volumeInfo"][ii])):
+                if type(items[i]["volumeInfo"][isbnid]) is list:
+                    for j in range(len(items[i]["volumeInfo"][isbnid])):
                         try:
                             # This only exists to spite the flake8 limit.
                             isbn_entry = {}
-                            isbn_entry = items[i]["volumeInfo"][ii][j]
+                            isbn_entry = items[i]["volumeInfo"][isbnid][j]
                             if isbn_entry['type'] == "ISBN_13":
                                 entry['isbn'] = isbn_entry['identifier']
                                 break
@@ -138,19 +138,19 @@ def google_books_test_all_books():
                 continue
 
             # entry['title'] = items[i]["volumeInfo"]["title"]
-            entry['title'] = get_book_attributes(items[i], "title")
+            entry['title'] = get_book_attribute(items[i], "title")
 
             # entry['author'] = items[i]["volumeInfo"]["authors"]
-            entry['author'] = get_book_attributes(items[i], "authors")
+            entry['author'] = get_book_attribute(items[i], "authors")
 
             # entry['summary'] = items[i]["volumeInfo"]["description"]
-            entry['summary'] = get_book_attributes(items[i], "description")
+            entry['summary'] = get_book_attribute(items[i], "description")
 
             # entry['publisher'] = items[i]["volumeInfo"]["publisher"]
-            entry['publisher'] = get_book_attributes(items[i], "publisher")
+            entry['publisher'] = get_book_attribute(items[i], "publisher")
 
             # entry['thumbnail'] = items[i]["volumeInfo"]["imageLinks"]
-            entry['thumbnail'] = get_book_attributes(items[i], "imageLinks")
+            entry['thumbnail'] = get_book_attribute(items[i], "imageLinks")
 
             # Once the attributes are obtained, that book is added to a list.
             all_books.append(entry)
