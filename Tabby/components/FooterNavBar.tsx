@@ -12,6 +12,7 @@ import CameraIcon from "@/assets/navbar-images/camera.svg";
 import CameraModal from "@/components/camera/CameraModel";
 
 const FooterNavBar = () => {
+  // set to true to show camera modal
   const [isCameraModalVisible, setCameraModalVisible] = useState(false);
   const pathname = usePathname();
   const size = 40;
@@ -40,7 +41,7 @@ const FooterNavBar = () => {
         </Pressable>
       </Link>
 
-      {/* Camera Button */}
+      {/* Camera Button to show camera modal */}
       <Pressable onPress={() => setCameraModalVisible(true)} className="flex-col mx-auto">
         <View className="w-16 h-16 bg-white rounded-full items-center justify-center">
           <CameraIcon height={size} width={size} />
