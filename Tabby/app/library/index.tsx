@@ -177,13 +177,11 @@ const Categories = () => {
   
   const updateSearch = (search: string) => {
     setSearch(search);
-    console.log(search);
   };
 
+  // if the typed string into the search bar is in a book title then render the book
   const renderItem = ({item, index}: {item: Category, index: number}) => {
-    console.log("Search: ", search.length);
-    console.log("title: ", item.name);
-    if(search == "" || item.name.toLowerCase() == search.toLowerCase()){
+    if(search == "" || item.name.toLowerCase().includes(search.toLowerCase())){
         return (
           <View className="">
             <Pressable

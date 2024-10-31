@@ -55,10 +55,9 @@ const CategoryPage: React.FC = () => {
         </Pressable>
     );
     
+    // if the string typed in the search bar is a part of a book title then render the book
     const renderItem = ({item}: {item: Book}) => {
-        console.log("Search: ", search.length);
-        console.log("title: ", item.title);
-        if(search == "" || item.title.toLowerCase() == search.toLowerCase()){
+        if(search == "" || item.title.toLowerCase().includes(search.toLowerCase())){
             return (
                 <BookCard  
                     book={item}
