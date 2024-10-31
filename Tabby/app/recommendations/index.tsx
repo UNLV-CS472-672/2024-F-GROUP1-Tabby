@@ -3,6 +3,7 @@ import { FlatList, Pressable } from 'react-native';
 import BookPreview from '@/components/BookPreview'; // Adjust the path as necessary
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AddButtonIcon from '@/components/AddButtonIcon';
+import { SearchBar } from "@rneui/themed";
 type Book = {
     id: string;
     title: string;
@@ -80,6 +81,11 @@ const initialBooks: Book[] = [
 const Reccomendations: React.FC = () => {
     // State to keep track of books and their favorite status
     const [books, setBooks] = useState<Book[]>(initialBooks);
+    const [search, setSearch] = useState("");
+
+    const updateSearch = (search: string) => {
+        setSearch(search);
+    };
 
     // will change the state of the book to add to library
     const handleAddToLibraryPress = (bookId: string) => {
@@ -99,18 +105,26 @@ const Reccomendations: React.FC = () => {
         </Pressable>
     );
 
+    // if the string typed in the search bar is a part of a book title then render the book
+    const renderItem = ({item}: {item: Book}) => {
+        if(search == "" || item.title.toLowerCase().includes(search.toLowerCase())){
+            return (
+                <BookCard  
+                    book={item}
+                    button={renderBookButton(item)}
+                />
+            )
+        }
+        return(null);
+    }
+
     return (
         <SafeAreaView className="flex-1 p-4">
+            <SearchBar placeholder="Type Here..." onChangeText={updateSearch} value={search}/>
             <FlatList
                 data={books}
                 keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                    <BookPreview
-                        book={item}
-                        button={renderBookButton(item)} // Passing the Pressable button as a prop
-                        isReccommendation={true}
-                    />
-                )}
+                renderItem={renderItem}
             />
         </SafeAreaView>
     );

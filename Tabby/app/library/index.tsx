@@ -7,6 +7,7 @@ import PinnedIcon from "@/components/categories/PinnedIcon";
 import RenameModal from "@/components/categories/RenameModal"; // Import the modal
 import DeleteConfirmationModal from "@/components/categories/DeleteConfirmationModal";
 import { Category } from "@/types/category"; // Import the Category interface
+import { SearchBar } from "@rneui/themed";
 import SelectedMenu from "@/components/categories/SelectedMenu";
 import BarsIcon from "@/components/categories/BarsIcon"
 
@@ -20,6 +21,7 @@ const Categories = () => {
   const [isRenameModalVisible, setIsRenameModalVisible] = useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [search, setSearch] = useState("");
   const defaultNewCategoryName = "New Category";
   const NewCategoryNameRef = useRef(defaultNewCategoryName);
 
@@ -183,19 +185,62 @@ const Categories = () => {
     );
     return allSelectedCategories;
   };
+  
+  const updateSearch = (search: string) => {
+    setSearch(search);
+  };
+
+  // if the typed string into the search bar is in a book title then render the book
+  const renderItem = ({item, index}: {item: Category, index: number}) => {
+    if(search == "" || item.name.toLowerCase().includes(search.toLowerCase())){
+        return (
+          <View className="">
+            <Pressable
+              onPress={() => handleCategoryPress(item)}
+              onLongPress={() => handleLongPress(item.name)}
+              className={`flex-row items-center justify-between py-4 px-6 
+                              ${
+                                item.isSelected
+                                  ? "bg-blue-500"
+                                  : index % 2 === 0
+                                  ? "bg-black"
+                                  : "bg-gray-300"
+                              } opacity-5`}
+              style={{ opacity: item.isSelected ? 0.7 : 1 }}
+            >
+            <View className="items-center flex-1">
+              <Text
+                className={`text-xl font-semibold ${
+                  index % 2 === 0 ? "text-white" : "text-black"
+                }`}
+              >
+                {item.name}
+              </Text>
+            </View>
+            <Pressable
+              className="p-1"
+              disabled={areAnyCategoriesSelected()}
+              onPress={() => handlePinPress(item.name)}
+            >
+              <PinnedIcon isPinned={item.isPinned} />
+            </Pressable>
+          </Pressable>
+        </View>
+        )
+    }
+    return(null);
+}
 
 
   return (
     <>
-
-
-      <SafeAreaView className="flex-1">
-
-
-
-        {/* Top row for add category icon */}
-        <View className="flex-row justify-end p-2">
-          <Pressable onPress={() => handleAddCategory()}>
+      <SafeAreaView>
+        {/* Plus icon to add category cannot add category if there are selected categories */}
+        <View className="flex-row justify-end">
+          <View className="w-[85%]">
+            <SearchBar placeholder="Type Here..." onChangeText={updateSearch} value={search}/>
+          </View>
+          <Pressable className="p-2" onPress={() => handleAddCategory()}>
             <FontAwesome
               name="plus"
               size={areAnyCategoriesSelected() || isAddingCategory ? 0 : 46}
@@ -204,24 +249,14 @@ const Categories = () => {
           </Pressable>
         </View>
 
-        {/* Content area to allow FlatList and menu to stack correctly */}
-        <View className="flex-1">
-          {/* Scrollable FlatList */}
-          <FlatList
-            data={categories}
-            keyExtractor={(item) => item.name}
-            renderItem={({ item, index }) => (
-              <View>
-                <Pressable
-                  onPress={() => handleCategoryPress(item)}
-                  onLongPress={() => handleLongPress(item.name)}
-                  className={`flex-row items-center justify-between py-4 px-6 
-                          ${item.isSelected ? "bg-blue-500" : index % 2 === 0 ? "bg-black" : "bg-gray-300"}`}
-                >
-                  <Pressable disabled={areAnyCategoriesSelected()}>
-                    <BarsIcon height={30} width={30} color={index % 2 === 0 ? "white" : "black"} />
-                  </Pressable>
-
+        {/* Scrollable FlatList with fixed height */}
+        <FlatList
+          data={categories}
+          keyExtractor={(item) => item.name}
+          renderItem={renderItem}
+          style={{ maxHeight: maxHeightOfCategories }}
+        />
+      </SafeAreaView>
                   <View className="items-center flex-1">
                     <Text className={`text-xl font-semibold ${index % 2 === 0 ? "text-white" : "text-black"}`}>
                       {item.name}
