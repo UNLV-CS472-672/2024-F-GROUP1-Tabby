@@ -1,20 +1,21 @@
 from flask import Blueprint
 from http import HTTPStatus
+from typing import Any
 import requests
 import os
 from dotenv import load_dotenv
 
 
-load_dotenv()   # Use 'os.getenv("KEY")' to get values.
+load_dotenv()  # Use 'os.getenv("KEY")' to get values.
 
 # Apparently necessary to import from a .env file?
 # If there is a better way, do tell please.
 
 
-'''
+"""
 Test bed to creating what may be returned by the GoogleBooks API.
 Likely to be deleted later.
-'''
+"""
 
 # Blueprint for this file. Adds the 'test' prefix in __main__.py.
 # To call functions in this file use "/test/<function_route>"
@@ -33,7 +34,7 @@ books_test = Blueprint('books_test', __name__)
 # Class variable to hold the result of the api call
 class ApiTesting:
     # Empty for now. Will hold the result from google books.
-    output_dict = {}    # dict
+    output_dict: dict[str, Any] = {}  # dict
 
 
 # Declares the class variable.
@@ -65,7 +66,14 @@ def google_books_test_call_api():
         if api_key is None:
             api_key = " "
 
-        api_url = api_http+api_search+api_key_var+api_key+api_max+api_results
+        api_url = (
+            api_http
+            + api_search
+            + api_key_var
+            + api_key
+            + api_max
+            + api_results
+        )
 
         response = requests.get(api_url)  # Google Books API Request
         result_dict.output_dict = response.json()  # Converts output to a dict.

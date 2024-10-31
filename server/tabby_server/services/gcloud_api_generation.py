@@ -1,5 +1,5 @@
-from __main__ import app    # noqa
-from http import HTTPStatus # noqa
+from __main__ import app  # noqa
+from http import HTTPStatus  # noqa
 
 # General API Credentiual creation info.
 #   https://developers.google.com/books/docs/v1/using#APIKey
@@ -25,7 +25,7 @@ from http import HTTPStatus # noqa
 #   https://cloud.google.com/docs/authentication/api-keys?visit_id=638640428078497359-1875880913&rd=1#api_key_restrictions
 #   https://cloud.google.com/docs/authentication/api-keys?visit_id=638640428078497359-1875880913&rd=1#adding-api-restrictions
 
-'''
+"""
 This will generate an api key to be used when a search query is made.
 It will also have the means to delete it.
-'''
+"""

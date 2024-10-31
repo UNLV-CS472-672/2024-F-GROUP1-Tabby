@@ -7,17 +7,21 @@ import PinnedIcon from "@/components/categories/PinnedIcon";
 import RenameModal from "@/components/categories/RenameModal"; // Import the modal
 import DeleteConfirmationModal from "@/components/categories/DeleteConfirmationModal";
 import { Category } from "@/types/category"; // Import the Category interface
+import { SearchBar } from "@rneui/themed";
+import SelectedMenu from "@/components/categories/SelectedMenu";
+import BarsIcon from "@/components/categories/BarsIcon"
 
 const Categories = () => {
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([
-    { name: "Fiction", isPinned: false, isSelected: false },
-    { name: "Fantasy", isPinned: false, isSelected: false },
-    { name: "Science Fiction", isPinned: false, isSelected: false },
+    { name: "Fiction", isPinned: false, isSelected: false, position: 0 },
+    { name: "Fantasy", isPinned: false, isSelected: false, position: 0 },
+    { name: "Science Fiction", isPinned: false, isSelected: false, position: 0 },
   ]);
   const [isRenameModalVisible, setIsRenameModalVisible] = useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [search, setSearch] = useState("");
   const defaultNewCategoryName = "New Category";
   const NewCategoryNameRef = useRef(defaultNewCategoryName);
 
@@ -28,8 +32,9 @@ const Categories = () => {
     });
   };
 
+  // can go to specific book category page or just make category selected if any other categories are selected 
   const handleCategoryPress = (category: Category) => {
-    // Check if any categories are selected then make category selected instead of going to itspage
+    // Check if any categories are selected then make category selected instead of going to its page
     if (areAnyCategoriesSelected()) {
       const updatedCategories = categories.map((currentCategory) => {
         if (currentCategory.name === category.name) {
@@ -48,6 +53,7 @@ const Categories = () => {
     router.push(`/library/${category.name}`);
   };
 
+  // will pin or unpin a category
   const handlePinPress = (categoryName: string) => {
     const updatedCategories = categories.map((category) =>
       category.name === categoryName
@@ -57,6 +63,7 @@ const Categories = () => {
     setCategories(sortCategories(updatedCategories));
   };
 
+  // will select or unselect a category by doing a long press
   const handleLongPress = (categoryName: string) => {
     const updatedCategories = categories.map((category) =>
       category.name === categoryName
@@ -66,6 +73,7 @@ const Categories = () => {
     setCategories(updatedCategories);
   };
 
+  // will delete all selected categories
   const handleDelete = () => {
     const remainingCategories = categories.filter(
       (category) => !category.isSelected
@@ -74,6 +82,7 @@ const Categories = () => {
     setIsDeleteModalVisible(false);
   };
 
+  // will be passed into RenameModal to handle renaming a category 
   const handleRename = (newName: string) => {
     // Create a copy of the current categories
     const updatedCategories = [...categories];
@@ -91,7 +100,7 @@ const Categories = () => {
           counter++;
         }
 
-        // Update the name in the copied array adn deselect the category since it has been renamed
+        // Update the name in the copied array and deselect the category since it has been renamed
         updatedCategories[index] = {
           ...category,
           name: uniqueName,
@@ -126,7 +135,7 @@ const Categories = () => {
     // updating the current category name
     NewCategoryNameRef.current = uniqueName;
 
-    const newCategory = { name: uniqueName, isPinned: false, isSelected: true };
+    const newCategory = { name: uniqueName, isPinned: false, isSelected: true, position: 0 };
     // updating the categories with newly made cateogry
     setCategories(sortCategories([...categories, newCategory]));
 
@@ -134,10 +143,12 @@ const Categories = () => {
     setIsRenameModalVisible(true);
   };
 
+  // to check if any category is selected
   const areAnyCategoriesSelected = () => {
     return categories.some((category) => category.isSelected);
   };
 
+  // to deselect all categories
   const deselectAllCategories = () => {
     const updatedCategories = categories.map((category) => ({
       ...category,
@@ -147,7 +158,7 @@ const Categories = () => {
   };
 
   // will be passed into RenameModal to delete new category if renaming was cancelled
-  const handleDeletingNewCategoryThatWasNotRenamed = () => {
+  const handleDeletingNewCategoryInRenameModal = () => {
     // Filter out any categories that were just added but not renamed if rename was canceled
     if (isAddingCategory) {
       const remainingCategories = categories.filter(
@@ -158,29 +169,77 @@ const Categories = () => {
     }
   };
 
-  const handleAddingNewCategoryThatWasNotRenamed = () => {
-    // just add new category and do not filter out any categories
+  // will be passed into RenameModal to deselect the newly added category
+  const handleDeselectingNewCategory = () => {
+
     if (isAddingCategory) {
       setIsAddingCategory(false); // Reset flag
       deselectAllCategories();
     }
   };
 
+  // will return all selected categories
   const getAllSelectedCategories = () => {
     const allSelectedCategories = categories.filter(
       (category) => category.isSelected
     );
     return allSelectedCategories;
   };
+  
+  const updateSearch = (search: string) => {
+    setSearch(search);
+  };
 
-  // this is in vh units to set the height of each category in the FlatList and will only show 7 in view
-  const heightOfCategory = 85;
-  const maxHeightOfCategories = heightOfCategory * 7;
+  // if the typed string into the search bar is in a book title then render the book
+  const renderItem = ({item, index}: {item: Category, index: number}) => {
+    if(search == "" || item.name.toLowerCase().includes(search.toLowerCase())){
+        return (
+          <View className="">
+            <Pressable
+              onPress={() => handleCategoryPress(item)}
+              onLongPress={() => handleLongPress(item.name)}
+              className={`flex-row items-center justify-between py-4 px-6 
+                              ${
+                                item.isSelected
+                                  ? "bg-blue-500"
+                                  : index % 2 === 0
+                                  ? "bg-black"
+                                  : "bg-gray-300"
+                              } opacity-5`}
+              style={{ opacity: item.isSelected ? 0.7 : 1 }}
+            >
+            <View className="items-center flex-1">
+              <Text
+                className={`text-xl font-semibold ${
+                  index % 2 === 0 ? "text-white" : "text-black"
+                }`}
+              >
+                {item.name}
+              </Text>
+            </View>
+            <Pressable
+              className="p-1"
+              disabled={areAnyCategoriesSelected()}
+              onPress={() => handlePinPress(item.name)}
+            >
+              <PinnedIcon isPinned={item.isPinned} />
+            </Pressable>
+          </Pressable>
+        </View>
+        )
+    }
+    return(null);
+}
+
+
   return (
     <>
       <SafeAreaView>
         {/* Plus icon to add category cannot add category if there are selected categories */}
         <View className="flex-row justify-end">
+          <View className="w-[85%]">
+            <SearchBar placeholder="Type Here..." onChangeText={updateSearch} value={search}/>
+          </View>
           <Pressable className="p-2" onPress={() => handleAddCategory()}>
             <FontAwesome
               name="plus"
@@ -194,75 +253,45 @@ const Categories = () => {
         <FlatList
           data={categories}
           keyExtractor={(item) => item.name}
-          renderItem={({ item, index }) => (
-            <View className="">
-              <Pressable
-                onPress={() => handleCategoryPress(item)}
-                onLongPress={() => handleLongPress(item.name)}
-                className={`flex-row items-center justify-between py-4 px-6 
-                                ${
-                                  item.isSelected
-                                    ? "bg-blue-500"
-                                    : index % 2 === 0
-                                    ? "bg-black"
-                                    : "bg-gray-300"
-                                } opacity-5`}
-                style={{ opacity: item.isSelected ? 0.7 : 1 }}
-              >
-                <View className="items-center flex-1">
-                  <Text
-                    className={`text-xl font-semibold ${
-                      index % 2 === 0 ? "text-white" : "text-black"
-                    }`}
-                  >
-                    {item.name}
-                  </Text>
-                </View>
-                <Pressable
-                  className="p-1"
-                  disabled={areAnyCategoriesSelected()}
-                  onPress={() => handlePinPress(item.name)}
-                >
-                  <PinnedIcon isPinned={item.isPinned} />
-                </Pressable>
-              </Pressable>
-            </View>
-          )}
+          renderItem={renderItem}
           style={{ maxHeight: maxHeightOfCategories }}
         />
       </SafeAreaView>
-
-      {/* Rename/Delete options hidden but shown when a category is selected */}
-      {categories.some((category) => category.isSelected) && (
-        <View className="absolute flex-row w-full p-4 bg-blue-900 bottom-16 justify-evenly">
-          <Pressable
-            onPress={() => setIsDeleteModalVisible(true)}
-            className="mb-4"
-          >
-            <Text className="text-center text-white">Delete</Text>
-          </Pressable>
-          <Pressable onPress={() => setIsRenameModalVisible(true)}>
-            <Text className="text-center text-white">Rename</Text>
-          </Pressable>
-          <Pressable onPress={() => deselectAllCategories()}>
-            <Text className="text-center text-white">Cancel</Text>
-          </Pressable>
+                  <View className="items-center flex-1">
+                    <Text className={`text-xl font-semibold ${index % 2 === 0 ? "text-white" : "text-black"}`}>
+                      {item.name}
+                    </Text>
+                  </View>
+                  <Pressable
+                    className="p-1"
+                    disabled={areAnyCategoriesSelected()}
+                    onPress={() => handlePinPress(item.name)}
+                  >
+                    <PinnedIcon isPinned={item.isPinned} />
+                  </Pressable>
+                </Pressable>
+              </View>
+            )}
+          />
         </View>
-      )}
 
-      {/* Rename Modal hidden at start but opens when the rename button is clicked */}
+        {/* Bottom menu: shown when categories are selected */}
+        {categories.some((category) => category.isSelected) && (
+
+
+          <SelectedMenu openDeleteModal={() => setIsDeleteModalVisible(true)} openRenameModal={() => setIsRenameModalVisible(true)} openCancelModal={() => deselectAllCategories()} />
+        )}
+      </SafeAreaView>
+
+      {/* Rename Modal */}
       {isRenameModalVisible && (
         <RenameModal
           categoriesBeingRenamed={getAllSelectedCategories()}
           onRename={handleRename}
           onCancel={() => setIsRenameModalVisible(false)}
-          deleteNewCategoryIfNotRenamedOnCancel={
-            handleDeletingNewCategoryThatWasNotRenamed
-          }
-          addNewCategoryIfNotRenamedOnOk={
-            handleAddingNewCategoryThatWasNotRenamed
-          }
-          resetIsAddingCategory={() => setIsAddingCategory(false)}
+          deleteNewCategoryOnCancel={handleDeletingNewCategoryInRenameModal}
+          isAddingNewCategory={isAddingCategory}
+          handleDeselectingNewCategory={handleDeselectingNewCategory}
         />
       )}
 
@@ -271,10 +300,11 @@ const Categories = () => {
         <DeleteConfirmationModal
           onConfirm={handleDelete}
           onCancel={() => setIsDeleteModalVisible(false)}
-          selectedCategories={getAllSelectedCategories()} // Pass selected categories
+          selectedCategories={getAllSelectedCategories()}
         />
       )}
     </>
+
   );
 };
 

@@ -14,7 +14,6 @@ const BookCard: React.FC<BookCardProps> = ({ book, button, isReccommendation }) 
     const router = useRouter();
     const { category } = useLocalSearchParams();
 
-
     const handleBookPress = () => {
         // book card is in reccommendation page so go to specific book reccommendation page
         if (isReccommendation) {
@@ -23,9 +22,7 @@ const BookCard: React.FC<BookCardProps> = ({ book, button, isReccommendation }) 
         // book card is in library so go to specific book in library
         else {
             router.push(`/library/${category}/${book.title}`);
-
         }
-
     };
 
     return (
