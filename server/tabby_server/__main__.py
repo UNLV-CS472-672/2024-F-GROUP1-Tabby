@@ -1,44 +1,22 @@
 from flask import Flask
 from http import HTTPStatus
-
-# from services import resource_format  # Use when actually running the server
-from .services import resource_format  # Use when running pytest
+# from services.resource_format import books_test   # --- Use with python ---
+from .services.resource_format import books_test    # /-/ Use with pytest /-/
 from .api import books
 
-# import test_routes
-
-# --- IF USING PYTEST VS PYTHON ---
+# --- IF USING PYTEST OR PYTHON ---
 # You only need to modify this file! I've changed it around so only this
 # breaks pytest or python! No need to modfy additional files beyond!
+# --- IF USING PYTEST OR PYTHON ---
 
 app = Flask(__name__)
 
+app.register_blueprint(books_test, url_prefix='/test')
 app.register_blueprint(books.subapp, url_prefix="/books")
 
 
-# @app.route('/testpage', methods=['GET'])
-# app.add_url_rule('/testpage', view_func=alternate_page.test_page)
-# @app.route('/test/make_request', methods=['GET'])
-app.add_url_rule(
-    "/test/make_request", view_func=resource_format.google_books_test_call_api
-)
-# @app.route('/test/all_books', methods=['GET'])
-app.add_url_rule(
-    "/test/all_books", view_func=resource_format.google_books_test_all_books
-)
-
-
-# Only need to swap here. Don't swap it in other files!
-# Issue seems to be with how pytest functions. This will need looking into.
-#   https://stackoverflow.com/questions/25827160/importing-correctly-with-pytest
-#   https://stackoverflow.com/questions/43728431/relative-imports-modulenotfounderror-no-module-named-x
-#   https://stackoverflow.com/questions/2349991/how-do-i-import-other-python-files
-#   https://stackoverflow.com/questions/50190485/flask-importerror-cannot-import-name-app
-
-
-# I've swapped over to using Lazy Loading rather than apps as packages.
-# This fixes SOME of the issues regarding pytest and python.
-# https://flask.palletsprojects.com/en/2.3.x/patterns/lazyloading/
+# Blueprints documentation
+# https://flask.palletsprojects.com/en/stable/blueprints/
 
 
 # Members API route
