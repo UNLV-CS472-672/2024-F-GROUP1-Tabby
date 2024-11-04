@@ -10,26 +10,15 @@ from tabby_server.vision.ocr import TextRecognizer
 app = cy.App()
 
 
-def get_image_from_camera(camera_index: int) -> cv.typing.MatLike:
-    while True:
-        key = cv.waitKey(5) & 0xFF
-        if key in ("q", "Q"):
-            print("Exited program.")
-            exit(0)
-
-
 @app.default
 def main(
-    image_path: Optional[cy.types.ResolvedExistingFile] = None,
+    image_path: cy.types.ResolvedExistingFile,
     camera_index: int = 0,
 ) -> None:
     """Command to find the text in the given image. If no image is given,
     then it'll poll a camera's feed."""
 
-    if image_path is not None:
-        image = cv.imread(str(image_path))
-    else:
-        image = get_image_from_camera(camera_index)
+    image = cv.imread(str(image_path))
 
     height, width, _ = image.shape
     thickness = int(max(3, 0.005 * max(height, width)))
