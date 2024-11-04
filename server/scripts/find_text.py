@@ -1,9 +1,7 @@
-from typing import Optional
 import cv2 as cv
 import cyclopts as cy
 from pprint import pprint
 
-import numpy as np
 from tabby_server.vision.ocr import TextRecognizer
 
 

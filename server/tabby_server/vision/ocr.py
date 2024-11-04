@@ -1,4 +1,3 @@
-import cv2 as cv
 from dataclasses import dataclass
 import easyocr
 import numpy as np
