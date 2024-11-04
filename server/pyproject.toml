@@ -8,6 +8,9 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.12"
 flask = "^3.0.3"
+opencv-contrib-python = "^4.10.0.84"
+cyclopts = "^2.9.9"
+easyocr = "^1.7.2"
 requests = "^2.32.3"
 python-dotenv = "^1.0.1"
 poethepoet = "^0.29.0"
@@ -34,12 +37,12 @@ log_file = "logs/pytest.log"
 log_file_level = "INFO"
 
 [tool.poe.tasks]
+test = "pytest tests -vv --cov=tabby_server --cov-report=term-missing"
+lint = "flake8 tabby_server tests scripts"
+type = "mypy tabby_server tests scripts"
+format = "black tabby_server tests --line-length 79"
 ci = ["lint", "type", "test"]
 dev = "python -m tabby_server"
-format = "black tabby_server tests --line-length 79"
-lint = "flake8 -v tabby_server tests"
-test = "pytest tests -vv --cov=tabby_server --cov-report=term-missing"
-type = "mypy tabby_server tests"
 
 [tool.mypy]
 disable_error_code = ["import-untyped"]
