@@ -1,9 +1,11 @@
 from flask import Flask, request
 from http import HTTPStatus
+
 # from services import resource_format  # Use when actually running the server
 from .services import resource_format  # Use when running pytest
+
 # from vision.yolo_test import yolo_test            # --- Use with python ---
-from .vision.yolo_test import yolo_test             # /-/ Use with pytest /-/
+from .vision.yolo_test import yolo_test  # /-/ Use with pytest /-/
 
 # import test_routes
 
@@ -14,7 +16,7 @@ from .vision.yolo_test import yolo_test             # /-/ Use with pytest /-/
 app = Flask(__name__)
 
 # Retrieves the blueprint for image recognition.
-app.register_blueprint(yolo_test, url_prefix='/test')
+app.register_blueprint(yolo_test, url_prefix="/test")
 
 # @app.route('/testpage', methods=['GET'])
 # app.add_url_rule('/testpage', view_func=alternate_page.test_page)
