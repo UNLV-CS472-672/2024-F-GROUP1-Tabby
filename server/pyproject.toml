@@ -8,6 +8,9 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.12"
 flask = "^3.0.3"
+opencv-contrib-python = "^4.10.0.84"
+cyclopts = "^2.9.9"
+easyocr = "^1.7.2"
 
 
 [tool.poetry.group.dev.dependencies]
