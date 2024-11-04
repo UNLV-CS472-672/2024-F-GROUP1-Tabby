@@ -43,14 +43,14 @@ class TextRecognizer:
 
 
 # Not used yet but will be used in a future pull
-def scale_image(image: np.ndarray, max_area: int) -> np.ndarray:
-    """Scales the given image if it's too large."""
-    height, width, _ = image.shape
-    area = height * width
-    if area > max_area:
-        area_ratio = max_area / area
-        side_ratio = np.sqrt(area_ratio)
-        new_height = int(side_ratio * height)
-        new_width = int(side_ratio * width)
-        image = cv.resize(image, (new_height, new_width))
-    return image
+# def scale_image(image: np.ndarray, max_area: int) -> np.ndarray:
+#     """Scales the given image if it's too large."""
+#     height, width, _ = image.shape
+#     area = height * width
+#     if area > max_area:
+#         area_ratio = max_area / area
+#         side_ratio = np.sqrt(area_ratio)
+#         new_height = int(side_ratio * height)
+#         new_width = int(side_ratio * width)
+#         image = cv.resize(image, (new_height, new_width))
+#     return image
