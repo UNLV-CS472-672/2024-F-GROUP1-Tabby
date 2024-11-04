@@ -102,7 +102,7 @@ class TestAPIEndPoint:
 
         # No prior search was made. No data to return.
         assert result.status_code == HTTPStatus.BAD_REQUEST
-        assert "empty" in result.json
+        assert result.json is not None and "empty" in result.json
 
         # Second Call - Should pass. List of books.
         # This time makes an API call prior.
@@ -116,4 +116,22 @@ class TestAPIEndPoint:
 
         # Returns a json with book attributes.
         assert result.status_code == HTTPStatus.OK
-        assert "books" in result.json
+        assert result.json is not None and "books" in result.json
+
+    # Test call to YOLO object recognition. Uses a 0 as a parameter so data
+    # is not saved from pytest call.
+    def test_predict_examples(self, client):
+        # Calls for the model to run object detection on example images.
+        # Does not save the results.
+        result = client.get("/yolo/shelf_read", query_string={"index": int(0)})
+
+        # This should always return true.
+        assert result.status_code == HTTPStatus.OK
+        assert result.json is not None and "Detected" in result.json
+
+        # Calls the model but provides an incorrect index
+        result = client.get("/yolo/shelf_read", query_string={"index": int(2)})
+
+        # This should always return false.
+        assert result.status_code == HTTPStatus.BAD_REQUEST
+        assert result.json is not None and "Incorrect" in result.json
