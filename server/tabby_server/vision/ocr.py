@@ -1,6 +1,5 @@
 import cv2 as cv
 from dataclasses import dataclass
-from functools import cache
 import easyocr
 import numpy as np
 
