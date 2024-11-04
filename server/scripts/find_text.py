@@ -5,16 +5,19 @@ from pprint import pprint
 from tabby_server.vision.ocr import TextRecognizer
 
 
-app = cy.App()
+app = cy.App(usage="Usage: [b]find_text IMAGE-PATH[/b]\n")
 
 
 @app.default
 def main(
     image_path: cy.types.ResolvedExistingFile,
-    camera_index: int = 0,
+    /,
 ) -> None:
-    """Command to find the text in the given image. If no image is given,
-    then it'll poll a camera's feed."""
+    """Finds the text in the given image and displays it to the screen.
+
+    Args:
+        image_path: Path to the image to scan.
+    """
 
     image = cv.imread(str(image_path))
 
