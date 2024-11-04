@@ -89,7 +89,7 @@ def get_book_attribute(book_list, book_attr):
     try:
         return book_list["volumeInfo"][book_attr]
     except KeyError:
-        return "None"
+        return None
 
 
 # This grabs some settings of the books entered found from Google Books.
