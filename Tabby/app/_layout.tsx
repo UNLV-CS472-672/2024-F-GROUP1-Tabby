@@ -7,25 +7,29 @@ import FooterNavBar from '@/components/FooterNavBar';
 import { styled } from 'nativewind';
 import { NativeWindStyleSheet } from "nativewind";
 
-
+// use to make nativewind styles work on the web
 NativeWindStyleSheet.setOutput({
     default: "native",
 });
-const Container = styled(View, 'flex-1 bg-[#1E1E1E]'); // Replace 'bg-yourColorHere' with your desired Tailwind class
+
+// for the root layout of the page to take entrie screen
+const Container = styled(View, 'flex-1 bg-[#1E1E1E]');
+// allows the ContentContainer to grow and fill any remaining space in the parent container after other elements (like the FooterNavBar) have taken their space
+// This is to have the main content to occupy all available vertical space and have the footer bar at the bottom always
+const ContentContainer = styled(View, 'flex-grow');
 
 export default function RootLayout() {
     const pathname = usePathname();
-    // flag to check if the current route is in index, welcome page
     const isWelcomePage = pathname === '/';
+
     return (
         <SafeAreaProvider>
             <Container>
-                <Slot />
-
-                {/* Only show the footer if the current route is not the welcome page */}
+                <ContentContainer>
+                    <Slot />
+                </ContentContainer>
                 {!isWelcomePage && <FooterNavBar />}
             </Container>
         </SafeAreaProvider>
-
     );
 }

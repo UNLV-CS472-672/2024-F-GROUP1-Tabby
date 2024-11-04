@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "server"
+name = "tabby_server"
 version = "0.1.0"
 description = "Server for the Tabby app."
 authors = ["Ederic Oytas <edericoytas@gmail.com>"]
@@ -11,12 +11,17 @@ flask = "^3.0.3"
 opencv-contrib-python = "^4.10.0.84"
 cyclopts = "^2.9.9"
 easyocr = "^1.7.2"
+requests = "^2.32.3"
+python-dotenv = "^1.0.1"
+poethepoet = "^0.29.0"
 
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^7.1.1"
 pytest = "^8.3.3"
 pytest-cov = "^5.0.0"
+requests-mock = "^1.12.1"
+mypy = "^1.13.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -26,3 +31,13 @@ build-backend = "poetry.core.masonry.api"
 log_cli = 1
 log_file = "logs/pytest.log"
 log_file_level = "INFO"
+
+[tool.poe.tasks]
+test = "pytest tests -vv --cov=tabby_server --cov-report=term-missing"
+lint = "flake8 tabby_server tests"
+type = "mypy tabby_server tests"
+format = "black tabby_server tests --line-length 79"
+ci = ["lint", "type", "test"]
+
+[tool.mypy]
+disable_error_code = ["import-untyped"]
