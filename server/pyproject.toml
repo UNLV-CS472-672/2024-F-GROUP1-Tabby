@@ -37,7 +37,7 @@ log_file_level = "INFO"
 ci = ["lint", "type", "test"]
 dev = "python -m tabby_server"
 format = "black tabby_server tests --line-length 79"
-lint = "flake8 tabby_server tests"
+lint = "flake8 -v tabby_server tests"
 test = "pytest tests -vv --cov=tabby_server --cov-report=term-missing"
 type = "mypy tabby_server tests"
 
