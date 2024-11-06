@@ -209,7 +209,7 @@ def google_books_search():
 
     # Basic aspects of the Google Books API call.
     api_http = "https://www.googleapis.com/books/v1/volumes?q="
-    api_key = "&key=" + os.getenv("API_KEY")
+    api_key = "&key=" + str(os.getenv("API_KEY"))
     api_max = "&maxResults=40"
 
     # Make call to Google Books with assembled query.
