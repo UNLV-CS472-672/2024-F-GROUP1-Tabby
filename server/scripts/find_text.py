@@ -34,8 +34,9 @@ def main(
     texts = [r.text for r in results]
 
     if strict:
-        for text in texts:
-            print(text)
+        for result in results:
+            cx, cy = result.center
+            print(f"{result.text} |---| {result.area} |---| {cx}, {cy}")
         return
 
     print("Results:")
