@@ -13,7 +13,7 @@ import MenuIcon from '@/components/book/MenuIcon';
 import DropdownMenu from '@/components/book/DropDownMenu';
 import DeleteIcon from "@/assets/categories/delete-icon.svg";
 import DeleteBookModal from '@/components/book/DeleteBookModal';
-
+import { http_callback } from '@/types/api_request';
 
 const BookPage = () => {
     const [favorite, setFavorite] = useState(false);
@@ -80,8 +80,17 @@ const BookPage = () => {
 
     const categories = ["Fiction", "Non-Fiction", "Mystery", "Sci-Fi", "Dystopian"];
 
-    const handleMoveToCategory = (category: string) => {
+    const handleMoveToCategory = async (category: string) => {
         console.log(`Moving book to category: ${category}`);
+
+        // DEBUG: Currently invalid due to this being local host.
+        // Will have to use a public address so that it can be used in android studios
+        http_callback({
+            domain: "http://localhost:5000/",
+            route: "members",
+            method: "GET",
+            type: "application/json"
+        });
     };
 
     const handleDeleteBook = () => {
