@@ -1,3 +1,4 @@
+from typing import Annotated
 import cv2 as cv
 import cyclopts as cy
 from pprint import pprint
@@ -12,11 +13,15 @@ app = cy.App(usage="Usage: [b]find_text IMAGE-PATH[/b]\n")
 def main(
     image_path: cy.types.ResolvedExistingFile,
     /,
+    *,
+    strict: Annotated[bool, cy.Parameter(("-s", "--strict"))] = False,
 ) -> None:
     """Finds the text in the given image and displays it to the screen.
 
     Args:
         image_path: Path to the image to scan.
+        strict: If true, prints each text in a strict format. Good for testing
+            with the ChatGPT module.
     """
 
     image = cv.imread(str(image_path))
@@ -27,6 +32,12 @@ def main(
     recognizer = TextRecognizer()
     results = recognizer.find_text(image)
     texts = [r.text for r in results]
+
+    if strict:
+        for text in texts:
+            print(text)
+        return
+
     print("Results:")
     pprint(results)
     print("Texts:")
