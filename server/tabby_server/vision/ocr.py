@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-import easyocr
 import numpy as np
 
 
@@ -37,6 +36,8 @@ class TextRecognizer:
 
     def __init__(self) -> None:
         """Creates a new TextRecognizer object."""
+        import easyocr
+
         self._reader = easyocr.Reader(lang_list=["en"])
 
     def find_text(self, image: np.ndarray) -> list[RecognizedText]:
