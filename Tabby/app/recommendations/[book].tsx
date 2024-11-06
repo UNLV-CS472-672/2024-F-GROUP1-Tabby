@@ -87,13 +87,13 @@ const BookPage = () => {
 
     const handleDeleteBook = () => {
         setIsDeleteModalVisible(false);
-        console.log(`Deleting ${book} from ${category}`);
+        console.log(`Deleting ${book} from reccomendations`);
     };
 
     // Extract both category and book slugs
-    const { category, book } = useLocalSearchParams();
+    const { book } = useLocalSearchParams();
 
-    console.log(book, "is from", category);
+    console.log(book, "is reccomended");
 
     return (
         <>

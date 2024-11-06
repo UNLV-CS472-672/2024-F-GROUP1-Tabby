@@ -29,7 +29,7 @@ const initialBooks: Book[] = [
     },
     {
         id: '2',
-        title: 'To Kill a Mockingbird',
+        title: 'To Kill',
         author: 'Harper Lee',
         excerpt: 'A novel about racism and injustice.',
         summary: 'A novel about racism and injustice.',
@@ -39,7 +39,7 @@ const initialBooks: Book[] = [
     },
     {
         id: '3',
-        title: 'The Great Gatsby',
+        title: 'The',
         author: 'F. Scott Fitzgerald',
         summary: 'A novel about the American dream.',
         excerpt: 'A novel about the American dream.',
@@ -48,7 +48,7 @@ const initialBooks: Book[] = [
     },
     {
         id: '4',
-        title: 'To Kill a Mockingbird',
+        title: 'To Kill a',
         author: 'Harper Lee',
         excerpt: 'A novel about racism and injustice.',
         summary: 'A novel about racism and injustice.',
@@ -59,7 +59,7 @@ const initialBooks: Book[] = [
 
     {
         id: '5',
-        title: 'The Great Gatsby',
+        title: 'Great',
         author: 'F. Scott Fitzgerald',
         summary: 'A novel about the American dream.',
         excerpt: 'A novel about the American dream.',
@@ -108,21 +108,22 @@ const Reccomendations: React.FC = () => {
     );
 
     // if the string typed in the search bar is a part of a book title then render the book
-    const renderItem = ({item}: {item: Book}) => {
-        if(search == "" || item.title.toLowerCase().includes(search.toLowerCase())){
+    const renderItem = ({ item }: { item: Book }) => {
+        if (search === "" || item.title.toLowerCase().includes(search.toLowerCase())) {
             return (
-                <BookCard  
+                <BookPreview
                     book={item}
                     button={renderBookButton(item)}
+                    isReccommendation={true}
                 />
             )
         }
-        return(null);
+        return (null);
     }
 
     return (
         <SafeAreaView className="flex-1 p-4">
-            <SearchBar placeholder="Type Here..." onChangeText={updateSearch} value={search}/>
+            <SearchBar placeholder="Type Here..." onChangeText={updateSearch} value={search} />
             <FlatList
                 data={books}
                 keyExtractor={(item) => item.id}

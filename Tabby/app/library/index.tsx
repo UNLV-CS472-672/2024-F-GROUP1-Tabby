@@ -4,12 +4,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome } from "@expo/vector-icons";
 import { useState, useRef } from "react";
 import PinnedIcon from "@/components/categories/PinnedIcon";
-import RenameModal from "@/components/categories/RenameModal"; // Import the modal
+import RenameModal from "@/components/categories/RenameModal";
 import DeleteConfirmationModal from "@/components/categories/DeleteConfirmationModal";
-import { Category } from "@/types/category"; // Import the Category interface
+import { Category } from "@/types/category";
 import { SearchBar } from "@rneui/themed";
 import SelectedMenu from "@/components/categories/SelectedMenu";
-import BarsIcon from "@/components/categories/BarsIcon"
+
 
 const Categories = () => {
   const router = useRouter();
@@ -32,28 +32,20 @@ const Categories = () => {
     });
   };
 
-  // can go to specific book category page or just make category selected if any other categories are selected 
   const handleCategoryPress = (category: Category) => {
-    // Check if any categories are selected then make category selected instead of going to its page
     if (areAnyCategoriesSelected()) {
       const updatedCategories = categories.map((currentCategory) => {
         if (currentCategory.name === category.name) {
-          // Assuming category has an id to uniquely identify it
-          return {
-            ...currentCategory,
-            isSelected: !currentCategory.isSelected,
-          };
+          return { ...currentCategory, isSelected: !currentCategory.isSelected };
         }
         return currentCategory;
       });
-
       setCategories(updatedCategories);
       return;
     }
     router.push(`/library/${category.name}`);
   };
 
-  // will pin or unpin a category
   const handlePinPress = (categoryName: string) => {
     const updatedCategories = categories.map((category) =>
       category.name === categoryName
@@ -63,7 +55,6 @@ const Categories = () => {
     setCategories(sortCategories(updatedCategories));
   };
 
-  // will select or unselect a category by doing a long press
   const handleLongPress = (categoryName: string) => {
     const updatedCategories = categories.map((category) =>
       category.name === categoryName
@@ -73,7 +64,6 @@ const Categories = () => {
     setCategories(updatedCategories);
   };
 
-  // will delete all selected categories
   const handleDelete = () => {
     const remainingCategories = categories.filter(
       (category) => !category.isSelected
@@ -82,73 +72,42 @@ const Categories = () => {
     setIsDeleteModalVisible(false);
   };
 
-  // will be passed into RenameModal to handle renaming a category 
   const handleRename = (newName: string) => {
-    // Create a copy of the current categories
     const updatedCategories = [...categories];
-
-    // Loop through each category to rename
     updatedCategories.forEach((category, index) => {
       if (category.isSelected) {
-        // Only modify selected categories
         let uniqueName = newName;
         let counter = 1;
-
-        // Check for uniqueness and append a number if necessary
         while (updatedCategories.some((c) => c.name === uniqueName)) {
           uniqueName = `${newName} (${counter})`;
           counter++;
         }
-
-        // Update the name in the copied array and deselect the category since it has been renamed
-        updatedCategories[index] = {
-          ...category,
-          name: uniqueName,
-          isSelected: false,
-        };
+        updatedCategories[index] = { ...category, name: uniqueName, isSelected: false };
       }
     });
-
-    // Update the state with the modified categories
     setCategories(sortCategories(updatedCategories));
-    setIsRenameModalVisible(false); // Close the modal after renaming
+    setIsRenameModalVisible(false);
   };
 
   const handleAddCategory = () => {
-    // user clicked on plus icon to add new category to many times in a row just return
-    if (isAddingCategory) {
-      return;
-    }
-    // will indicate that currently adding new category
-    // and in handleDeletingNewCategoryThatWasNotRenamed will delete the new category if not renamed
+    if (isAddingCategory) return;
     setIsAddingCategory(true);
     let uniqueName = defaultNewCategoryName;
     let counter = 1;
-
-    // Check for uniqueness and append a number if necessary
-    while (
-      categories.some((currentCategory) => currentCategory.name === uniqueName)
-    ) {
+    while (categories.some((currentCategory) => currentCategory.name === uniqueName)) {
       uniqueName = `${defaultNewCategoryName} (${counter})`;
       counter++;
     }
-    // updating the current category name
     NewCategoryNameRef.current = uniqueName;
-
     const newCategory = { name: uniqueName, isPinned: false, isSelected: true, position: 0 };
-    // updating the categories with newly made cateogry
     setCategories(sortCategories([...categories, newCategory]));
-
-    // showing modal to rename the selected category based on user input
     setIsRenameModalVisible(true);
   };
 
-  // to check if any category is selected
   const areAnyCategoriesSelected = () => {
     return categories.some((category) => category.isSelected);
   };
 
-  // to deselect all categories
   const deselectAllCategories = () => {
     const updatedCategories = categories.map((category) => ({
       ...category,
@@ -157,90 +116,74 @@ const Categories = () => {
     setCategories(updatedCategories);
   };
 
-  // will be passed into RenameModal to delete new category if renaming was cancelled
   const handleDeletingNewCategoryInRenameModal = () => {
-    // Filter out any categories that were just added but not renamed if rename was canceled
     if (isAddingCategory) {
       const remainingCategories = categories.filter(
         (category) => category.name !== NewCategoryNameRef.current
       );
       setCategories(sortCategories(remainingCategories));
-      setIsAddingCategory(false); // Reset flag
+      setIsAddingCategory(false);
     }
   };
 
-  // will be passed into RenameModal to deselect the newly added category
   const handleDeselectingNewCategory = () => {
-
     if (isAddingCategory) {
-      setIsAddingCategory(false); // Reset flag
+      setIsAddingCategory(false);
       deselectAllCategories();
     }
   };
 
-  // will return all selected categories
   const getAllSelectedCategories = () => {
-    const allSelectedCategories = categories.filter(
-      (category) => category.isSelected
-    );
-    return allSelectedCategories;
+    return categories.filter((category) => category.isSelected);
   };
-  
+
   const updateSearch = (search: string) => {
     setSearch(search);
   };
 
-  // if the typed string into the search bar is in a book title then render the book
-  const renderItem = ({item, index}: {item: Category, index: number}) => {
-    if(search == "" || item.name.toLowerCase().includes(search.toLowerCase())){
-        return (
-          <View className="">
-            <Pressable
-              onPress={() => handleCategoryPress(item)}
-              onLongPress={() => handleLongPress(item.name)}
-              className={`flex-row items-center justify-between py-4 px-6 
-                              ${
-                                item.isSelected
-                                  ? "bg-blue-500"
-                                  : index % 2 === 0
-                                  ? "bg-black"
-                                  : "bg-gray-300"
-                              } opacity-5`}
-              style={{ opacity: item.isSelected ? 0.7 : 1 }}
-            >
+  const renderItem = ({ item, index }: { item: Category; index: number }) => {
+    if (search === "" || item.name.toLowerCase().includes(search.toLowerCase())) {
+      return (
+        <View>
+          <Pressable
+            onPress={() => handleCategoryPress(item)}
+            onLongPress={() => handleLongPress(item.name)}
+            className={`flex-row items-center justify-between py-4 px-6 
+              ${item.isSelected ? "bg-blue-500" : index % 2 === 0 ? "bg-black" : "bg-gray-300"}`}          >
             <View className="items-center flex-1">
               <Text
-                className={`text-xl font-semibold ${
-                  index % 2 === 0 ? "text-white" : "text-black"
-                }`}
+                className={`text-xl font-semibold ${index % 2 === 0 ? "text-white" : "text-black"}`}
               >
                 {item.name}
               </Text>
             </View>
-            <Pressable
-              className="p-1"
-              disabled={areAnyCategoriesSelected()}
-              onPress={() => handlePinPress(item.name)}
-            >
+            <Pressable className="p-1" disabled={areAnyCategoriesSelected()} onPress={() => handlePinPress(item.name)}>
               <PinnedIcon isPinned={item.isPinned} />
             </Pressable>
           </Pressable>
         </View>
-        )
+      );
     }
-    return(null);
-}
-
+    return null;
+  };
 
   return (
     <>
-      <SafeAreaView>
-        {/* Plus icon to add category cannot add category if there are selected categories */}
+
+
+      <SafeAreaView className="flex-1">
+
+
+
+        {/* Top row for add category icon and search bar */}
         <View className="flex-row justify-end">
-          <View className="w-[85%]">
-            <SearchBar placeholder="Type Here..." onChangeText={updateSearch} value={search}/>
-          </View>
-          <Pressable className="p-2" onPress={() => handleAddCategory()}>
+
+          {/* only show search bar if no categories are selected */}
+
+          {!areAnyCategoriesSelected() && <View className="w-[85%]" >
+            <SearchBar placeholder="Type Here..." onChangeText={updateSearch} value={search} />
+          </View>}
+          <Pressable className="p-2" onPress={handleAddCategory}>
             <FontAwesome
               name="plus"
               size={areAnyCategoriesSelected() || isAddingCategory ? 0 : 46}
@@ -249,13 +192,10 @@ const Categories = () => {
           </Pressable>
         </View>
 
-        {/* Scrollable FlatList with fixed height */}
-        <FlatList
-          data={categories}
-          keyExtractor={(item) => item.name}
-          renderItem={renderItem}
-        />
-      </SafeAreaView>
+        {/* Content area to allow FlatList and menu to stack correctly */}
+        <View className="flex-1">
+          <FlatList data={categories} keyExtractor={(item) => item.name} renderItem={renderItem} />
+        </View>
 
         {/* Bottom menu: shown when categories are selected */}
         {categories.some((category) => category.isSelected) && (
@@ -264,28 +204,28 @@ const Categories = () => {
           <SelectedMenu openDeleteModal={() => setIsDeleteModalVisible(true)} openRenameModal={() => setIsRenameModalVisible(true)} openCancelModal={() => deselectAllCategories()} />
         )}
 
-      {/* Rename Modal */}
-      {isRenameModalVisible && (
-        <RenameModal
-          categoriesBeingRenamed={getAllSelectedCategories()}
-          onRename={handleRename}
-          onCancel={() => setIsRenameModalVisible(false)}
-          deleteNewCategoryOnCancel={handleDeletingNewCategoryInRenameModal}
-          isAddingNewCategory={isAddingCategory}
-          handleDeselectingNewCategory={handleDeselectingNewCategory}
-        />
-      )}
+        {/* Rename Modal */}
+        {isRenameModalVisible && (
+          <RenameModal
+            categoriesBeingRenamed={getAllSelectedCategories()}
+            onRename={handleRename}
+            onCancel={() => setIsRenameModalVisible(false)}
+            deleteNewCategoryOnCancel={handleDeletingNewCategoryInRenameModal}
+            isAddingNewCategory={isAddingCategory}
+            handleDeselectingNewCategory={handleDeselectingNewCategory}
+          />
+        )}
 
-      {/* Delete Confirmation Modal */}
-      {isDeleteModalVisible && (
-        <DeleteConfirmationModal
-          onConfirm={handleDelete}
-          onCancel={() => setIsDeleteModalVisible(false)}
-          selectedCategories={getAllSelectedCategories()}
-        />
-      )}
-    </>
-  );
+        {/* Delete Confirmation Modal */}
+        {isDeleteModalVisible && (
+          <DeleteConfirmationModal
+            onConfirm={handleDelete}
+            onCancel={() => setIsDeleteModalVisible(false)}
+            selectedCategories={getAllSelectedCategories()}
+          />
+        )}
+      </>
+      );
 };
 
-export default Categories;
+      export default Categories;

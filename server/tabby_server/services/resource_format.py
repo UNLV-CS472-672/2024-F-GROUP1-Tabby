@@ -1,11 +1,9 @@
+from flask import Blueprint
 from http import HTTPStatus
 from typing import Any
 import requests
 import os
 from dotenv import load_dotenv
-
-# from tabby_server.__main__ import app     # Use when running pytest
-# from __main__ import app    # Use when actually running the server
 
 
 load_dotenv()  # Use 'os.getenv("KEY")' to get values.
@@ -18,6 +16,10 @@ load_dotenv()  # Use 'os.getenv("KEY")' to get values.
 Test bed to creating what may be returned by the GoogleBooks API.
 Likely to be deleted later.
 """
+
+# Blueprint for this file. Adds the 'test' prefix in __main__.py.
+# To call functions in this file use "/test/<function_route>"
+books_test = Blueprint('books_test', __name__)
 
 
 # This call is an example given by Google Books documentation.
@@ -43,7 +45,7 @@ result_dict = ApiTesting()
 # In actual code, this may come in the form of checking that
 # search terms are different to prevent unncessary calling.
 
-
+@books_test.route('/make_request', methods=["GET"])
 def google_books_test_call_api():
     if not bool(result_dict.output_dict):
         # In reality, it would check if the search terms are exactly the same
@@ -80,12 +82,22 @@ def google_books_test_call_api():
     return result_dict.output_dict, HTTPStatus.OK
 
 
+# Generic function for (hopefully) cleaner readability when it comes to
+# retrieving info about books.
+
+def get_book_attribute(book_list, book_attr):
+    try:
+        return book_list["volumeInfo"][book_attr]
+    except KeyError:
+        return None
+
+
 # This grabs some settings of the books entered found from Google Books.
 # This has a check to skip a book if the isbn does not exist.
 # All information is in a try_except because not all results have the
 # necessary variables to return.
 
-
+@books_test.route('/all_books', methods=["GET"])
 def google_books_test_all_books():
     # Gets the actual book results in the form of a list.
     items = []
@@ -102,50 +114,58 @@ def google_books_test_all_books():
             # Dict to hold the individual book attributes
             entry = {}
 
+            # Only keeps the entry if the isbn could be found. Only keeps the
+            # isbn 13.
             try:
-                entry["isbn"] = items[i]["volumeInfo"]["industryIdentifiers"]
+                # Purely to get under the Flake8 character limit.
+                isbnid = "industryIdentifiers"
+
+                # Initalizes isbn key
+                entry['isbn'] = ""
+
+                # If there is a list of isbn's, loop through it.
+                # Find the isbn with a tage of isbn_13 and save it.
+                # If none exist, then save none of them.
+                if type(items[i]["volumeInfo"][isbnid]) is list:
+                    for j in range(len(items[i]["volumeInfo"][isbnid])):
+                        try:
+                            # This only exists to spite the flake8 limit.
+                            isbn_entry = {}
+                            isbn_entry = items[i]["volumeInfo"][isbnid][j]
+                            if isbn_entry['type'] == "ISBN_13":
+                                entry['isbn'] = isbn_entry['identifier']
+                                break
+                        except KeyError:
+                            continue
+
+                # Check to see if a isbn_13 key was found.
+                # Don't save this entry if not found.
+                if entry['isbn'] == "":
+                    continue
             except KeyError:
                 continue
 
-            try:
-                entry["title"] = items[i]["volumeInfo"]["title"]
-            except KeyError:
-                pass
+            # entry['title'] = items[i]["volumeInfo"]["title"]
+            entry['title'] = get_book_attribute(items[i], "title")
 
-            try:
-                entry["author"] = items[i]["volumeInfo"]["authors"]
-            except KeyError:
-                pass
+            # entry['author'] = items[i]["volumeInfo"]["authors"]
+            entry['author'] = get_book_attribute(items[i], "authors")
 
-            try:
-                entry["summary"] = items[i]["volumeInfo"]["description"]
-            except KeyError:
-                pass
+            # entry['summary'] = items[i]["volumeInfo"]["description"]
+            entry['summary'] = get_book_attribute(items[i], "description")
 
-            try:
-                entry["publisher"] = items[i]["volumeInfo"]["publisher"]
-            except KeyError:
-                pass
+            # entry['publisher'] = items[i]["volumeInfo"]["publisher"]
+            entry['publisher'] = get_book_attribute(items[i], "publisher")
 
-            try:
-                entry["reviews"] = items[i]["volumeInfo"]["averageRating"]
-            except KeyError:
-                pass
-
-            try:
-                entry["thumbnail"] = items[i]["volumeInfo"]["imageLinks"]
-            except KeyError:
-                pass
+            # entry['thumbnail'] = items[i]["volumeInfo"]["imageLinks"]
+            entry['thumbnail'] = get_book_attribute(items[i], "imageLinks")
 
             # Once the attributes are obtained, that book is added to a list.
             all_books.append(entry)
 
-            # Prints the title of each book obtained.
-            # print("Book Title:", full_book['title'])
-
         # Adds a key with a list that holds a dict for all the books and their
         # attributes.
-        complete_list = {"books": all_books, "number": len(items)}
+        complete_list = {"books": all_books, "number": len(all_books)}
 
         return complete_list, HTTPStatus.OK
     else:
