@@ -10,13 +10,23 @@ from openai.types.chat import ChatCompletion
 from openai import OpenAI
 from tabby_server.vision.ocr import RecognizedText
 
+# Load environmental variables from dotenv if they aren't already.
 load_dotenv()
 
 _OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
+"""Key to use the ChatGPT API."""
+
 _MODEL = "gpt-4o"
+"""ChatGPT Model to use."""
+
 _ATTEMPT_MAX = 3
+"""Maximum amount of attempts to poll ChatGPT for."""
+
 _ANSWER_COUNT = 5
+"""Number of answers to get from ChatGPT."""
+
 _SEPERATOR = "|---|"
+"""Separator for input and output messages."""
 
 _SYSTEM_MESSAGE = f"""\
 You are a model which accepts chunks of text which were recognized by an OCR model. The texts will be from the cover of a physical book. Using your knowledge of natural language and the internet, you will identify (1) the title and (2) the author, given the text.
@@ -75,37 +85,44 @@ class ExtractionResult:
 def extract_from_recognized_texts(
     recognized_texts: list[RecognizedText],
 ) -> Optional[ExtractionResult]:
+    """Attempts to extract a result from the recognized texts."""
+
+    # Create messages list to send as input
     input_message = "\n".join(
         f"{r.text} |---| {r.area} |---| {r.center[0]}, {r.center[1]}"
         for r in recognized_texts
     )
-
     messages = [
         {"role": "system", "content": _SYSTEM_MESSAGE},
         {"role": "user", "content": input_message},
     ]
 
+    # Attempt up to _ATTEMPT_MAX times to request from the API
     client = OpenAI(api_key=_OPENAI_API_KEY)
     success: bool = False
     result: ExtractionResult
     for _ in range(_ATTEMPT_MAX):
 
+        # Request completion
         completion: ChatCompletion = client.chat.completions.create(
             model=_MODEL,
             messages=messages,  # type: ignore
             api_key=_OPENAI_API_KEY,
         )
+
+        # If no choices or response text given, try again
         if len(completion.choices) <= 0:
             continue
-
         response = completion.choices[0].message.content
         if response is None:
             continue
 
+        # If no extracted_result successfully extracted, try again
         extracted_result = extract_result(response)
         if extracted_result is None:
             continue
 
+        # Everything is successful, break loop
         result = extracted_result
         success = True
         break
@@ -117,7 +134,7 @@ def extract_from_recognized_texts(
 
 
 def extract_option(answer: str) -> Optional[ExtractionOption]:
-    """Attempts to extract an `ExtractionObject` object from an answer.
+    """Attempts to extract an option from an answer.
 
     Args:
         answer: Answer line to extract from.
@@ -150,8 +167,7 @@ def extract_option(answer: str) -> Optional[ExtractionOption]:
 
 
 def extract_result(response: str) -> Optional[ExtractionResult]:
-    """Attempts to extracts an `ExtractionResult` object from a response
-    object.
+    """Attempts to extracts a result from a response object.
 
     Args:
         response: Text of the response from ChatGPT.
