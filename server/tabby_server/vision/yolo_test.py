@@ -1,6 +1,7 @@
 from flask import Blueprint, request
 from http import HTTPStatus
 from ultralytics import YOLO
+import json
 
 
 # Blueprint for this file. Adds the 'test' prefix in __main__.py.
@@ -16,6 +17,7 @@ recognition. Credits at the bottom.
 
 # Instantiates the model.
 # Runs it. Outputs files to vision/example_yolo.
+# https://docs.ultralytics.com/modes/predict/#working-with-results
 
 
 def ultralytics_shelf_detection(file_path, save_output):
@@ -24,12 +26,47 @@ def ultralytics_shelf_detection(file_path, save_output):
 
     # Use model on given image url and return it.
     # Outputs the resulting image to vision/example_yolo.
-    model(
+    output = model(
+        # What it images it looks at
         source=(file_path + "example_shelves"),
+        # source=(file_path + "example_shelves/shelf_4.jpg"),
+        # Minimum accepted conf
         conf=0.45,
+        # Saves output to separate files
+        # Saves full image with context
+        # .txt with written data
+        # Cropped images of each box
         save=save_output,
+        save_txt=save_output,
+        save_conf=save_output,
+        save_crop=save_output,
+        # What objects it looks for
+        classes=[0],
+        # Where it saves the output files (images and text)
         project=(file_path + "example_yolo"),
+        # Show image in debug window
+        # show=True,
     )
+
+    # output is a list of Results.
+    # More can be read here: https://docs.ultralytics.com/modes/predict/#videos
+
+    # This loops through each Result and converts its output to a json which is
+    # converted to a dict. This is then added to a global dict which is
+    # returned and printed.
+
+    # This lists each object found by the model including:
+    #   class type (in this case it is only looking for class 'books'),
+    #   confidence,
+    #   name of object (copies name of class from what I can tell),
+    #   and the bounding shape (boxes only for this model)
+    inc = 1
+    found = {}
+    for item in output:
+        found["shelf_" + str(inc)] = json.loads(item.to_json())
+        inc = inc + 1
+
+    return found
 
 
 # Callable.
@@ -55,14 +92,16 @@ def predict_examples():
     # Runs model on each image file in vision/example_shelves.
     # This is to prevent issues with pytest and main.
     try:
-        ultralytics_shelf_detection("tabby_server/vision/", bool(index))
+        objects = ultralytics_shelf_detection(
+            "tabby_server/vision/", bool(index)
+        )
     except FileNotFoundError:
-        ultralytics_shelf_detection("", bool(index))
+        objects = ultralytics_shelf_detection("", bool(index))
 
     # Generic return to HTTP.
     # Eventually might make it return the images. Might be to much work though.
     return (
-        {"Detected": "Go to vision/example_yolo for results"},
+        objects,
         HTTPStatus.OK,
     )
 

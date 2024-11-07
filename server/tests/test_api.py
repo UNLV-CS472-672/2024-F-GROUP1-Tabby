@@ -127,7 +127,7 @@ class TestAPIEndPoint:
 
         # This should always return true.
         assert result.status_code == HTTPStatus.OK
-        assert result.json is not None and "Detected" in result.json
+        assert result.json is not None and "shelf_1" in result.json
 
         # Calls the model but provides an incorrect index
         result = client.get("/yolo/shelf_read", query_string={"index": int(2)})
