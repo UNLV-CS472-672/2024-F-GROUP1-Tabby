@@ -4,7 +4,6 @@ import BookPreview from '@/components/BookPreview'; // Adjust the path as necess
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AddButtonIcon from '@/components/AddButtonIcon';
 import { SearchBar } from "@rneui/themed";
-import BookCard from '@/components/BookCard';
 
 type Book = {
     id: string;

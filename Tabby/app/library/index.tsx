@@ -204,28 +204,31 @@ const Categories = () => {
           <SelectedMenu openDeleteModal={() => setIsDeleteModalVisible(true)} openRenameModal={() => setIsRenameModalVisible(true)} openCancelModal={() => deselectAllCategories()} />
         )}
 
-        {/* Rename Modal */}
-        {isRenameModalVisible && (
-          <RenameModal
-            categoriesBeingRenamed={getAllSelectedCategories()}
-            onRename={handleRename}
-            onCancel={() => setIsRenameModalVisible(false)}
-            deleteNewCategoryOnCancel={handleDeletingNewCategoryInRenameModal}
-            isAddingNewCategory={isAddingCategory}
-            handleDeselectingNewCategory={handleDeselectingNewCategory}
-          />
-        )}
+      </SafeAreaView>
 
-        {/* Delete Confirmation Modal */}
-        {isDeleteModalVisible && (
-          <DeleteConfirmationModal
-            onConfirm={handleDelete}
-            onCancel={() => setIsDeleteModalVisible(false)}
-            selectedCategories={getAllSelectedCategories()}
-          />
-        )}
-      </>
-      );
+      {/* Rename Modal */}
+      {isRenameModalVisible && (
+        <RenameModal
+          categoriesBeingRenamed={getAllSelectedCategories()}
+          onRename={handleRename}
+          onCancel={() => setIsRenameModalVisible(false)}
+          deleteNewCategoryOnCancel={handleDeletingNewCategoryInRenameModal}
+          isAddingNewCategory={isAddingCategory}
+          handleDeselectingNewCategory={handleDeselectingNewCategory}
+        />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalVisible && (
+        <DeleteConfirmationModal
+          onConfirm={handleDelete}
+          onCancel={() => setIsDeleteModalVisible(false)}
+          selectedCategories={getAllSelectedCategories()}
+        />
+      )}
+    </>
+
+  );
 };
 
-      export default Categories;
+export default Categories;
