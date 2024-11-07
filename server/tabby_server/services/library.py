@@ -1,9 +1,10 @@
+from dataclasses import dataclass, asdict, field
 from flask import Blueprint, request
+from dotenv import load_dotenv
 from http import HTTPStatus
 import requests
 import os
-from dotenv import load_dotenv
-from dataclasses import dataclass
+import json
 
 """
 Allows calling to Google Books API and returns only the attributes of the
@@ -15,6 +16,10 @@ Does not return books that lack an ISBN 13 id.
 # Load the .env variables.
 load_dotenv()
 
+# Global Variables
+MAX_RESULTS = 40  # Determines number of reults Google Books Returns (max 40)
+API_KEY = str(os.getenv("API_KEY"))  # API Key to access Google Books
+
 # Blueprint to be accessible from __main__.py.
 # To call, use: "/library/<function_route>"
 books_api = Blueprint("library", __name__)
@@ -22,144 +27,133 @@ books_api = Blueprint("library", __name__)
 
 # Dataclass to hold book attributes from the google books api call.
 @dataclass(frozen=True, kw_only=True)
-class BookAttr:
-    isbn: int
+class Book:
+    isbn: str
     title: str
     authors: list
     rating: str
-    summary: str
+    excerpt: str = field(init=False)  # Cannot be initialized
+    summary: str = ""
     thumbnail: str
     page_count: str
     categories: list
     publisher: str
     published_date: str
 
+    # After the dataclass is made, run this.
+    def __post_init__(self) -> None:
+        # Checks if summary is longer than 50 characters.
+        # If it is, save the first 47 and add "..." to excerpt.
+        # Otherwise, save the summary.
+        if len(self.summary) > 50:
+            object.__setattr__(self, "excerpt", f"{self.summary[:46]}...")
+        else:
+            object.__setattr__(self, "excerpt", self.summary)
 
-def parameter_handler(param="", index=-1):
+
+def get_google_books_query(
+    phrase: str = "",
+    title: str = "",
+    author: str = "",
+    publisher: str = "",
+    subject: str = "",
+    isbn: str = "",
+) -> str:
     """
-    Takes in search string parameters for google books and converts them into
-    useable strings by the Google API.
+    Assembles the completed query for the Google Books API. Parameters are
+    the search criteria given to the system. In order to use them with Google
+    Books, we have to include special terminology which this adds if such
+    parameters were defined.
 
     Args:
-        param: Given parameter from the caller.
-        index: Type of parameter this is supposed to fill (author, title, etc.)
-            0: title
-            1: author
-            2: publisher
-            3: subject
-            4: isbn
-            else: N/A
+        phrase:     Phrase parameter. Most Important. Searches everything.
+        title:      Title parameter. Search by title.
+        author:     Author parameter. Search by author.
+        publisher:  Publisher parameter. Search by publisher.
+        subject:    Subject parameter. Search by subject.
+        isbn:       ISBN parameter. Search by isbn.
 
-    Returns:
-        complete_param: Completed parameter usable by Google Books API
-                        depending on type of parameter.
-    """
-
-    match (index):
-        case 0:
-            return "+intitle:" + param
-        case 1:
-            return "+inauthor:" + param
-        case 2:
-            return "+inpublisher:" + param
-        case 3:
-            return "+subject:" + param
-        case 4:
-            return "+isbn:" + param
-        case _:
-            return param
-
-
-def query_assembler(phr="", tit="", aut="", pub="", sub="", isb=""):
-    """
-    Assembles the completed query for the Google Books API.
-
-    Args:
-        phr: Phrase parameter.
-        tit: Title parameter.
-        aut: Author parameter.
-        pub: Publisher parameter.
-        sub: Subject parameter.
-        isb: ISBN parameter.
-        num: Number of passed arguments.
     Returns:
         complete: Fully assembled and formatted Google Books API search
-                  query.
+                  query. This may remove the first character if no phrase was
+                  given to avoid an errant '+'.
     """
 
     # Assembles the query here.
+    # Uses concatenation and ternary statements to know what to include in
+    # the final product.
     complete = (
-        (phr)
-        + (parameter_handler(tit, 0) if tit else "")
-        + (parameter_handler(aut, 1) if aut else "")
-        + (parameter_handler(pub, 2) if pub else "")
-        + (parameter_handler(sub, 3) if sub else "")
-        + (parameter_handler(isb, 4) if isb else "")
+        phrase
+        + (f"+intitle:{title}" if title else "")
+        + (f"+inauthor:{author}" if author else "")
+        + (f"+inpublisher:{publisher}" if publisher else "")
+        + (f"+subject:{subject}" if subject else "")
+        + (f"+isbn:{isbn}" if isbn else "")
     )
 
     # Removes the first character if no primary phrase was given.
-    # This is because it would be a plus sign if no phrase was given.
-    if not phr and complete:
-        complete = complete[1:]
-
-    return complete
+    # This is because it would leave a plus sign at the beginning otherwise.
+    # If a phrase was given, just returns the whole thing then.
+    return complete[1:] if not phrase else complete
 
 
-def attr_collecter(book={}):
+def attr_collecter(book: dict = {}) -> dict[str, str]:
     """
     Gathers the attributes from a book entry given by Google Books API.
-    Stores them in a dataclass.
+    Stores them in a dataclass and returns them. Returns nothing if the book
+    lacks and ISBN 13 industry indentifier.
 
     Args:
-        book: Current book's 'volumeInfo' key we are collecting from.
+        book: Current book's 'volumeInfo' key we are collecting from. This
+              should be a dict containing all the information we need.
 
     Returns:
-        Full BookAttr() dataclass with current book attributes.
+        Full Book() dataclass converted to a dict with current book attributes.
+        If any attributes were blank, then they would be initialized as an
+        empty string.
     """
+
+    # Checks if there are any industry identifiers in the first place.
+    if "industryIdentifiers" not in book:
+        return {"blank": "no isbn 13"}
 
     # Checks to make sure an ISBN 13 exists for the entry.
     # If it does, save it.
-    if "industryIdentifiers" not in book:
-        return None
-    new_isbn = ""
+    cur_isbn: str = ""
     for id in book["industryIdentifiers"]:
         if id["type"] == "ISBN_13":
-            new_isbn = id["identifier"]
+            cur_isbn = id["identifier"]
             continue
 
     # If no ISBN 13 was found, skip this book.
-    if not new_isbn:
-        return None
+    if not cur_isbn:
+        return {"blank": "no isbn 13"}
 
-    # Collect attributes from the book if they exist.
-    new_title = book.get("title", "")
-    new_authors = book.get("authors", "")
-    new_rating = book.get("averageRating", "")
-    new_summary = book.get("description", "")
-    new_page_count = book.get("pageCount", "")
-    new_categories = book.get("categories", "")
-    new_publisher = book.get("publisher", "")
-    new_published_date = book.get("publishedDate", "")
-
-    # Must check if a thumbnail is provided.
-    # If it is, save it.
-    new_thumbnail = ""
-    if "imageLinks" in book:
-        new_thumbnail = book["imageLinks"].get("thumbnail", "")
-
-    # Create dataclass when returning.
-    # Only ISBN must be not None.
-    return BookAttr(
-        isbn=new_isbn,
-        title=new_title,
-        authors=new_authors,
-        rating=new_rating,
-        summary=new_summary,
-        thumbnail=new_thumbnail,
-        page_count=new_page_count,
-        categories=new_categories,
-        publisher=new_publisher,
-        published_date=new_published_date,
+    # Create dataclass when returning. Then convert it to a dict.
+    # Only ISBN must not be None. All others can be whatever.
+    return asdict(
+        Book(
+            # This was gathered earlier. If this did not exist,
+            # we wouldn't be here.
+            isbn=cur_isbn,
+            # Attempts to collect attributes from the book if they exist.
+            # If they don't, defaults to an empty string.
+            title=book.get("title", ""),
+            authors=book.get("authors", ""),
+            rating=book.get("averageRating", ""),
+            summary=book.get("description", ""),
+            page_count=book.get("pageCount", ""),
+            categories=book.get("categories", ""),
+            publisher=book.get("publisher", ""),
+            published_date=book.get("publishedDate", ""),
+            # Must check if a thumbnail is provided wit this entry.
+            # If any were, then we attempt to retrieve it.
+            thumbnail=(
+                book["imageLinks"].get("thumbnail", "")
+                if "imageLinks" in book
+                else ""
+            ),
+        )
     )
 
 
@@ -198,7 +192,7 @@ def google_books_search():
         )
 
     # Combines the arguments into a single usable phrase
-    query = query_assembler(
+    query = get_google_books_query(
         request.args.get("phrase", ""),
         request.args.get("title", ""),
         request.args.get("author", ""),
@@ -207,25 +201,32 @@ def google_books_search():
         request.args.get("isbn", ""),
     )
 
-    # Basic aspects of the Google Books API call.
-    api_http = "https://www.googleapis.com/books/v1/volumes?q="
-    api_key = "&key=" + str(os.getenv("API_KEY"))
-    api_max = "&maxResults=40"
-
     # Make call to Google Books with assembled query.
     # Save only the books themselves if any were found.
-    response = requests.get(api_http + query + api_key + api_max)
+    response = requests.get(
+        url="https://www.googleapis.com/books/v1/volumes",
+        params={
+            "key": API_KEY,
+            "q": query,
+            "maxResults": MAX_RESULTS,
+        },
+    )
+
+    # Checks if books were returned. Entirely possible that no books matched
+    # our search criteria.
     if "items" not in response.json():
-        return {"error": "No Books Found"}, HTTPStatus.OK
+        # Returns early if no books were found.
+        return {"matchless": "No Books Match Criteria"}, HTTPStatus.OK
     items = response.json()["items"]
 
     # Loops through each book returned and collects their attributes.
-    # Appends them to a list. List only holds the dataclass BookAttr().
-    found_books = []
+    # Stops after the first book with an ISBN 13 is found.
     for book in items:
-        cur_book = attr_collecter(book["volumeInfo"])
-        if cur_book is not None:
-            found_books.append(cur_book)
+        cur_book = attr_collecter(book.get("volumeInfo", {}))
+        # If a bad book was sent, we will get back a dict with the key "blank".
+        if not cur_book.get("blank"):
+            # Returns it as a json string.
+            return json.dumps(cur_book, indent=4), HTTPStatus.OK
 
-    # Returns list of BookAttr() with assembled book attributes.
-    return {"books": found_books, "number": len(found_books)}, HTTPStatus.OK
+    # If no books with an ISBN 13 were found, we return an error.
+    return {"error": "No Books Found"}, HTTPStatus.OK

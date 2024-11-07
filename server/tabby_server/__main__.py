@@ -23,7 +23,8 @@ app.register_blueprint(resource_format.books_test, url_prefix="/test")
 app.register_blueprint(books.subapp, url_prefix="/books")
 
 # Actual Python Files.
-# Google Books Implementation
+# Google Books Implementation - 1 Routable Function (search)
+# http://localhost:5000/library/search/
 app.register_blueprint(library.books_api, url_prefix="/library")
 
 

@@ -141,29 +141,33 @@ class TestAPIEndPoint:
         """
         Should mock a call to Google Books API and act as if it was a real
         call.
-        Should return a list of dataclasses of book attributes.
+        Should return a json of book attributes.
         Makes use of flower_of_algernon_test_40_output.json as test output.
 
-        Does call query_assembler and attr_collecter.
+        Does call get_google_books_query and attr_collecter.
         """
 
         # Load example output.
+        # This was a json output from testing.
         with open("tests/flower_of_algernon_test_40_output.json", "r") as f:
             test_output = json.load(f)
 
         # Setup Mocker
+        # Intercepts all Request Calls.
         with requests_mock.Mocker() as m:
             # Intercept an request message and make it always return the
             # example json.
             m.get(requests_mock.ANY, json={"book": "bad"})
 
             # -- Make Call to Function Using App Route --
-            # No Arguments
+            # No Arguments Given.
+            # This should fail.
             result = client.get("/library/search/")
             assert result.json is not None and "badArgs" in result.json
             assert result.status_code == HTTPStatus.BAD_REQUEST
 
-            # Bad Arguments
+            # Bad Arguments Given. We have a format we need to follow!
+            # This should fail.
             result = client.get(
                 "/library/search/", query_string={"notIncluded": "nonexistent"}
             )
@@ -171,122 +175,137 @@ class TestAPIEndPoint:
             assert result.status_code == HTTPStatus.BAD_REQUEST
 
             # Correct Arguments, but No Results
+            # The values here don't matter so long as the argument key is
+            # valid. This should pass but we have it see nothing at right now.
             result = client.get(
                 "/library/search/", query_string={"author": "nonexistent"}
+            )
+            assert result.json is not None and "matchless" in result.json
+            assert result.status_code == HTTPStatus.OK
+
+            # Intercepted request messages now return a single blank book.
+            # This is to test if we somehow found books, but none have a
+            # valid ISBN 13 id.
+            m.get(
+                requests_mock.ANY,
+                json={
+                    "items": [
+                        {
+                            "industryIdentifiers": [
+                                {"identifier": "123", "type": "bad"},
+                                {"identifier": "456", "type": "bad"},
+                            ]
+                        },
+                        {
+                            "industryIdentifiers": [
+                                {"identifier": "123", "type": "bad"},
+                                {"identifier": "456", "type": "bad"},
+                            ]
+                        },
+                    ]
+                },
+            )
+
+            # Matches Found, but None Valid.
+            # Theoretically possible for us to get books in a return but
+            # none of them have an ISBN 13.
+            result = client.get(
+                "/library/search/", query_string={"author": "who cares"}
             )
             assert result.json is not None and "error" in result.json
             assert result.status_code == HTTPStatus.OK
 
             # Intercept an request message and make it always return the
             # example json.
+            # Now all requests will return that full json we have.
             m.get(requests_mock.ANY, json=test_output)
 
-            # Flowers of Algernon Request
+            # Flowers of Algernon Request.
+            # Again, our values don't actually matter but this is what was
+            # used to get our example anyways.
             result = client.get(
                 "/library/search/",
                 query_string={"phrase": "flowers", "author": "keyes"},
             )
-            assert (
-                result.json is not None
-                and "books" in result.json
-                and "number" in result.json
-            )
+            # The return is actually a json string. So we convert it into
+            # a dict object to work with instead.
+            # This will have all attributes from the Book() dataclass.
             assert result.status_code == HTTPStatus.OK
+            result = json.loads(result.get_data(as_text=True))
+            assert (
+                result is not None
+                and "isbn" in result
+                and "title" in result
+                and "authors" in result
+                and "rating" in result
+                and "excerpt" in result
+                and "summary" in result
+                and "thumbnail" in result
+                and "page_count" in result
+                and "categories" in result
+                and "publisher" in result
+                and "published_date" in result
+            )
 
 
-def test_parameter_handler():
-    """
-    Provides false parameters in a mock query.
-    This should convert them into pre-determined format.
-    """
-
-    # Import Function
-    from tabby_server.services.library import parameter_handler
-
-    # Incomplete/Empty Arguments
-    result = parameter_handler()
-    assert result == ""
-    result = parameter_handler("blank")
-    assert result == "blank"
-    result = parameter_handler(index=-1)
-    assert result == ""
-
-    # Title
-    result = parameter_handler("title", 0)
-    assert result == "+intitle:title"
-
-    # Author
-    result = parameter_handler("author", 1)
-    assert result == "+inauthor:author"
-
-    # Publisher
-    result = parameter_handler("publisher", 2)
-    assert result == "+inpublisher:publisher"
-
-    # Subject
-    result = parameter_handler("subject", 3)
-    assert result == "+subject:subject"
-
-    # ISBN
-    result = parameter_handler("isbn", 4)
-    assert result == "+isbn:isbn"
-
-    # Default/Non Parameter
-    result = parameter_handler("default", 5)
-    assert result == "default"
-
-
-def test_query_assembler():
+def test_get_google_books_query():
     """
     Provides false parameters for a mock query.
     Should format the given parameters into a specific string.
-
-    Does call parameter_handler.
     """
 
     # Import function
-    from tabby_server.services.library import query_assembler
+    from tabby_server.services.library import get_google_books_query
 
     # No Arguments
-    result = query_assembler()
+    # Nothing to format if nothing was given.
+    result = get_google_books_query()
     assert result == ""
 
-    # Single Arguments
-    result = query_assembler(phr="state")
+    # Single Arguments Only
+    # Formatting is basic. No plusses at the beginning.
+    result = get_google_books_query(phrase="state")
     assert result == "state"
-    result = query_assembler(tit="state")
+    result = get_google_books_query(title="state")
     assert result == "intitle:state"
-    result = query_assembler(aut="state")
+    result = get_google_books_query(author="state")
     assert result == "inauthor:state"
-    result = query_assembler(pub="state")
+    result = get_google_books_query(publisher="state")
     assert result == "inpublisher:state"
-    result = query_assembler(sub="state")
+    result = get_google_books_query(subject="state")
     assert result == "subject:state"
-    result = query_assembler(isb="state")
+    result = get_google_books_query(isbn="state")
     assert result == "isbn:state"
 
-    # Dpouble Arguments
-    result = query_assembler(phr="state", tit="state")
+    # Double Arguments
+    # No plusses at the beginning.
+    result = get_google_books_query(phrase="state", title="state")
     assert result == "state+intitle:state"
-    result = query_assembler(aut="state", pub="state")
+    result = get_google_books_query(author="state", publisher="state")
     assert result == "inauthor:state+inpublisher:state"
-    result = query_assembler(sub="state", isb="state")
+    result = get_google_books_query(subject="state", isbn="state")
     assert result == "subject:state+isbn:state"
 
     # Triple Arguments
-    result = query_assembler(phr="state", tit="state", aut="state")
+    # No plusses at the beginning.
+    result = get_google_books_query(
+        phrase="state", title="state", author="state"
+    )
     assert result == "state+intitle:state+inauthor:state"
-    result = query_assembler(pub="state", sub="state", isb="state")
+    result = get_google_books_query(
+        publisher="state", subject="state", isbn="state"
+    )
     assert result == "inpublisher:state+subject:state+isbn:state"
 
     # All Arguments
-    result = query_assembler(
-        phr="state",
-        tit="state",
-        aut="state",
-        pub="state",
-        sub="state",
-        isb="state",
+    # This is technically a compatible query.
+    result = get_google_books_query(
+        phrase="state",
+        title="state",
+        author="state",
+        publisher="state",
+        subject="state",
+        isbn="state",
     )
     assert result == (
         "state+intitle:state+inauthor:state+inpublisher:state"
@@ -297,20 +316,23 @@ def test_query_assembler():
 def test_attr_collecter():
     """
     Provides a false dict as if from a real return.
-    Should collect and return a dataclass with gathered attributes.
+    Should collect and return a dataclass turned dict with gathered attributes.
     """
 
     # Import function
-    from tabby_server.services.library import attr_collecter, BookAttr
+    from tabby_server.services.library import attr_collecter
 
     # No Argument
     result = attr_collecter()
-    assert result is None
+    assert result is not None and "blank" in result
 
-    # No ISBN / No ISBN 13 / Only ISBN 13
+    # No industryIdentifiers
     fake_book = {}
     result = attr_collecter(fake_book)
-    assert result is None
+    assert result is not None and "blank" in result
+
+    # No ISBN 13
+    # Should fail.
     fake_book = {
         "industryIdentifiers": [
             {"identifier": "123", "type": "bad"},
@@ -318,26 +340,33 @@ def test_attr_collecter():
         ]
     }
     result = attr_collecter(fake_book)
-    assert result is None
+    assert result is not None and "blank" in result
+
+    # Only ISBN 13. Nothing Else.
+    # Should pass. But most things are blank.
+    # Basic Dict that passes.
     fake_book = {
         "industryIdentifiers": [{"identifier": "13", "type": "ISBN_13"}]
     }
     result = attr_collecter(fake_book)
-    comparison = BookAttr(
-        isbn="13",
-        title="",
-        authors="",
-        rating="",
-        summary="",
-        thumbnail="",
-        page_count="",
-        categories="",
-        publisher="",
-        published_date="",
-    )
+    # This is a theoretically possible book return.
+    comparison = {
+        "isbn": "13",
+        "title": "",
+        "authors": "",
+        "rating": "",
+        "excerpt": "",
+        "summary": "",
+        "thumbnail": "",
+        "page_count": "",
+        "categories": "",
+        "publisher": "",
+        "published_date": "",
+    }
     assert result == comparison
 
     # All Attributes
+    # More complete but basic dict.
     fake_book = {
         "industryIdentifiers": [{"identifier": "13", "type": "ISBN_13"}],
         "title": "t",
@@ -351,16 +380,18 @@ def test_attr_collecter():
         "imageLinks": {"thumbnail": "n"},
     }
     result = attr_collecter(fake_book)
-    new_book = BookAttr(
-        isbn="13",
-        title="t",
-        authors=["a"],
-        rating="r",
-        summary="d",
-        thumbnail="n",
-        page_count="g",
-        categories=["c"],
-        publisher="b",
-        published_date="p",
-    )
-    assert result == new_book
+    # This what it would look more like usually.
+    comparison = {
+        "isbn": "13",
+        "title": "t",
+        "authors": ["a"],
+        "rating": "r",
+        "excerpt": "d",
+        "summary": "d",
+        "thumbnail": "n",
+        "page_count": "g",
+        "categories": ["c"],
+        "publisher": "b",
+        "published_date": "p",
+    }
+    assert result == comparison
