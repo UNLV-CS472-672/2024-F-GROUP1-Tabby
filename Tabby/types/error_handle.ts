@@ -30,7 +30,7 @@ export async function catchErrorTyped<T, E extends new (message?: string) => Err
         .catch(error => {
             // An error was thrown, see if we defined any errors to catch.
             // If not, just 'catch' all errors and return that to the callee.
-            if (errorsToCatch == undefined) {
+            if (errorsToCatch === undefined) {
                 return [error]
             }
 
