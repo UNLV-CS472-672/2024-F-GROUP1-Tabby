@@ -36,11 +36,29 @@ log_file = "logs/pytest.log"
 log_file_level = "INFO"
 
 [tool.poe.tasks]
-test = "pytest tests -vv --cov=tabby_server --cov-report=term-missing"
-lint = "flake8 tabby_server tests scripts"
-type = "mypy tabby_server tests scripts"
-format = "black tabby_server tests --line-length 79"
+
+test.cmd = "pytest -vv --cov=tabby_server --cov-report=term-missing ${posargs}"
+test.args = [
+  { name = "posargs", positional = true, multiple = true, default = "tests" }
+]
+
+lint.cmd = "flake8 ${posargs}"
+lint.args = [
+  { name = "posargs", positional = true, multiple = true, default = "tabby_server tests scripts" }
+]
+
+type.cmd = "mypy ${posargs}"
+type.args = [
+  { name = "posargs", positional = true, multiple = true, default = "tabby_server tests scripts" }
+]
+
+format.cmd = "black --line-length 79 ${posargs}"
+format.args = [
+  { name = "posargs", positional = true, multiple = true, default = "tabby_server tests scripts" }
+]
+
 ci = ["lint", "type", "test"]
+
 dev = "python -m tabby_server"
 
 [tool.mypy]
