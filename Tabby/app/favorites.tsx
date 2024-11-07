@@ -91,7 +91,7 @@ const Favorites = () => {
     );
 
     const renderItem = ({ item }: { item: Book }) => {
-        if (item.isFavorite && (search == "" || item.title.toLowerCase().includes(search.toLowerCase()))) {
+        if (item.isFavorite && (search === "" || item.title.toLowerCase().includes(search.toLowerCase()))) {
             return (
                 <BookCard
                     book={item}
