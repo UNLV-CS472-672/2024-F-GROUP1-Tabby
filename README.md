@@ -8,10 +8,6 @@ back-end server.
 
 ## Installing App
 
-For .env, use 
-`NODE_ENV=test npx expo start --tunnel`
-so that it can read the env file in the first place.
-
 TODO write documentation
 
 ## Installing Server
