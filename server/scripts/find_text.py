@@ -6,7 +6,7 @@ from pprint import pprint
 from tabby_server.vision.ocr import TextRecognizer
 
 
-app = cy.App(usage="Usage: [b]find_text IMAGE-PATH[/b]\n")
+app = cy.App()
 
 
 @app.default
