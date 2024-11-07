@@ -5,6 +5,7 @@ import os
 from typing import Optional
 from dotenv import load_dotenv
 from openai.types.chat import ChatCompletion
+import logging
 
 from openai import OpenAI
 from tabby_server.vision.ocr import RecognizedText
@@ -100,28 +101,31 @@ def extract_from_recognized_texts(
     client = OpenAI(api_key=_OPENAI_API_KEY)
     success: bool = False
     result: ExtractionResult
-    for _ in range(_ATTEMPT_MAX):
+    for i in range(1, _ATTEMPT_MAX + 1):
 
         # Request completion
         completion: ChatCompletion = client.chat.completions.create(
             model=_MODEL,
             messages=messages,  # type: ignore
-            api_key=_OPENAI_API_KEY,
         )
 
         # If no choices or response text given, try again
         if len(completion.choices) <= 0:
+            logging.info(f"No choices from completion, attempt {i}")
             continue
         response = completion.choices[0].message.content
         if response is None:
+            logging.info(f"No response, attempt {i}")
             continue
 
         # If no extracted_result successfully extracted, try again
         extracted_result = extract_result(response)
         if extracted_result is None:
+            logging.info(f"Invalid format of response, attempt {i}")
             continue
 
         # Everything is successful, break loop
+        logging.info(f"Success. Took {i} attempt(s).")
         result = extracted_result
         success = True
         break
