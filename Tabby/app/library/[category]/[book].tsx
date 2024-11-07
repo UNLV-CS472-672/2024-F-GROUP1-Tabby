@@ -86,7 +86,7 @@ const BookPage = () => {
         // DEBUG: Currently invalid due to this being local host.
         // Will have to use a public address so that it can be used in android studios
         http_callback({
-            domain: "http://localhost:5000/",
+            domain: process.env.EXPO_PUBLIC_API_URL || "",
             route: "members",
             method: "GET",
             type: "application/json"
