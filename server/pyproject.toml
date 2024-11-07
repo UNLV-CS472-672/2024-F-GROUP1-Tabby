@@ -25,6 +25,7 @@ pytest-cov = "^5.0.0"
 requests-mock = "^1.12.1"
 mypy = "^1.13.0"
 black = "^24.10.0"
+pytest-socket = "^0.7.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -37,7 +38,7 @@ log_file_level = "INFO"
 
 [tool.poe.tasks]
 
-test.cmd = "pytest -vv --cov=tabby_server --cov-report=term-missing ${posargs}"
+test.cmd = "pytest -vv --cov=tabby_server --cov-report=term-missing --disable-socket ${posargs}"
 test.args = [
   { name = "posargs", positional = true, multiple = true, default = "tests" }
 ]
