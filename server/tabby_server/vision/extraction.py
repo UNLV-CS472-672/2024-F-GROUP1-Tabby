@@ -49,10 +49,17 @@ You will output {_ANSWER_COUNT} answers on separate lines. Conditions:
 - The first answer is your most confident answer, while the bottom answer is your least confident answer.
 - More confident answers should include the volume.
 - More confident answers should include the edition.
-
-Finally, you must output a separate line after your answers a message explaining your choices for your answers. Conditions:
-- This must be in the format of "Explanation: <EXPLANATION MESSAGE>"
 """  # noqa: E501
+
+#
+# Used to be part of system message:
+#
+# Finally, you must output a separate line after your answers a message explaining your choices for your answers. Conditions:  # noqa: E501
+# - This must be in the format of "Explanation: <EXPLANATION MESSAGE>"
+#
+# This was removed as it made ChatGPT take more time to generate a response to
+# this.
+#
 
 
 @dataclass
@@ -78,8 +85,8 @@ class ExtractionResult:
     options: list[ExtractionOption]
     """List of options from most confident to least confident."""
 
-    explanation: str
-    """Explanation of the given options. Empty if not specified."""
+    # explanation: str
+    # """Explanation of the given options. Empty if not specified."""
 
 
 def extract_from_recognized_texts(
@@ -179,11 +186,9 @@ def extract_result(response: str) -> Optional[ExtractionResult]:
     """
 
     # Split into lines
-    lines = response.strip().splitlines()
+    answers = response.strip().splitlines()
 
-    # Split into answers and explanation. Last line is explanation; the rest
-    # are answers
-    *answers, explanation = lines
+    # Filter answers
     answers = [a for a in answers if a and not a.isspace()]
     if len(answers) != _ANSWER_COUNT:
         return None
@@ -195,4 +200,4 @@ def extract_result(response: str) -> Optional[ExtractionResult]:
         if option is None:  # Invalid format, return None
             return None
         options.append(option)
-    return ExtractionResult(options=options, explanation=explanation)
+    return ExtractionResult(options=options)

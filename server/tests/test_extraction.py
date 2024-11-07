@@ -214,8 +214,6 @@ B |---| ALICE |---| 0.8
 C |---| ALICE |---| 0.75
 D |---| ALICE |---| 0.7
 E |---| ALICE |---| 0.65
-
-Explanation: So basically...
 """
 case0_result = ExtractionResult(
     options=[
@@ -225,7 +223,6 @@ case0_result = ExtractionResult(
         ExtractionOption(title="D", author="ALICE", confidence=0.7),
         ExtractionOption(title="E", author="ALICE", confidence=0.65),
     ],
-    explanation="Explanation: So basically...",
 )
 
 # Case 1: Success
@@ -235,9 +232,8 @@ KICKING AWAY THE LADDER |---| HA-JOON CHANG |---| 0.85
 DEVELOPMENT STRATEGY IN HISTORICAL PERSPECTIVE |---| HA-JOON CHANG |---| 0.80
 KICKING AWAY THE LADDER: IN HISTORICAL PERSPECTIVE |---| HA-JOON CHANG |---| 0.75
 KICKING AWAY THE LADDER: DEVELOPMENT STRATEGY |---| HA-JOON CHANG |---| 0.70
-
-Explanation: The main title identified ...
 """  # noqa: E501
+
 case1_result = ExtractionResult(
     options=[
         ExtractionOption(
@@ -266,14 +262,11 @@ case1_result = ExtractionResult(
             confidence=0.70,
         ),
     ],
-    explanation="Explanation: The main title identified ...",
 )
 
 # Case 2: Fail because too few options
 case2_string = """
 KICKING AWAY THE LADDER: DEVELOPMENT STRATEGY IN HISTORICAL PERSPECTIVE |---| HA-JOON CHANG |---| 0.95
-
-Explanation: The main title identified ...
 """  # noqa: E501
 case2_result = None
 
@@ -285,8 +278,6 @@ C |---| ALICE |---| 0.75
 D |---| ALICE |---| 0.7
 E |---| ALICE |---| 0.65
 F |---| ALICE |---| 0.5
-
-Explanation: So basically...
 """
 case3_result = None
 
@@ -297,8 +288,6 @@ B |---| ALICE |---| 0.8
 C |---| ALICE |---| 0.75
 D |---| ALICE |---| 0.7
 E |---| ALICE |---| 0.65
-
-Explanation: So basically...
 """
 case4_result = None
 
@@ -309,8 +298,6 @@ B |---| ALICE |---| 0.8
 C |---| ALICE |---| 75%
 D |---| ALICE |---| 0.7
 E |---| ALICE |---| 0.65
-
-Explanation: So basically...
 """
 case5_result = None
 
@@ -324,7 +311,11 @@ test_extract_result_cases: list[tuple[str, Optional[ExtractionResult]]] = [
 ]
 
 
-@pytest.mark.parametrize(("response", "result"), test_extract_result_cases)
+@pytest.mark.parametrize(
+    ("response", "result"),
+    test_extract_result_cases,
+    ids=range(len(test_extract_result_cases)),
+)
 def test_extract_result(response: str, result: Optional[ExtractionResult]):
     """Tests extract_result()"""
     assert extract_result(response) == result
