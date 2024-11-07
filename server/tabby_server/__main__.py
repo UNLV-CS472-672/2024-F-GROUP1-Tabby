@@ -1,9 +1,11 @@
 from flask import Flask
 from http import HTTPStatus
+
 # from services.resource_format import books_test   # --- Use with python ---
-from .services.resource_format import books_test    # /-/ Use with pytest /-/
+from .services.resource_format import books_test  # /-/ Use with pytest /-/
+
 # from vision.yolo_test import yolo_test            # --- Use with python ---
-from .vision.yolo_test import yolo_test             # /-/ Use with pytest /-/
+from .vision.yolo_test import yolo_test  # /-/ Use with pytest /-/
 from .api import books
 
 # You only need to modify this file! I've changed it around so only this
