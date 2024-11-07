@@ -80,11 +80,11 @@ KICKING AWAY THE LADDER: IN HISTORICAL PERSPECTIVE |---| HA-JOON CHANG |---| 0.7
 KICKING AWAY THE LADDER: DEVELOPMENT STRATEGY |---| HA-JOON CHANG |---| 0.70
 
 Explanation: The main title identified ...
-"""
+"""  # noqa: E501
 case1_result = ExtractionResult(
     options=[
         ExtractionOption(
-            title="KICKING AWAY THE LADDER: DEVELOPMENT STRATEGY IN HISTORICAL PERSPECTIVE",
+            title="KICKING AWAY THE LADDER: DEVELOPMENT STRATEGY IN HISTORICAL PERSPECTIVE",  # noqa: E501
             author="HA-JOON CHANG",
             confidence=0.95,
         ),
@@ -117,7 +117,7 @@ case2_string = """
 KICKING AWAY THE LADDER: DEVELOPMENT STRATEGY IN HISTORICAL PERSPECTIVE |---| HA-JOON CHANG |---| 0.95
 
 Explanation: The main title identified ...
-"""
+"""  # noqa: E501
 case2_result = None
 
 # Case 3: Fail because too many options

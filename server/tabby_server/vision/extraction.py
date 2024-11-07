@@ -2,7 +2,6 @@
 
 from dataclasses import dataclass
 import os
-import re
 from typing import Optional
 from dotenv import load_dotenv
 from openai.types.chat import ChatCompletion
@@ -52,7 +51,7 @@ You will output {_ANSWER_COUNT} answers on separate lines. Conditions:
 
 Finally, you must output a separate line after your answers a message explaining your choices for your answers. Conditions:
 - This must be in the format of "Explanation: <EXPLANATION MESSAGE>"
-"""
+"""  # noqa: E501
 
 
 @dataclass
@@ -89,7 +88,7 @@ def extract_from_recognized_texts(
 
     # Create messages list to send as input
     input_message = "\n".join(
-        f"{r.text} |---| {r.area} |---| {r.center[0]}, {r.center[1]}"
+        f"{r.text} {_SEPERATOR} {r.area} {_SEPERATOR} {r.center[0]}, {r.center[1]}"  # noqa: E501
         for r in recognized_texts
     )
     messages = [
