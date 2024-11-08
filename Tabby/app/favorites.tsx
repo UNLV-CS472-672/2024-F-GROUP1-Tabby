@@ -91,7 +91,7 @@ const Favorites = () => {
     );
 
     const renderItem = ({ item }: { item: Book }) => {
-        if (item.isFavorite && (search === "" || item.title.toLowerCase().includes(search.toLowerCase()))) {
+        if (item.isFavorite && (search === "" || item.title.toLowerCase().includes(search.toLowerCase()) || item.author.toLowerCase().includes(search.toLowerCase()) || item.id.includes(search))) {
             return (
                 <BookCard
                     book={item}
@@ -108,7 +108,7 @@ const Favorites = () => {
 
     return (
         <SafeAreaView className="flex-1 p-4">
-            <SearchBar placeholder="Type Here..." onChangeText={updateSearch} value={search} />
+            <SearchBar placeholder="Search by title, ISBN, or author..." onChangeText={updateSearch} value={search} />
             <FlatList
                 data={books}
                 keyExtractor={(item) => item.id}
