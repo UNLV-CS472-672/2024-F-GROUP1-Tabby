@@ -1,14 +1,14 @@
 import { View, Pressable, Text } from "react-native";
 import { Link, usePathname } from "expo-router";
 import React, { useState } from "react";
-import SelectedLibrary from "@/assets/navbar-images/selectedLibrary.svg";
-import NotSelectedLibrary from "@/assets/navbar-images/notSelectedLibrary.svg";
-import SelectedExplore from "@/assets/navbar-images/selectedExplore.svg";
-import NotSelectedExplore from "@/assets/navbar-images/notSelectedExplore.svg";
-import SelectedFavorite from "@/assets/navbar-images/selectedFavorite.svg";
-import NotSelectedFavorite from "@/assets/navbar-images/notSelectedFavorite.svg";
-import Settings from "@/assets/navbar-images/settings.svg";
-import CameraIcon from "@/assets/navbar-images/camera.svg";
+import SelectedLibrary from "@/assets/navbar-images/selectedLibrary";
+import NotSelectedLibrary from "@/assets/navbar-images/notSelectedLibrary";
+import SelectedExplore from "@/assets/navbar-images/selectedExplore";
+import NotSelectedExplore from "@/assets/navbar-images/notSelectedExplore";
+import SelectedFavorite from "@/assets/navbar-images/selectedFavorite";
+import NotSelectedFavorite from "@/assets/navbar-images/notSelectedFavorite";
+import Settings from "@/assets/navbar-images/settings";
+import CameraIcon from "@/assets/navbar-images/camera";
 import CameraModal from "@/components/camera/CameraModel";
 
 const FooterNavBar = () => {
@@ -33,27 +33,25 @@ const FooterNavBar = () => {
       <Link href="/recommendations" asChild>
         <Pressable className="flex-col mx-auto">
           {pathname.includes("/recommendations") ? (
-            <SelectedExplore height={size} width={size} />
+            <SelectedExplore />
           ) : (
-            <NotSelectedExplore height={size} width={size} />
+            <NotSelectedExplore />
           )}
           <Text className="text-center text-white">Explore</Text>
         </Pressable>
       </Link>
 
       {/* Camera Button to show camera modal */}
-      <Pressable onPress={() => setCameraModalVisible(true)} className="flex-col mx-auto">
-        <View className="w-16 h-16 bg-white rounded-full items-center justify-center">
-          <CameraIcon height={size} width={size} />
-        </View>
+      <Pressable testID="CameraButton" onPress={() => setCameraModalVisible(true)} className="flex-col mx-auto">
+        <CameraIcon />
       </Pressable>
 
       <Link href="/favorites" asChild>
         <Pressable className="flex-col mx-auto">
           {pathname.includes("/favorites") ? (
-            <SelectedFavorite height={size} width={size} />
+            <SelectedFavorite />
           ) : (
-            <NotSelectedFavorite height={size} width={size} />
+            <NotSelectedFavorite />
           )}
           <Text className="text-center text-white">Liked</Text>
         </Pressable>
@@ -61,7 +59,7 @@ const FooterNavBar = () => {
 
       <Link href="/setting" asChild>
         <Pressable className="flex-col mx-auto">
-          <Settings height={size} width={size} />
+          <Settings />
           <Text className="text-center text-white">Settings</Text>
         </Pressable>
       </Link>
