@@ -78,6 +78,7 @@ export const updateUserBook = async (book: Book) => {
 export const getAllUserBooks = async () => {
     try {
         const result = await (await db).getAllAsync('SELECT * FROM userBooks');
+        console.log("all user books:", result);
         return result;
     } catch (error) {
         console.error("Error retrieving all user books:", error);
@@ -89,6 +90,7 @@ export const getAllUserBooks = async () => {
 export const getUserBookByIsbn = async (isbn: string) => {
     try {
         const result = await (await db).getFirstAsync('SELECT * FROM userBooks WHERE isbn = ?', [isbn]);
+        console.log("user book by ISBN:", result);
         return result;
     } catch (error) {
         console.error("Error retrieving user book by ISBN:", error);
@@ -154,6 +156,7 @@ export const updateRecommendedBook = async (book: Book) => {
 export const getAllRecommendedBooks = async () => {
     try {
         const result = await (await db).getAllAsync('SELECT * FROM recommendedBooks');
+        console.log("all recommended books:", result);
         return result;
     } catch (error) {
         console.error("Error retrieving all recommended books:", error);
@@ -165,6 +168,7 @@ export const getAllRecommendedBooks = async () => {
 export const getRecommendedBookByIsbn = async (isbn: string) => {
     try {
         const result = await (await db).getFirstAsync('SELECT * FROM recommendedBooks WHERE isbn = ?', [isbn]);
+        console.log("recommended book by ISBN:", result);
         return result;
     } catch (error) {
         console.error("Error retrieving recommended book by ISBN:", error);
@@ -224,6 +228,7 @@ export const updateCategory = async (category: Category) => {
 export const getAllCategories = async () => {
     try {
         const result = await (await db).getAllAsync('SELECT * FROM categories');
+        console.log("all categories:", result);
         return result;
     } catch (error) {
         console.error("Error retrieving all categories:", error);
@@ -237,6 +242,7 @@ export const getAllCategories = async () => {
 export const getCategoryByName = async (name: string) => {
     try {
         const result = await (await db).getFirstAsync('SELECT * FROM categories WHERE name = ?', [name]);
+        console.log("Specific category:", result);
         return result;
     } catch (error) {
         console.error("Error retrieving category by name:", error);
