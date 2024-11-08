@@ -3,10 +3,9 @@ import { Text, View, Image, Pressable } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Book } from "@/types/book";
 
-
 type BookPreviewProps = {
     book: Book;
-    button: React.ReactElement<typeof Pressable>; // Expecting a Pressable component
+    button: React.ReactElement<typeof Pressable>;
     isReccommendation?: boolean;
 };
 
@@ -14,24 +13,21 @@ const BookPreview: React.FC<BookPreviewProps> = ({ book, button, isReccommendati
     const router = useRouter();
     const { category } = useLocalSearchParams();
 
-
     const handleBookPress = () => {
-        // book card is in reccommendation page so go to specific book reccommendation page
         if (isReccommendation) {
             router.push(`/recommendations/${book.title}`);
-        }
-        // book card is in library so go to specific book in library
-        else {
+        } else {
             router.push(`/library/${category}/${book.title}`);
-
         }
-
     };
+
+    // Use default image if `book.image` is not set or is invalid
+    const imageSource = book.image ? { uri: book.image } : require('@/assets/book/default-book-cover.jpg');
 
     return (
         <Pressable onPress={handleBookPress} className="flex-row items-center p-4 rounded-lg">
             <Image
-                source={{ uri: book.image }}
+                source={imageSource}
                 className="w-28 h-40 mr-4"
                 resizeMode="cover"
                 alt="book cover"
