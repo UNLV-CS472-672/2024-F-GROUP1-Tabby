@@ -18,7 +18,7 @@ const FooterNavBar = () => {
   const size = 40;
 
   return (
-    <View className="flex-row bg-[#1d232b] w-full py-1 justify-around">
+    <View className="flex-row bg-[#1d232b] w-full py-1 justify-around h-20">
       <Link href="/library" asChild>
         <Pressable className="flex-col mx-auto">
           {pathname.includes("/library") ? (

@@ -13,7 +13,7 @@ const WelcomeScreen = () => {
             </Text>
             <Link
                 className="bg-blue-600 py-2 px-4 rounded text-white text-lg font-semibold"
-                href={'/library'}
+                href={'/testingdb'}
             >
                 Get Started
             </Link>

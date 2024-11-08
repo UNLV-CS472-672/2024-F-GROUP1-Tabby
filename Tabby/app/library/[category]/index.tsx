@@ -6,7 +6,7 @@ import FavoriteButtonIcon from '@/components/FavoriteButtonIcon';
 import { SearchBar } from '@rneui/themed';
 
 type Book = {
-    id: string;
+    isbn: string;
     title: string;
     author: string;
     summary: string;
@@ -19,7 +19,7 @@ const defaultImage = require('@/assets/book/default-book-cover.jpg');
 
 const initialBooks: Book[] = [
     {
-        id: '1',
+        isbn: '1',
         title: 'The Great Gatsby',
         author: 'F. Scott Fitzgerald',
         summary: 'A novel about the American dream.',
@@ -28,7 +28,7 @@ const initialBooks: Book[] = [
         isFavorite: false,
     },
     {
-        id: '2',
+        isbn: '2',
         title: 'Test Book',
         author: 'F. Scott Fitzgerald',
         summary: 'A novel about the American dream.',
@@ -54,15 +54,15 @@ const CategoryPage: React.FC = () => {
     const handleFavoritePress = (bookId: string) => {
         setBooks((prevBooks) =>
             prevBooks.map((book) =>
-                book.id === bookId
+                book.isbn === bookId
                     ? { ...book, isFavorite: !book.isFavorite }
                     : book
             )
         );
     };
 
-    const renderBookButton = (book: { id: string; isFavorite: boolean }) => (
-        <Pressable onPress={() => handleFavoritePress(book.id)} className="ml-4">
+    const renderBookButton = (book: { isbn: string; isFavorite: boolean }) => (
+        <Pressable onPress={() => handleFavoritePress(book.isbn)} className="ml-4">
             <FavoriteButtonIcon isFavorite={book.isFavorite} />
         </Pressable>
     );
@@ -85,7 +85,7 @@ const CategoryPage: React.FC = () => {
 
     const handleAddBook = () => {
         const newBookData: Book = {
-            id: (books.length + 1).toString(),
+            isbn: (books.length + 1).toString(),
             title: newBook.title,
             author: newBook.author,
             summary: newBook.summary,
@@ -104,7 +104,7 @@ const CategoryPage: React.FC = () => {
             <SearchBar placeholder="Type Here..." onChangeText={updateSearch} value={search} />
             <FlatList
                 data={books}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item) => item.isbn}
                 renderItem={renderItem}
             />
             <Pressable onPress={() => setModalVisible(true)} className="p-2 bg-blue-500 rounded mt-4">

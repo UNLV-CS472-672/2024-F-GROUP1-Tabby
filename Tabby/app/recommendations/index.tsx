@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AddButtonIcon from '@/components/AddButtonIcon';
 import { SearchBar } from "@rneui/themed";
 type Book = {
-    id: string;
+    isbn: string;
     title: string;
     author: string;
     summary: string;
@@ -17,7 +17,7 @@ type Book = {
 // test data to see how the recconmendation page would look
 const initialBooks: Book[] = [
     {
-        id: '1',
+        isbn: '1',
         title: 'The Great Gatsby',
         author: 'F. Scott Fitzgerald',
         summary: 'A novel about the American dream.',
@@ -26,7 +26,7 @@ const initialBooks: Book[] = [
         isAddedToLibrary: false,
     },
     {
-        id: '2',
+        isbn: '2',
         title: 'To Kill',
         author: 'Harper Lee',
         excerpt: 'A novel about racism and injustice.',
@@ -36,7 +36,7 @@ const initialBooks: Book[] = [
         isAddedToLibrary: false,
     },
     {
-        id: '3',
+        isbn: '3',
         title: 'The',
         author: 'F. Scott Fitzgerald',
         summary: 'A novel about the American dream.',
@@ -45,7 +45,7 @@ const initialBooks: Book[] = [
         isAddedToLibrary: false,
     },
     {
-        id: '4',
+        isbn: '4',
         title: 'To Kill a',
         author: 'Harper Lee',
         excerpt: 'A novel about racism and injustice.',
@@ -56,7 +56,7 @@ const initialBooks: Book[] = [
     },
 
     {
-        id: '5',
+        isbn: '5',
         title: 'Great',
         author: 'F. Scott Fitzgerald',
         summary: 'A novel about the American dream.',
@@ -65,7 +65,7 @@ const initialBooks: Book[] = [
         isAddedToLibrary: false,
     },
     {
-        id: '6',
+        isbn: '6',
         title: 'To Kill a Mockingbird',
         author: 'Harper Lee',
         excerpt: 'A novel about racism and injustice.',
@@ -91,7 +91,7 @@ const Reccomendations: React.FC = () => {
     const handleAddToLibraryPress = (bookId: string) => {
         setBooks((prevBooks) =>
             prevBooks.map((book) =>
-                book.id === bookId
+                book.isbn === bookId
                     ? { ...book, isAddedToLibrary: !book.isAddedToLibrary } // Toggle added to library status
                     : book
             )
@@ -99,8 +99,8 @@ const Reccomendations: React.FC = () => {
     };
 
     // book add button to be passed as a prop to the book previews
-    const renderBookButton = (book: { id: string; isAddedToLibrary: boolean }) => (
-        <Pressable onPress={() => handleAddToLibraryPress(book.id)} className="ml-4">
+    const renderBookButton = (book: { isbn: string; isAddedToLibrary: boolean }) => (
+        <Pressable onPress={() => handleAddToLibraryPress(book.isbn)} className="ml-4">
             <AddButtonIcon isAdded={book.isAddedToLibrary} />
         </Pressable>
     );
@@ -124,7 +124,7 @@ const Reccomendations: React.FC = () => {
             <SearchBar placeholder="Type Here..." onChangeText={updateSearch} value={search} />
             <FlatList
                 data={books}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item) => item.isbn}
                 renderItem={renderItem}
             />
         </SafeAreaView>

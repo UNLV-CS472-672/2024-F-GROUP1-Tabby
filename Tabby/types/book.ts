@@ -1,6 +1,6 @@
 import { Review } from '@/types/review';
 export type Book = {
-    id: string;
+    isbn: string;
     title: string;
     author: string;
     excerpt: string;

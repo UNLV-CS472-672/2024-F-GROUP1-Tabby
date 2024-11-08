@@ -66,7 +66,7 @@ const BookPage = () => {
 
     // test book data to see how the book page will look with all its components
     const BookObj: Book = {
-        id: '2',
+        isbn: '2',
         title: 'To Kill a Mockingbird',
         author: 'Harper Lee',
         excerpt: 'A novel about racial injustice and racial segregation.',
