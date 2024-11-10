@@ -42,13 +42,9 @@ class Book:
 
     # After the dataclass is made, run this.
     def __post_init__(self) -> None:
-        # Checks if summary is longer than 50 characters.
-        # If it is, save the first 47 and add "..." to excerpt.
-        # Otherwise, save the summary.
-        if len(self.summary) > 50:
-            object.__setattr__(self, "excerpt", f"{self.summary[:46]}...")
-        else:
-            object.__setattr__(self, "excerpt", self.summary)
+        # Slices the summary down to 47 characters and adds a "..." to the end
+        # for the excerpt.
+        object.__setattr__(self, "excerpt", f"{self.summary[:46]}...")
 
 
 def get_google_books_query(
@@ -97,7 +93,7 @@ def get_google_books_query(
     return complete[1:] if not phrase else complete
 
 
-def attr_collecter(book: dict = {}) -> dict[str, str]:
+def collect_book_attrs(book: dict = {}) -> dict[str, str]:
     """
     Gathers the attributes from a book entry given by Google Books API.
     Stores them in a dataclass and returns them. Returns nothing if the book
@@ -222,7 +218,7 @@ def google_books_search():
     # Loops through each book returned and collects their attributes.
     # Stops after the first book with an ISBN 13 is found.
     for book in items:
-        cur_book = attr_collecter(book.get("volumeInfo", {}))
+        cur_book = collect_book_attrs(book.get("volumeInfo", {}))
         # If a bad book was sent, we will get back a dict with the key "blank".
         if not cur_book.get("blank"):
             # Returns it as a json string.
