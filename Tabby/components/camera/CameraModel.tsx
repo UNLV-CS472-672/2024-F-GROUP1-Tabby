@@ -15,12 +15,10 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal }) => {
     // Handle taking a picture by requesting permissions before taking the picture if necessary
     const handleTakePicture = async () => {
         setIsProcessing(true);
-        if (!cameraPermission?.granted) {
-            const { granted } = await requestCameraPermission();
-            if (!granted) {
-                setIsProcessing(false);
-                return;
-            }
+        const { granted } = await ImagePicker.requestCameraPermissionsAsync();
+        if (!granted) {
+            setIsProcessing(false);
+            return;
         }
 
         const result = await ImagePicker.launchCameraAsync({
@@ -64,6 +62,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal }) => {
                                 onPress={handleTakePicture}
                                 disabled={isProcessing}
                                 className={`p-2 rounded items-center bg-blue-500`}
+                                testID="takePictureButton"
                             >
                                 <Text className="text-white">Take Picture</Text>
                             </Pressable>
@@ -71,6 +70,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal }) => {
                                 onPress={handlePickImage}
                                 disabled={isProcessing}
                                 className={`p-2 rounded items-center bg-blue-500`}
+                                testID="pickPhotoButton"
                             >
                                 <Text className="text-white">Pick from Camera Roll</Text>
                             </Pressable>

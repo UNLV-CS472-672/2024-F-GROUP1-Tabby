@@ -1,7 +1,9 @@
 import React from 'react';
-import { usePathname } from "expo-router";
 import FooterNavBar from '@/components/FooterNavBar';
-import { render, fireEvent, act, screen } from '@testing-library/react-native';
+import * as ImagePicker from "expo-image-picker";
+import CameraModal from "@/components/camera/CameraModel";
+import { render, fireEvent, act, screen, waitFor } from '@testing-library/react-native';
+
 
 // when opening modal 5000ms is not enough time to open when testing
 // so doubling it here gives enough time
@@ -12,20 +14,110 @@ jest.mock('expo-router', () => ({
     Link: ({ children }) => <>{children}</>,
 }));
 
-// check to see if Camera modal opens when button is pressed
-test('Camera model opens', async () => {
-    // renders the navbar 
-    const page = render(<FooterNavBar />);
-    // clicks on the camera button
-    const cameraButton = page.getByTestId('CameraButton');
+jest.mock('expo-image-picker', () => {
+    const actualModule = jest.requireActual('expo-image-picker');
+    return {
+        launchCameraAsync: jest.fn(),
+        requestCameraPermissionsAsync: jest.fn(),
+        MediaTypeOptions: actualModule.MediaTypeOptions,  // Include MediaTypeOptions
+        requestMediaLibraryPermissionsAsync: jest.fn(),
+        launchImageLibraryAsync: jest.fn(),
+    };
+});
 
-    // opens the modal
-    await act(async () => {
-        fireEvent.press(cameraButton);
+// tests related to the camera
+describe('Camera tests', () => {
+    // check to see if Camera modal opens when button is pressed
+    // async because when updaing a modal we have to wait for it to finish
+    // otherwise RNTL throws an error
+    test('Camera model opens', async () => {
+        // renders the navbar 
+        const page = render(<FooterNavBar />);
+        // gets the camera button
+        const cameraButton = page.getByTestId('CameraButton');
+
+        // clicks the camera button
+        await act(async () => {
+            fireEvent.press(cameraButton);
+        });
+
+        // makes sure modal shows up by
+        // checking if some of the text from the modal appears
+        const modalTest = await screen.findByText('Take Picture');
+
+        // if the text does appear then the test passes
+        expect(modalTest).toBeTruthy();
+    })
+
+    // check to see if camera opens when pressing the Take Picture button
+    // async because when updaing a modal we have to wait for it to finish
+    // otherwise RNTL throws an error   
+    test('Camera opens correctly', async () => {
+        // mock successful response for launchCameraAsync
+        ImagePicker.launchCameraAsync.mockResolvedValue({
+            cancelled: false,
+            uri: 'image-uri',
+            base64: 'image-base64',
+        });
+
+        // mock all response for media library permissions
+        ImagePicker.requestCameraPermissionsAsync.mockResolvedValue({
+            granted: true,
+            expires: 'never',
+        });
+
+        // renders the camera modal
+        const page = render(<CameraModal closeModal={() => false} />);
+
+        // gets the take picture button
+        const takePictureButton = page.getByTestId('takePictureButton');
+
+        // clicks take picture button
+        await act(async () => {
+            fireEvent.press(takePictureButton);
+        })
+
+        // wait to see if launchCameraAsync and 
+        // requestCameraPermissionsAsync was called
+        await waitFor(() => {
+            expect(ImagePicker.requestCameraPermissionsAsync).toHaveBeenCalled();
+            expect(ImagePicker.launchCameraAsync).toHaveBeenCalled();
+        });
     });
 
-    const modalTest = await screen.findByText('Take Picture');
+    // check to see if photo library opens when pressing the Pick from camera roll button
+    // async because when updaing a modal we have to wait for it to finish
+    // otherwise RNTL throws an error
+    test('Camera Roll opens correctly', async () => {
+        // mock all response for media library permissions
+        ImagePicker.requestMediaLibraryPermissionsAsync.mockResolvedValue({
+            accessPrivileges: 'all',
+            granted: true,
+        });
 
-    expect(modalTest).toBeTruthy();
-})
+        // mock successful response for launchImageLibraryAsync
+        ImagePicker.launchImageLibraryAsync.mockResolvedValue({
+            cancelled: false,
+            uri: 'image-uri',
+            base64: 'image-base64',
+        });
 
+        // renders the camera modal
+        const page = render(<CameraModal closeModal={() => false} />);
+
+        // gets the open camera roll picture button
+        const pickPhotoButton = page.getByTestId('pickPhotoButton');
+
+        // clicks on open camera roll button
+        await act(async () => {
+            fireEvent.press(pickPhotoButton);
+        })
+
+        // wait to see if launchImageLibraryAsync 
+        // and requestMediaLibraryPermissionsAsync was called
+        await waitFor(() => {
+            expect(ImagePicker.requestMediaLibraryPermissionsAsync).toHaveBeenCalled();
+            expect(ImagePicker.launchImageLibraryAsync).toHaveBeenCalled();
+        });
+    });
+});
