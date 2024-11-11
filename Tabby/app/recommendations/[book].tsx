@@ -75,11 +75,11 @@ const BookPage = () => {
         isFavorite: favorite,
         addToLibrary: false,
         reviews: ReviewsArray,
-        genres: ['Fiction', 'Dystopian'],
+        genres: "Fiction, Dystopian,Historical Fiction,Science Fiction",
         rating: 4
     }
 
-    const categories = ["Fiction", "Non-Fiction", "Mystery", "Sci-Fi", "Dystopian"];
+    const genresAsArray = BookObj.genres?.split(",") || [""];
 
     const handleMoveToCategory = (category: string) => {
         console.log(`Moving book to category: ${category}`);
@@ -125,7 +125,7 @@ const BookPage = () => {
                     {/* Custom DropdownMenu */}
                     <DropdownMenu
                         visible={isMoveMenuVisible}
-                        items={categories}
+                        items={genresAsArray}
                         onSelect={handleMoveToCategory}
                         onClose={() => setIsMoveMenuVisible(false)}
                         heading="Add To Category"
@@ -137,7 +137,7 @@ const BookPage = () => {
                 </View>
 
                 <View className="pl-1 pt-5">
-                    <ScrollableGenres genres={['Fiction', 'Non-Fiction', 'Mystery', 'Sci-Fi', 'Dystopian']} />
+                    <ScrollableGenres genres={genresAsArray} />
                 </View>
 
                 <View className="pl-2 pt-5">

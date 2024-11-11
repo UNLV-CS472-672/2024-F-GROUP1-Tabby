@@ -8,8 +8,7 @@ const db = SQLite.openDatabaseAsync('bookCollection.db');
 // ! === User Books CRUD Functions ===
 
 // Add a new user book
-export const addUserBook = async (book: Book) => {
-    const genres = JSON.stringify(book.genres);
+export const addUserBook = async (book: Book): Promise<Book | null> => {
 
     try {
         await (await db).runAsync(
@@ -23,7 +22,7 @@ export const addUserBook = async (book: Book) => {
                 book.summary,
                 book.image,
                 book.rating || null,
-                genres,
+                book.genres || null,
                 book.isFavorite ? 1 : 0,
                 book.category || null,
                 book.publisher || null,
@@ -31,29 +30,34 @@ export const addUserBook = async (book: Book) => {
                 book.pageCount || null,
             ]
         );
-        console.log("User book added successfully");
+
+        // Fetch and return the inserted book
+        const result = await (await db).getFirstAsync('SELECT * FROM userBooks WHERE isbn = ?', [book.isbn]);
+        console.log("User book added successfully:", result);
+        return result ? { ...result } as Book : null;
     } catch (error) {
         console.error("Error adding user book:", error);
+        return null;
     }
 };
 
 // Delete a user book by ISBN
-export const deleteUserBook = async (isbn: string) => {
+export const deleteUserBook = async (isbn: string): Promise<boolean> => {
     try {
         await (await db).runAsync(
             `DELETE FROM userBooks WHERE isbn = ?`,
             [isbn]
         );
         console.log("User book deleted successfully");
+        return true;
     } catch (error) {
         console.error("Error deleting user book:", error);
+        return false;
     }
 };
 
 // Update a user book by ISBN
-export const updateUserBook = async (book: Book) => {
-    const genres = JSON.stringify(book.genres);
-
+export const updateUserBook = async (book: Book): Promise<boolean> => {
     try {
         await (await db).runAsync(
             `UPDATE userBooks SET title = ?, author = ?, excerpt = ?, summary = ?, image = ?, rating = ?, genres = ?, isFavorite = ?, category = ?, publisher = ?, publishedDate = ?, pageCount = ? WHERE isbn = ?`,
@@ -64,7 +68,7 @@ export const updateUserBook = async (book: Book) => {
                 book.summary,
                 book.image,
                 book.rating || null,
-                genres,
+                book.genres || null,
                 book.isFavorite ? 1 : 0,
                 book.category || null,
                 book.publisher || null,
@@ -74,20 +78,24 @@ export const updateUserBook = async (book: Book) => {
             ]
         );
         console.log("User book updated successfully");
+        return true;
     } catch (error) {
         console.error("Error updating user book:", error);
+        return false;
     }
 };
 
 // Get all user books by category
-export const getUserBooksByCategory = async (category: string) => {
+export const getUserBooksByCategory = async (category: string): Promise<Book[] | null> => {
     try {
         const result = await (await db).getAllAsync(
             'SELECT * FROM userBooks WHERE category = ?',
             [category]
         );
         console.log(`User books in category ${category}:`, result);
-        return result;
+        return result.map((item: any) => ({
+            ...item
+        })) as Book[];
     } catch (error) {
         console.error(`Error retrieving user books in category ${category}:`, error);
         return null;
@@ -95,11 +103,13 @@ export const getUserBooksByCategory = async (category: string) => {
 };
 
 // Get all user books
-export const getAllUserBooks = async () => {
+export const getAllUserBooks = async (): Promise<Book[] | null> => {
     try {
         const result = await (await db).getAllAsync('SELECT * FROM userBooks');
         console.log("All user books:", result);
-        return result;
+        return result.map((item: any) => ({
+            ...item
+        })) as Book[];
     } catch (error) {
         console.error("Error retrieving all user books:", error);
         return null;
@@ -107,11 +117,16 @@ export const getAllUserBooks = async () => {
 };
 
 // Get a user book by ISBN
-export const getUserBookByIsbn = async (isbn: string) => {
+export const getUserBookByIsbn = async (isbn: string): Promise<Book | null> => {
     try {
         const result = await (await db).getFirstAsync('SELECT * FROM userBooks WHERE isbn = ?', [isbn]);
         console.log("User book by ISBN:", result);
-        return result;
+        if (result) {
+            return {
+                ...result
+            } as Book;
+        }
+        return null;
     } catch (error) {
         console.error("Error retrieving user book by ISBN:", error);
         return null;
@@ -121,8 +136,8 @@ export const getUserBookByIsbn = async (isbn: string) => {
 // ! === Recommended Books CRUD Functions ===
 
 // Add a new recommended book
-export const addRecommendedBook = async (book: Book) => {
-    const genres = JSON.stringify(book.genres);
+export const addRecommendedBook = async (book: Book): Promise<Book | null> => {
+
 
     try {
         await (await db).runAsync(
@@ -136,35 +151,41 @@ export const addRecommendedBook = async (book: Book) => {
                 book.summary,
                 book.image,
                 book.rating || null,
-                genres,
+                book.genres || null,
                 book.addToLibrary ? 1 : 0,
                 book.publisher || null,
                 book.publishedDate || null,
                 book.pageCount || null,
             ]
         );
-        console.log("Recommended book added successfully");
+
+        // Fetch and return the inserted book
+        const result = await (await db).getFirstAsync('SELECT * FROM recommendedBooks WHERE isbn = ?', [book.isbn]);
+        console.log("Recommended book added successfully:", result);
+        return result ? { ...result } as Book : null;
     } catch (error) {
         console.error("Error adding recommended book:", error);
+        return null;
     }
 };
 
 // Delete a recommended book by ISBN
-export const deleteRecommendedBook = async (isbn: string) => {
+export const deleteRecommendedBook = async (isbn: string): Promise<boolean> => {
     try {
         await (await db).runAsync(
             `DELETE FROM recommendedBooks WHERE isbn = ?`,
             [isbn]
         );
         console.log("Recommended book deleted successfully");
+        return true;
     } catch (error) {
         console.error("Error deleting recommended book:", error);
+        return false;
     }
 };
 
 // Update a recommended book by ISBN
-export const updateRecommendedBook = async (book: Book) => {
-    const genres = JSON.stringify(book.genres);
+export const updateRecommendedBook = async (book: Book): Promise<boolean> => {
 
     try {
         await (await db).runAsync(
@@ -176,7 +197,7 @@ export const updateRecommendedBook = async (book: Book) => {
                 book.summary,
                 book.image,
                 book.rating || null,
-                genres,
+                book.genres || null,
                 book.addToLibrary ? 1 : 0,
                 book.publisher || null,
                 book.publishedDate || null,
@@ -185,17 +206,21 @@ export const updateRecommendedBook = async (book: Book) => {
             ]
         );
         console.log("Recommended book updated successfully");
+        return true;
     } catch (error) {
         console.error("Error updating recommended book:", error);
+        return false;
     }
 };
 
 // Get all recommended books
-export const getAllRecommendedBooks = async () => {
+export const getAllRecommendedBooks = async (): Promise<Book[] | null> => {
     try {
         const result = await (await db).getAllAsync('SELECT * FROM recommendedBooks');
         console.log("All recommended books:", result);
-        return result;
+        return result.map((item: any) => ({
+            ...item
+        })) as Book[];
     } catch (error) {
         console.error("Error retrieving all recommended books:", error);
         return null;
@@ -203,22 +228,26 @@ export const getAllRecommendedBooks = async () => {
 };
 
 // Get a recommended book by ISBN
-export const getRecommendedBookByIsbn = async (isbn: string) => {
+export const getRecommendedBookByIsbn = async (isbn: string): Promise<Book | null> => {
     try {
         const result = await (await db).getFirstAsync('SELECT * FROM recommendedBooks WHERE isbn = ?', [isbn]);
         console.log("Recommended book by ISBN:", result);
-        return result;
+        if (result) {
+            return {
+                ...result
+            } as Book;
+        }
+        return null;
     } catch (error) {
         console.error("Error retrieving recommended book by ISBN:", error);
         return null;
     }
 };
 
-
-//! === Categories CRUD Functions ===
+// ! === Categories CRUD Functions ===
 
 // Add a new category
-export const addCategory = async (category: Category) => {
+export const addCategory = async (category: Category): Promise<Category | null> => {
     try {
         await (await db).runAsync(
             `INSERT INTO categories (name, isPinned, position)
@@ -229,22 +258,29 @@ export const addCategory = async (category: Category) => {
                 category.position,
             ]
         );
-        console.log("Category added successfully");
+
+        // Fetch and return the inserted category
+        const result = await (await db).getFirstAsync('SELECT * FROM categories WHERE name = ?', [category.name]);
+        console.log("Category added successfully:", result);
+        return result as Category;
     } catch (error) {
         console.error("Error adding category:", error);
+        return null;
     }
 };
 
 // Delete a category by name
-export const deleteCategory = async (name: string) => {
+export const deleteCategory = async (name: string): Promise<boolean> => {
     try {
         await (await db).runAsync(
             `DELETE FROM categories WHERE name = ?`,
             [name]
         );
         console.log("Category deleted successfully");
+        return true;
     } catch (error) {
         console.error("Error deleting category:", error);
+        return false;
     }
 };
 
@@ -252,7 +288,7 @@ export const deleteCategory = async (name: string) => {
 // Update a category by old name, allowing the new name and other fields to be set
 export const updateCategory = async (oldName: string, category: Category) => {
     try {
-        // Check if the old name is provided to find the category
+        // Ensure oldName is provided to find the category
         if (!oldName) {
             throw new Error("Old category name is required to update.");
         }
@@ -261,17 +297,18 @@ export const updateCategory = async (oldName: string, category: Category) => {
         const queryParams = [
             category.isPinned ? 1 : 0, // Convert boolean to 1/0 for isPinned
             category.position,          // position
-            category.name || oldName,   // Use the new name if available, else the old name for the search
+            category.name || oldName,   // If the new name is provided, use it; otherwise, use the old name that was provided for the search
             oldName                     // The old name to search for in the WHERE clause
         ];
 
+        // Update query to modify the category details based on the old name
         const updateQuery = `
             UPDATE categories
             SET isPinned = ?, position = ?, name = ?
             WHERE name = ?
         `;
 
-        // Run the query to update the category
+        // Execute the update query
         await (await db).runAsync(updateQuery, queryParams);
 
         console.log(`Category with name "${oldName}" updated successfully to "${category.name}"`);
@@ -282,11 +319,11 @@ export const updateCategory = async (oldName: string, category: Category) => {
 
 
 // Get all categories
-export const getAllCategories = async () => {
+export const getAllCategories = async (): Promise<Category[] | null> => {
     try {
         const result = await (await db).getAllAsync('SELECT * FROM categories');
-        console.log("all categories:", result);
-        return result;
+        console.log("All categories:", result);
+        return result as Category[];
     } catch (error) {
         console.error("Error retrieving all categories:", error);
         return null;
@@ -294,16 +331,16 @@ export const getAllCategories = async () => {
 };
 
 // Get a category by name
-export const getCategoryByName = async (name: string) => {
+export const getCategoryByName = async (name: string): Promise<Category | null> => {
     try {
         const result = await (await db).getFirstAsync('SELECT * FROM categories WHERE name = ?', [name]);
         console.log("Specific category:", result);
-        return result;
+        if (result) {
+            return result as Category;
+        }
+        return null;
     } catch (error) {
         console.error("Error retrieving category by name:", error);
         return null;
     }
 };
-
-
-

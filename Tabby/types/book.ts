@@ -7,7 +7,7 @@ export type Book = {
     summary: string;
     image: string;
     rating?: 1 | 2 | 3 | 4 | 5;
-    genres?: string[];
+    genres?: string;
     category?: string;
     publisher?: string;
     publishedDate?: string;
