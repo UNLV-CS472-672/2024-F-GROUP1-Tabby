@@ -29,7 +29,6 @@ const Categories = () => {
     const fetchCategories = async () => {
       try {
         const initialCategories = await getAllCategories();
-
         setCategories(sortCategories(initialCategories || []));
       } catch (error) {
         console.error("Failed to load categories:", error);
