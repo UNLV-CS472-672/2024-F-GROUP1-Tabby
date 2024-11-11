@@ -1,6 +1,5 @@
 """Tests vision/extraction.py."""
 
-from pprint import pprint
 from typing import Any, Callable, Optional
 import numpy as np
 import pytest
@@ -25,7 +24,7 @@ def mock_chat_completion() -> Callable[[Any], None]:
     def mock_create(self, **kwargs) -> Any:
         return result
 
-    openai.resources.chat.Completions.create = mock_create
+    openai.resources.chat.Completions.create = mock_create  # type: ignore
 
     def set_result(new_result: Any) -> None:
         nonlocal result
