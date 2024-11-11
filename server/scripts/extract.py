@@ -3,6 +3,7 @@ from it."""
 
 import logging
 from pprint import pprint
+import time
 import cyclopts as cy
 import cv2 as cv
 import sys
@@ -31,9 +32,29 @@ def main(
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
     image = cv.imread(str(image_path))
+
+    print("Creating text recognizer...")
+
+    start_time = time.time()
     recognizer = TextRecognizer()
+    duration = time.time() - start_time
+
+    print(f"({duration:6.2f}s) Done creating text recognizer.")
+
+    # Find text using OCR
+    start_time = time.time()
     recognized_texts = recognizer.find_text(image)
+    duration = time.time() - start_time
+
+    print(f"({duration:6.2f}s) Done finding text. Results:")
+    pprint(recognized_texts)
+
+    # Extract title and author
+    start_time = time.time()
     result = extract_from_recognized_texts(recognized_texts)
+    duration = time.time() - start_time
+
+    print(f"({duration:6.2f}s) Done extracting data. Results:")
     pprint(result)
 
 
