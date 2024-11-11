@@ -19,7 +19,7 @@ Likely to be deleted later.
 
 # Blueprint for this file. Adds the 'test' prefix in __main__.py.
 # To call functions in this file use "/test/<function_route>"
-books_test = Blueprint('books_test', __name__)
+books_test = Blueprint("books_test", __name__)
 
 
 # This call is an example given by Google Books documentation.
@@ -45,7 +45,8 @@ result_dict = ApiTesting()
 # In actual code, this may come in the form of checking that
 # search terms are different to prevent unncessary calling.
 
-@books_test.route('/make_request', methods=["GET"])
+
+@books_test.route("/make_request", methods=["GET"])
 def google_books_test_call_api():
     if not bool(result_dict.output_dict):
         # In reality, it would check if the search terms are exactly the same
@@ -85,6 +86,7 @@ def google_books_test_call_api():
 # Generic function for (hopefully) cleaner readability when it comes to
 # retrieving info about books.
 
+
 def get_book_attribute(book_list, book_attr):
     try:
         return book_list["volumeInfo"][book_attr]
@@ -97,7 +99,8 @@ def get_book_attribute(book_list, book_attr):
 # All information is in a try_except because not all results have the
 # necessary variables to return.
 
-@books_test.route('/all_books', methods=["GET"])
+
+@books_test.route("/all_books", methods=["GET"])
 def google_books_test_all_books():
     # Gets the actual book results in the form of a list.
     items = []
@@ -121,7 +124,7 @@ def google_books_test_all_books():
                 isbnid = "industryIdentifiers"
 
                 # Initalizes isbn key
-                entry['isbn'] = ""
+                entry["isbn"] = ""
 
                 # If there is a list of isbn's, loop through it.
                 # Find the isbn with a tage of isbn_13 and save it.
@@ -132,33 +135,33 @@ def google_books_test_all_books():
                             # This only exists to spite the flake8 limit.
                             isbn_entry = {}
                             isbn_entry = items[i]["volumeInfo"][isbnid][j]
-                            if isbn_entry['type'] == "ISBN_13":
-                                entry['isbn'] = isbn_entry['identifier']
+                            if isbn_entry["type"] == "ISBN_13":
+                                entry["isbn"] = isbn_entry["identifier"]
                                 break
                         except KeyError:
                             continue
 
                 # Check to see if a isbn_13 key was found.
                 # Don't save this entry if not found.
-                if entry['isbn'] == "":
+                if entry["isbn"] == "":
                     continue
             except KeyError:
                 continue
 
             # entry['title'] = items[i]["volumeInfo"]["title"]
-            entry['title'] = get_book_attribute(items[i], "title")
+            entry["title"] = get_book_attribute(items[i], "title")
 
             # entry['author'] = items[i]["volumeInfo"]["authors"]
-            entry['author'] = get_book_attribute(items[i], "authors")
+            entry["author"] = get_book_attribute(items[i], "authors")
 
             # entry['summary'] = items[i]["volumeInfo"]["description"]
-            entry['summary'] = get_book_attribute(items[i], "description")
+            entry["summary"] = get_book_attribute(items[i], "description")
 
             # entry['publisher'] = items[i]["volumeInfo"]["publisher"]
-            entry['publisher'] = get_book_attribute(items[i], "publisher")
+            entry["publisher"] = get_book_attribute(items[i], "publisher")
 
             # entry['thumbnail'] = items[i]["volumeInfo"]["imageLinks"]
-            entry['thumbnail'] = get_book_attribute(items[i], "imageLinks")
+            entry["thumbnail"] = get_book_attribute(items[i], "imageLinks")
 
             # Once the attributes are obtained, that book is added to a list.
             all_books.append(entry)
