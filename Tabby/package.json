@@ -17,7 +17,7 @@
   },
   "jest": {
     "collectCoverage": true,
-    "collecteCoverageFrom": [
+    "collectCoverageFrom": [
       "**/*.{ts,tsx,js,jsx}",
       "!**/coverage/**",
       "!**/node_modules/**",
@@ -26,8 +26,8 @@
       "!**/.expo/**"
     ],
     "preset": "jest-expo",
-    "transformIgnorePattersn": [
-      "node_modules/(?!@react-native|reactive-native)"
+    "transformIgnorePatterns": [
+      "node_modules/(?!@react-native|reactive-native|@rneui)"
     ],
     "moduleFileExtensions": [
       "ts",
