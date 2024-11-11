@@ -38,7 +38,10 @@ class TextRecognizer:
         """Creates a new TextRecognizer object."""
         import easyocr
 
-        self._reader = easyocr.Reader(lang_list=["en"])
+        self._reader = easyocr.Reader(
+            lang_list=["en"],
+            model_storage_directory="./tabby_server/vision/EasyOCR",
+        )
 
     def find_text(self, image: np.ndarray) -> list[RecognizedText]:
         """Finds text from the given image and returns the result."""
