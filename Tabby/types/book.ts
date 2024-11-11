@@ -8,6 +8,10 @@ export type Book = {
     image: string;
     rating?: 1 | 2 | 3 | 4 | 5;
     genres?: string[];
+    category?: string;
+    publisher?: string;
+    publishedDate?: string;
+    pageCount?: number;
     reviews?: Review[];
     isFavorite?: boolean;
     addToLibrary?: boolean;

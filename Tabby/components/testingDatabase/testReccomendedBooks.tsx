@@ -1,26 +1,23 @@
-/* 
-This is all for testing db not actually used in app
-*/
 import React, { useState, useEffect } from 'react';
-import { Button, Modal, TextInput, FlatList, Text, View, Switch, Alert } from 'react-native';
+import { Button, Modal, TextInput, FlatList, Text, View, Switch } from 'react-native';
 import {
-    addUserBook, deleteUserBook, updateUserBook, getUserBookByIsbn,
-    getAllUserBooks, getUserBooksByCategory
+    addRecommendedBook, deleteRecommendedBook, updateRecommendedBook, getRecommendedBookByIsbn,
+    getAllRecommendedBooks
 } from '@/database/databaseOperations';
 import { Book } from '@/types/book';
 import { useSQLiteContext } from 'expo-sqlite';
 
-const TestUserBooks = () => {
-    const [userBooks, setUserBooks] = useState<Book[]>([]);
+const TestRecommendedBooks = () => {
+    const [recommendedBooks, setRecommendedBooks] = useState<Book[]>([]);
     const [modalVisible, setModalVisible] = useState(false);
     const [modalType, setModalType] = useState('');
     const [inputValues, setInputValues] = useState<Partial<Book>>({});
     const db = useSQLiteContext();
 
     const fetchBooks = async () => {
-        const books = await getAllUserBooks();
+        const books = await getAllRecommendedBooks();
         console.log(books);
-        setUserBooks(books as Book[] || []);
+        setRecommendedBooks(books as Book[] || []);
     };
 
     useEffect(() => {
@@ -43,18 +40,18 @@ const TestUserBooks = () => {
         const bookData = inputValues as Book;
 
         switch (modalType) {
-            case 'addUserBook':
-                await addUserBook(bookData);
+            case 'addRecommendedBook':
+                await addRecommendedBook(bookData);
                 break;
-            case 'deleteUserBook':
-                await deleteUserBook(bookData.isbn as string);
+            case 'deleteRecommendedBook':
+                await deleteRecommendedBook(bookData.isbn as string);
                 break;
-            case 'updateUserBook':
-                await updateUserBook(bookData);
+            case 'updateRecommendedBook':
+                await updateRecommendedBook(bookData);
                 break;
-            case 'getUserBookByIsbn':
-                const userBook = await getUserBookByIsbn(bookData.isbn as string);
-                alert(JSON.stringify(userBook));
+            case 'getRecommendedBookByIsbn':
+                const recommendedBook = await getRecommendedBookByIsbn(bookData.isbn as string);
+                alert(JSON.stringify(recommendedBook));
                 break;
         }
 
@@ -62,30 +59,23 @@ const TestUserBooks = () => {
         closeModal();
     };
 
-    const fetchBooksByCategory = async () => {
-        const category = inputValues.category as string;
-        const books = await getUserBooksByCategory(category);
-        const booksText = books?.map(book => JSON.stringify(book, null, 2)).join('\n\n');
-        Alert.alert(`Books in Category: ${category}`, booksText || 'No books found in this category.');
-    };
-
-    const resetUserBooksTable = async () => {
+    const resetRecommendedBooksTable = async () => {
         try {
-            await db.runAsync('DELETE FROM userBooks');
-            setUserBooks([]);
-            alert('User Books table has been reset.');
+            await db.runAsync('DELETE FROM recommendedBooks');
+            setRecommendedBooks([]);
+            alert('Recommended Books table has been reset.');
         } catch (error) {
-            console.error("Error resetting User Books table:", error);
-            alert("Failed to reset User Books table.");
+            console.error("Error resetting Recommended Books table:", error);
+            alert("Failed to reset Recommended Books table.");
         }
     };
 
     return (
         <View>
-            <Text className="font-bold text-lg mb-2">User Books:</Text>
+            <Text className="font-bold text-lg mb-2">Recommended Books:</Text>
             <FlatList
                 horizontal
-                data={userBooks}
+                data={recommendedBooks}
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={({ item }) => (
                     <View className="mr-4 p-2 bg-gray-100 rounded-lg">
@@ -96,12 +86,11 @@ const TestUserBooks = () => {
                 )}
                 contentContainerStyle={{ paddingHorizontal: 10 }}
             />
-            <Button title="Add User Book" onPress={() => openModal('addUserBook')} />
-            <Button title="Delete User Book" onPress={() => openModal('deleteUserBook')} />
-            <Button title="Update User Book" onPress={() => openModal('updateUserBook')} />
-            <Button title="Get User Book by ISBN" onPress={() => openModal('getUserBookByIsbn')} />
-            <Button title="Get Books by Category" onPress={() => openModal('getBooksByCategory')} />
-            <Button title="Reset User Books" onPress={resetUserBooksTable} color="#FF5252" />
+            <Button title="Add Recommended Book" onPress={() => openModal('addRecommendedBook')} />
+            <Button title="Delete Recommended Book" onPress={() => openModal('deleteRecommendedBook')} />
+            <Button title="Update Recommended Book" onPress={() => openModal('updateRecommendedBook')} />
+            <Button title="Get Recommended Book by ISBN" onPress={() => openModal('getRecommendedBookByIsbn')} />
+            <Button title="Reset Recommended Books" onPress={resetRecommendedBooksTable} color="#FF5252" />
 
             <Modal visible={modalVisible} transparent>
                 <View className="flex-1 justify-center items-center bg-black bg-opacity-50">
@@ -109,7 +98,7 @@ const TestUserBooks = () => {
                         <Text className="font-bold text-base mb-3">Enter Values</Text>
                         {[
                             'isbn', 'title', 'author', 'excerpt', 'summary', 'image',
-                            'rating', 'genres', 'publisher', 'publishedDate', 'pageCount', 'category'
+                            'rating', 'genres', 'publisher', 'publishedDate', 'pageCount'
                         ].map((key) => (
                             <TextInput
                                 key={key}
@@ -119,15 +108,15 @@ const TestUserBooks = () => {
                                 className="border-b border-gray-300 mb-3 p-2"
                             />
                         ))}
-                        {/* Switch for isFavorite boolean field */}
+                        {/* Switches for boolean fields */}
                         <View className="flex-row items-center mb-3">
-                            <Text>Favorite:</Text>
+                            <Text>Add to Library:</Text>
                             <Switch
-                                value={Boolean(inputValues.isFavorite)}
-                                onValueChange={(value) => handleInputChange('isFavorite', value)}
+                                value={Boolean(inputValues.addToLibrary)}
+                                onValueChange={(value) => handleInputChange('addToLibrary', value)}
                             />
                         </View>
-                        <Button title="Submit" onPress={modalType === 'getBooksByCategory' ? fetchBooksByCategory : handleAction} />
+                        <Button title="Submit" onPress={handleAction} />
                         <Button title="Cancel" onPress={closeModal} />
                     </View>
                 </View>
@@ -136,4 +125,4 @@ const TestUserBooks = () => {
     );
 };
 
-export default TestUserBooks;
+export default TestRecommendedBooks;

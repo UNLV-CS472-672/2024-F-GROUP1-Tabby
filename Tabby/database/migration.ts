@@ -2,19 +2,19 @@ import * as SQLite from 'expo-sqlite';
 
 // Function to initialize the database schema
 export async function migrateDbIfNeeded() {
-    // Open the database
-    const db = SQLite.openDatabaseAsync('bookCollection.db');
-    await (await db).execAsync(`
+  const db = SQLite.openDatabaseAsync('bookCollection.db');
+
+  await (await db).execAsync(`
         PRAGMA journal_mode = WAL;
-    
+
+        -- Create categories table with name as the primary key 
         CREATE TABLE IF NOT EXISTS categories (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          name TEXT NOT NULL,
+          name TEXT PRIMARY KEY NOT NULL,
           isPinned INTEGER NOT NULL,
-          isSelected INTEGER NOT NULL,
           position INTEGER NOT NULL
         );
-    
+        
+        -- Create userBooks table 
         CREATE TABLE IF NOT EXISTS userBooks (
           isbn TEXT PRIMARY KEY NOT NULL,
           title TEXT NOT NULL,
@@ -24,10 +24,14 @@ export async function migrateDbIfNeeded() {
           image TEXT,
           rating INTEGER,
           genres TEXT,
+          Category TEXT,
           isFavorite INTEGER,
-          addToLibrary INTEGER
+          publisher TEXT,               
+          publishedDate TEXT,           
+          pageCount INTEGER             
         );
-    
+
+        -- Create recommendedBooks table
         CREATE TABLE IF NOT EXISTS recommendedBooks (
           isbn TEXT PRIMARY KEY NOT NULL,
           title TEXT NOT NULL,
@@ -37,9 +41,12 @@ export async function migrateDbIfNeeded() {
           image TEXT,
           rating INTEGER,
           genres TEXT,
-          isFavorite INTEGER,
-          addToLibrary INTEGER
+          addToLibrary INTEGER,
+          publisher TEXT,               
+          publishedDate TEXT,           
+          pageCount INTEGER             
         );
       `);
-    console.log("Database initialized or migrated if needed");
+
+  console.log("Database initialized or migrated with new schema");
 }

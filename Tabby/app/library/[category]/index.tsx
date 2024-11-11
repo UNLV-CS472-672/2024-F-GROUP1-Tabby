@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FlatList, Pressable, Modal, TextInput, Button, View, Text, Image } from 'react-native';
+import { FlatList, Pressable, Modal, TextInput, View, Text } from 'react-native';
 import BookPreview from '@/components/BookPreview';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FavoriteButtonIcon from '@/components/FavoriteButtonIcon';
@@ -14,8 +14,6 @@ type Book = {
     image: string;
     isFavorite: boolean;
 };
-
-const defaultImage = require('@/assets/book/default-book-cover.jpg');
 
 const initialBooks: Book[] = [
     {

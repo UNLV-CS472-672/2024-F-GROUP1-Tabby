@@ -12,10 +12,9 @@ export const addUserBook = async (book: Book) => {
     const genres = JSON.stringify(book.genres);
 
     try {
-        // Use `runAsync` to execute the INSERT operation
         await (await db).runAsync(
-            `INSERT INTO userBooks (isbn, title, author, excerpt, summary, image, rating, genres, isFavorite, addToLibrary)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO userBooks (isbn, title, author, excerpt, summary, image, rating, genres, isFavorite, category, publisher, publishedDate, pageCount)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 book.isbn,
                 book.title,
@@ -26,12 +25,15 @@ export const addUserBook = async (book: Book) => {
                 book.rating || null,
                 genres,
                 book.isFavorite ? 1 : 0,
-                book.addToLibrary ? 1 : 0,
+                book.category || null,
+                book.publisher || null,
+                book.publishedDate || null,
+                book.pageCount || null,
             ]
         );
-        console.log("Book added successfully");
+        console.log("User book added successfully");
     } catch (error) {
-        console.error("Error adding book:", error);
+        console.error("Error adding user book:", error);
     }
 };
 
@@ -42,9 +44,9 @@ export const deleteUserBook = async (isbn: string) => {
             `DELETE FROM userBooks WHERE isbn = ?`,
             [isbn]
         );
-        console.log("Book deleted successfully");
+        console.log("User book deleted successfully");
     } catch (error) {
-        console.error("Error deleting book:", error);
+        console.error("Error deleting user book:", error);
     }
 };
 
@@ -54,7 +56,7 @@ export const updateUserBook = async (book: Book) => {
 
     try {
         await (await db).runAsync(
-            `UPDATE userBooks SET title = ?, author = ?, excerpt = ?, summary = ?, image = ?, rating = ?, genres = ?, isFavorite = ?, addToLibrary = ? WHERE isbn = ?`,
+            `UPDATE userBooks SET title = ?, author = ?, excerpt = ?, summary = ?, image = ?, rating = ?, genres = ?, isFavorite = ?, category = ?, publisher = ?, publishedDate = ?, pageCount = ? WHERE isbn = ?`,
             [
                 book.title,
                 book.author,
@@ -64,13 +66,31 @@ export const updateUserBook = async (book: Book) => {
                 book.rating || null,
                 genres,
                 book.isFavorite ? 1 : 0,
-                book.addToLibrary ? 1 : 0,
+                book.category || null,
+                book.publisher || null,
+                book.publishedDate || null,
+                book.pageCount || null,
                 book.isbn,
             ]
         );
-        console.log("Book updated successfully");
+        console.log("User book updated successfully");
     } catch (error) {
-        console.error("Error updating book:", error);
+        console.error("Error updating user book:", error);
+    }
+};
+
+// Get all user books by category
+export const getUserBooksByCategory = async (category: string) => {
+    try {
+        const result = await (await db).getAllAsync(
+            'SELECT * FROM userBooks WHERE category = ?',
+            [category]
+        );
+        console.log(`User books in category ${category}:`, result);
+        return result;
+    } catch (error) {
+        console.error(`Error retrieving user books in category ${category}:`, error);
+        return null;
     }
 };
 
@@ -78,7 +98,7 @@ export const updateUserBook = async (book: Book) => {
 export const getAllUserBooks = async () => {
     try {
         const result = await (await db).getAllAsync('SELECT * FROM userBooks');
-        console.log("all user books:", result);
+        console.log("All user books:", result);
         return result;
     } catch (error) {
         console.error("Error retrieving all user books:", error);
@@ -90,7 +110,7 @@ export const getAllUserBooks = async () => {
 export const getUserBookByIsbn = async (isbn: string) => {
     try {
         const result = await (await db).getFirstAsync('SELECT * FROM userBooks WHERE isbn = ?', [isbn]);
-        console.log("user book by ISBN:", result);
+        console.log("User book by ISBN:", result);
         return result;
     } catch (error) {
         console.error("Error retrieving user book by ISBN:", error);
@@ -98,7 +118,7 @@ export const getUserBookByIsbn = async (isbn: string) => {
     }
 };
 
-// ! === Reccommended Books CRUD Functions ===
+// ! === Recommended Books CRUD Functions ===
 
 // Add a new recommended book
 export const addRecommendedBook = async (book: Book) => {
@@ -106,12 +126,21 @@ export const addRecommendedBook = async (book: Book) => {
 
     try {
         await (await db).runAsync(
-            `INSERT INTO recommendedBooks (isbn, title, author, excerpt, summary, image, rating, genres, isFavorite, addToLibrary)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO recommendedBooks (isbn, title, author, excerpt, summary, image, rating, genres, addToLibrary, publisher, publishedDate, pageCount)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
-                book.isbn, book.title, book.author, book.excerpt, book.summary,
-                book.image, book.rating || null, genres, book.isFavorite ? 1 : 0,
+                book.isbn,
+                book.title,
+                book.author,
+                book.excerpt,
+                book.summary,
+                book.image,
+                book.rating || null,
+                genres,
                 book.addToLibrary ? 1 : 0,
+                book.publisher || null,
+                book.publishedDate || null,
+                book.pageCount || null,
             ]
         );
         console.log("Recommended book added successfully");
@@ -139,11 +168,20 @@ export const updateRecommendedBook = async (book: Book) => {
 
     try {
         await (await db).runAsync(
-            `UPDATE recommendedBooks SET title = ?, author = ?, excerpt = ?, summary = ?, image = ?, rating = ?, genres = ?, isFavorite = ?, addToLibrary = ? WHERE isbn = ?`,
+            `UPDATE recommendedBooks SET title = ?, author = ?, excerpt = ?, summary = ?, image = ?, rating = ?, genres = ?, addToLibrary = ?, publisher = ?, publishedDate = ?, pageCount = ? WHERE isbn = ?`,
             [
-                book.title, book.author, book.excerpt, book.summary, book.image,
-                book.rating || null, genres, book.isFavorite ? 1 : 0,
-                book.addToLibrary ? 1 : 0, book.isbn,
+                book.title,
+                book.author,
+                book.excerpt,
+                book.summary,
+                book.image,
+                book.rating || null,
+                genres,
+                book.addToLibrary ? 1 : 0,
+                book.publisher || null,
+                book.publishedDate || null,
+                book.pageCount || null,
+                book.isbn,
             ]
         );
         console.log("Recommended book updated successfully");
@@ -156,7 +194,7 @@ export const updateRecommendedBook = async (book: Book) => {
 export const getAllRecommendedBooks = async () => {
     try {
         const result = await (await db).getAllAsync('SELECT * FROM recommendedBooks');
-        console.log("all recommended books:", result);
+        console.log("All recommended books:", result);
         return result;
     } catch (error) {
         console.error("Error retrieving all recommended books:", error);
@@ -168,7 +206,7 @@ export const getAllRecommendedBooks = async () => {
 export const getRecommendedBookByIsbn = async (isbn: string) => {
     try {
         const result = await (await db).getFirstAsync('SELECT * FROM recommendedBooks WHERE isbn = ?', [isbn]);
-        console.log("recommended book by ISBN:", result);
+        console.log("Recommended book by ISBN:", result);
         return result;
     } catch (error) {
         console.error("Error retrieving recommended book by ISBN:", error);
@@ -176,17 +214,19 @@ export const getRecommendedBookByIsbn = async (isbn: string) => {
     }
 };
 
+
 //! === Categories CRUD Functions ===
 
 // Add a new category
 export const addCategory = async (category: Category) => {
     try {
         await (await db).runAsync(
-            `INSERT INTO categories (name, isPinned, isSelected, position)
-         VALUES (?, ?, ?, ?)`,
+            `INSERT INTO categories (name, isPinned, position)
+             VALUES (?, ?, ?)`,
             [
-                category.name, category.isPinned ? 1 : 0,
-                category.isSelected ? 1 : 0, category.position,
+                category.name,
+                category.isPinned ? 1 : 0,
+                category.position,
             ]
         );
         console.log("Category added successfully");
@@ -209,15 +249,32 @@ export const deleteCategory = async (name: string) => {
 };
 
 // Update a category by name
-export const updateCategory = async (category: Category) => {
+// Update a category by old name, allowing the new name and other fields to be set
+export const updateCategory = async (oldName: string, category: Category) => {
     try {
-        await (await db).runAsync(
-            `UPDATE categories SET isPinned = ?, isSelected = ?, position = ? WHERE name = ?`,
-            [
-                category.isPinned ? 1 : 0, category.isSelected ? 1 : 0, category.position, category.name,
-            ]
-        );
-        console.log("Category updated successfully");
+        // Check if the old name is provided to find the category
+        if (!oldName) {
+            throw new Error("Old category name is required to update.");
+        }
+
+        // Prepare the update query with dynamic fields (isPinned, position, and potentially name)
+        const queryParams = [
+            category.isPinned ? 1 : 0, // Convert boolean to 1/0 for isPinned
+            category.position,          // position
+            category.name || oldName,   // Use the new name if available, else the old name for the search
+            oldName                     // The old name to search for in the WHERE clause
+        ];
+
+        const updateQuery = `
+            UPDATE categories
+            SET isPinned = ?, position = ?, name = ?
+            WHERE name = ?
+        `;
+
+        // Run the query to update the category
+        await (await db).runAsync(updateQuery, queryParams);
+
+        console.log(`Category with name "${oldName}" updated successfully to "${category.name}"`);
     } catch (error) {
         console.error("Error updating category:", error);
     }
@@ -236,8 +293,6 @@ export const getAllCategories = async () => {
     }
 };
 
-
-
 // Get a category by name
 export const getCategoryByName = async (name: string) => {
     try {
@@ -249,3 +304,6 @@ export const getCategoryByName = async (name: string) => {
         return null;
     }
 };
+
+
+
