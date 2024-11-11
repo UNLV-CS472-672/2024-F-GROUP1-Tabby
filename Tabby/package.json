@@ -26,7 +26,7 @@
       "!**/.expo/**"
     ],
     "preset": "jest-expo",
-    "transformIgnorePatterns": [
+    "transformIgnorePattersn": [
       "node_modules/(?!@react-native|reactive-native|@rneui)"
     ],
     "moduleFileExtensions": [
