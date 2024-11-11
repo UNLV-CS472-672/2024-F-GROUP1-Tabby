@@ -42,10 +42,9 @@ In the input, you will accept 1 or more lines of text. Conditions:
 - Texts which have close centers may be a part of a larger chunk.
 
 You will output {_ANSWER_COUNT} answers on separate lines. Conditions:
-- Each answer is in the format of "TITLE |---| AUTHOR |---| CONFIDENCE". YOU MUST STRICTLY OBEY THIS FORMAT. Do not number or bulletpoint each answer.
+- Each answer is in the format of "TITLE |---| AUTHOR". YOU MUST STRICTLY OBEY THIS FORMAT. Do not number or bulletpoint each answer.
 - Each answer is unique.
 - Every character should be UPPERCASE.
-- Confidence is a proportion from 0.0 to 1.0, which represents how likely the answer is actually correct.
 - The first answer is your most confident answer, while the bottom answer is your least confident answer.
 - More confident answers should include the volume.
 - More confident answers should include the edition.
@@ -71,11 +70,6 @@ class ExtractionOption:
 
     author: str
     """Extracted author."""
-
-    confidence: float
-    """Proportion in [0, 1] representing how likely that it matches the
-    answer. Note: This proportion is only an estimate and not based on any
-    mathematical backing."""
 
 
 @dataclass
@@ -154,25 +148,17 @@ def extract_option(answer: str) -> Optional[ExtractionOption]:
 
     # Split into three parts
     parts = answer.strip().split(_SEPERATOR)
-    if len(parts) != 3:
+    if len(parts) != 2:
         return None
 
-    title, author, confidence_str = parts
+    title, author = parts
     title = title.strip()
     author = author.strip()
-    confidence_str = confidence_str.strip()
-
-    # Attempt to convert confidence into a float
-    try:
-        confidence = float(confidence_str)
-    except ValueError:
-        return None
 
     # Create and return object
     return ExtractionOption(
         title=title,
         author=author,
-        confidence=confidence,
     )
 
 
