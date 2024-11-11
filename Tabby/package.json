@@ -2,7 +2,6 @@
   "name": "tabby",
   "main": "expo-router/entry",
   "version": "1.0.0",
-  "proxy": "http://localhost:5000",
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
@@ -58,6 +57,7 @@
     "expo-status-bar": "~1.12.1",
     "expo-system-ui": "~3.0.7",
     "expo-web-browser": "~13.0.3",
+    "fetch": "^1.1.0",
     "nativewind": "^2.0.11",
     "react": "18.2.0",
     "react-dom": "18.2.0",

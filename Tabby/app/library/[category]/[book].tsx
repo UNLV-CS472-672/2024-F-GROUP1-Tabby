@@ -13,7 +13,8 @@ import MenuIcon from '@/components/book/MenuIcon';
 import DropdownMenu from '@/components/book/DropDownMenu';
 import DeleteIcon from "@/assets/categories/delete-icon.svg";
 import DeleteBookModal from '@/components/book/DeleteBookModal';
-
+import { http_callback } from '@/types/api_request';
+import { catchErrorTyped } from '@/types/error_handle';
 
 const BookPage = () => {
     const [favorite, setFavorite] = useState(false);
@@ -80,8 +81,24 @@ const BookPage = () => {
 
     const genresAsArray = BookObj.genres?.split(",") || [""];
 
-    const handleMoveToCategory = (category: string) => {
+    const handleMoveToCategory = async (category: string) => {
         console.log(`Moving book to category: ${category}`);
+
+        // DEBUG: Currently invalid due to this being local host.
+        // Will have to use a public address so that it can be used in android studios
+        const [error, value] = await catchErrorTyped(http_callback({
+                domain: process.env.EXPO_PUBLIC_API_URL || "",
+                route: "members",
+                method: "GET",
+                type: "application/json"
+            })
+        );
+
+        if (error) {
+            console.log("Error Found ", error.message);
+        } else {
+            console.log(value);
+        }
     };
 
     const handleDeleteBook = () => {
