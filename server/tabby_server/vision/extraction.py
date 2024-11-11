@@ -13,7 +13,7 @@ from tabby_server.vision.ocr import RecognizedText
 # Load environmental variables from dotenv if they aren't already.
 load_dotenv()
 
-_OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
+_OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 """Key to use the ChatGPT API."""
 
 _MODEL = "gpt-4o"
