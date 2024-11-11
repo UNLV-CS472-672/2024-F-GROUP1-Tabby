@@ -1,4 +1,3 @@
-import { Review } from '@/types/review';
 export type Book = {
     isbn: string;
     title: string;
@@ -12,7 +11,6 @@ export type Book = {
     publisher?: string;
     publishedDate?: string;
     pageCount?: number;
-    reviews?: Review[];
     isFavorite?: boolean;
     addToLibrary?: boolean;
 };

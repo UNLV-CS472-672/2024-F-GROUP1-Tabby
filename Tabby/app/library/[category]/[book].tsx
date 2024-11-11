@@ -4,9 +4,7 @@ import React from 'react'
 import { useLocalSearchParams } from 'expo-router';
 import BookCard from '@/components/book/BookCard';
 import ScrollableGenres from '@/components/book/ScrollableGenres';
-import Reviews from '@/components/book/Reviews';
 import { Book } from "@/types/book";
-import { Review } from "@/types/review";
 import { useState } from 'react';
 import FavoriteButtonIcon from '@/components/FavoriteButtonIcon';
 import MenuIcon from '@/components/book/MenuIcon';
@@ -20,49 +18,6 @@ const BookPage = () => {
     const [favorite, setFavorite] = useState(false);
     const [isMoveMenuVisible, setIsMoveMenuVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-    // test data for reviews to see how reviews would look
-    const ReviewsArray: Review[] = [
-        {
-            name: 'John Doe',
-            rating: 4,
-            reviewSummary: 'This book is great! I highly recommend it! It is a must read. The way Harper Lee portrays complex social issues through the innocent eyes of a child is both powerful and poignant. The characters are memorable, and the themes of empathy and justice are incredibly relevant today.'
-        },
-        {
-            name: 'Jane Doe',
-            rating: 3,
-            reviewSummary: 'This book is okay. While it tackles important themes of racism and moral growth, I found some parts to be slow and less engaging. The narrative perspective is unique, but I struggled to connect with all the characters. It has its merits, but it didn’t fully resonate with me.'
-        },
-        {
-            name: 'Emily Smith',
-            rating: 5,
-            reviewSummary: 'A timeless classic that everyone should read! Harper Lee’s story beautifully captures the struggles of childhood and moral integrity. Scout’s perspective on justice and empathy is both touching and thought-provoking. The relationships in the book, especially between Scout and Atticus, offer profound insights into human nature and compassion.'
-        },
-        {
-            name: 'Michael Johnson',
-            rating: 2,
-            reviewSummary: 'Not as impactful as I expected. I appreciated the themes, but the pacing felt uneven, particularly in the second half. I struggled to connect with the characters emotionally. While it’s a notable work in literature, I found the execution lacking in depth, which left me wanting more.'
-        },
-        {
-            name: 'John York',
-            rating: 4,
-            reviewSummary: 'This book is great! I highly recommend it! It is a must read. The way Harper Lee portrays complex social issues through the innocent eyes of a child is both powerful and poignant. The characters are memorable, and the themes of empathy and justice are incredibly relevant today.'
-        },
-        {
-            name: 'Jane Boe',
-            rating: 3,
-            reviewSummary: 'This book is okay. While it tackles important themes of racism and moral growth, I found some parts to be slow and less engaging. The narrative perspective is unique, but I struggled to connect with all the characters. It has its merits, but it didn’t fully resonate with me.'
-        },
-        {
-            name: 'Emily Mith',
-            rating: 5,
-            reviewSummary: 'A timeless classic that everyone should read! Harper Lee’s story beautifully captures the struggles of childhood and moral integrity. Scout’s perspective on justice and empathy is both touching and thought-provoking. The relationships in the book, especially between Scout and Atticus, offer profound insights into human nature and compassion.'
-        },
-        {
-            name: 'Michael John',
-            rating: 2,
-            reviewSummary: 'Not as impactful as I expected. I appreciated the themes, but the pacing felt uneven, particularly in the second half. I struggled to connect with the characters emotionally. While it’s a notable work in literature, I found the execution lacking in depth, which left me wanting more.'
-        }
-    ];
 
     // test book data to see how the book page will look with all its components
     const BookObj: Book = {
@@ -74,7 +29,6 @@ const BookPage = () => {
         image: 'https://m.media-amazon.com/images/I/81aY1lxk+9L._AC_UF1000,1000_QL80_.jpg',
         isFavorite: favorite,
         addToLibrary: false,
-        reviews: ReviewsArray,
         genres: "Fiction,Dystopian,Mystery,Sci-Fi,Non-Fiction",
         rating: 4
     }
@@ -87,11 +41,11 @@ const BookPage = () => {
         // DEBUG: Currently invalid due to this being local host.
         // Will have to use a public address so that it can be used in android studios
         const [error, value] = await catchErrorTyped(http_callback({
-                domain: process.env.EXPO_PUBLIC_API_URL || "",
-                route: "members",
-                method: "GET",
-                type: "application/json"
-            })
+            domain: process.env.EXPO_PUBLIC_API_URL || "",
+            route: "members",
+            method: "GET",
+            type: "application/json"
+        })
         );
 
         if (error) {
@@ -158,15 +112,6 @@ const BookPage = () => {
                 <View className="pl-1 pt-5">
                     <ScrollableGenres genres={genresAsArray} />
                 </View>
-
-                <View className="pl-2 pt-5">
-                    <Reviews reviews={BookObj.reviews || [{
-                        name: 'John Doe',
-                        rating: 4,
-                        reviewSummary: 'This book is great!'
-                    }]} />
-                </View>
-
 
 
 
