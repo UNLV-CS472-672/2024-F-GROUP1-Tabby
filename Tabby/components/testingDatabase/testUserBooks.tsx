@@ -1,11 +1,9 @@
-/* 
-This is all for testing db not actually used in app
-*/
 import React, { useState, useEffect } from 'react';
 import { Button, Modal, TextInput, FlatList, Text, View, Switch, Alert } from 'react-native';
 import {
     addUserBook, deleteUserBook, updateUserBook, getUserBookByIsbn,
-    getAllUserBooks, getUserBooksByCategory
+    getAllUserBooks, getUserBooksByCategory, getAllFavoriteUserBooks,
+    getAllNonFavoriteUserBooks, getAllFavoriteUserBooksByCategory, getAllNonFavoriteUserBooksByCategory
 } from '@/database/databaseOperations';
 import { Book } from '@/types/book';
 import { useSQLiteContext } from 'expo-sqlite';
@@ -19,7 +17,6 @@ const TestUserBooks = () => {
 
     const fetchBooks = async () => {
         const books = await getAllUserBooks();
-        console.log(books);
         setUserBooks(books as Book[] || []);
     };
 
@@ -54,7 +51,10 @@ const TestUserBooks = () => {
                 break;
             case 'getUserBookByIsbn':
                 const userBook = await getUserBookByIsbn(bookData.isbn as string);
-                alert(JSON.stringify(userBook));
+                Alert.alert("User Book", JSON.stringify(userBook, null, 2) || 'No book found.');
+                break;
+            case 'getBooksByCategory':
+                await fetchBooksByCategory();
                 break;
         }
 
@@ -65,19 +65,40 @@ const TestUserBooks = () => {
     const fetchBooksByCategory = async () => {
         const category = inputValues.category as string;
         const books = await getUserBooksByCategory(category);
-        const booksText = books?.map(book => JSON.stringify(book, null, 2)).join('\n\n');
-        Alert.alert(`Books in Category: ${category}`, booksText || 'No books found in this category.');
+        Alert.alert(`Books in Category: ${category}`, JSON.stringify(books, null, 2) || 'No books found in this category.');
     };
 
     const resetUserBooksTable = async () => {
         try {
             await db.runAsync('DELETE FROM userBooks');
             setUserBooks([]);
-            alert('User Books table has been reset.');
+            Alert.alert('User Books table has been reset.');
         } catch (error) {
             console.error("Error resetting User Books table:", error);
-            alert("Failed to reset User Books table.");
+            Alert.alert("Failed to reset User Books table.");
         }
+    };
+
+    const handleGetFavorites = async () => {
+        const favoriteBooks = await getAllFavoriteUserBooks();
+        Alert.alert("Favorite Books", JSON.stringify(favoriteBooks, null, 2) || 'No favorite books found.');
+    };
+
+    const handleGetNonFavorites = async () => {
+        const nonFavoriteBooks = await getAllNonFavoriteUserBooks();
+        Alert.alert("Non-Favorite Books", JSON.stringify(nonFavoriteBooks, null, 2) || 'No non-favorite books found.');
+    };
+
+    const handleGetFavoritesByCategory = async () => {
+        const category = inputValues.category as string;
+        const favoriteBooksByCategory = await getAllFavoriteUserBooksByCategory(category);
+        Alert.alert(`Favorite Books in Category: ${category}`, JSON.stringify(favoriteBooksByCategory, null, 2) || 'No favorite books found in this category.');
+    };
+
+    const handleGetNonFavoritesByCategory = async () => {
+        const category = inputValues.category as string;
+        const nonFavoriteBooksByCategory = await getAllNonFavoriteUserBooksByCategory(category);
+        Alert.alert(`Non-Favorite Books in Category: ${category}`, JSON.stringify(nonFavoriteBooksByCategory, null, 2) || 'No non-favorite books found in this category.');
     };
 
     return (
@@ -88,28 +109,29 @@ const TestUserBooks = () => {
                 data={userBooks}
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={({ item }) => (
-                    <View className="mr-4 p-2 bg-gray-100 rounded-lg">
+                    <View className="mr-4 p-2 bg-gray-100 rounded-lg max-h-80">
                         <Text className="text-sm text-gray-700">
                             {JSON.stringify(item, null, 2)}
                         </Text>
                     </View>
                 )}
-                contentContainerStyle={{ paddingHorizontal: 10 }}
             />
             <Button title="Add User Book" onPress={() => openModal('addUserBook')} />
             <Button title="Delete User Book" onPress={() => openModal('deleteUserBook')} />
             <Button title="Update User Book" onPress={() => openModal('updateUserBook')} />
             <Button title="Get User Book by ISBN" onPress={() => openModal('getUserBookByIsbn')} />
             <Button title="Get Books by Category" onPress={() => openModal('getBooksByCategory')} />
+            <Button title="Get All Favorite Books" onPress={handleGetFavorites} />
+            <Button title="Get All Non-Favorite Books" onPress={handleGetNonFavorites} />
+            <Button title="Get Favorite Books by Category" onPress={() => openModal('getFavoritesByCategory')} />
+            <Button title="Get Non-Favorite Books by Category" onPress={() => openModal('getNonFavoritesByCategory')} />
             <Button title="Reset User Books" onPress={resetUserBooksTable} color="#FF5252" />
 
             <Modal visible={modalVisible} transparent>
-                <View className="flex-1 justify-center items-center bg-black bg-opacity-50">
+                <View className="flex-1 justify-center items-center">
                     <View className="w-72 p-5 bg-white rounded-lg">
                         <Text className="font-bold text-base mb-3">Enter Values</Text>
-                        {[
-                            'isbn', 'title', 'author', 'excerpt', 'summary', 'image',
-                            'rating', 'genres', 'publisher', 'publishedDate', 'pageCount', 'category'
+                        {['isbn', 'title', 'author', 'excerpt', 'summary', 'image', 'rating', 'genres', 'category', 'publisher', 'publishedDate', 'pageCount'
                         ].map((key) => (
                             <TextInput
                                 key={key}
@@ -119,7 +141,6 @@ const TestUserBooks = () => {
                                 className="border-b border-gray-300 mb-3 p-2"
                             />
                         ))}
-                        {/* Switch for isFavorite boolean field */}
                         <View className="flex-row items-center mb-3">
                             <Text>Favorite:</Text>
                             <Switch
@@ -127,7 +148,7 @@ const TestUserBooks = () => {
                                 onValueChange={(value) => handleInputChange('isFavorite', value)}
                             />
                         </View>
-                        <Button title="Submit" onPress={modalType === 'getBooksByCategory' ? fetchBooksByCategory : handleAction} />
+                        <Button title="Submit" onPress={modalType === 'getFavoritesByCategory' ? handleGetFavoritesByCategory : modalType === 'getNonFavoritesByCategory' ? handleGetNonFavoritesByCategory : handleAction} />
                         <Button title="Cancel" onPress={closeModal} />
                     </View>
                 </View>

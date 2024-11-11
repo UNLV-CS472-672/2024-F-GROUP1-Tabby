@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Modal, TextInput, FlatList, Text, View, Switch } from 'react-native';
+import { Button, Modal, TextInput, FlatList, Text, View, Switch, Alert } from 'react-native';
 import {
     addRecommendedBook, deleteRecommendedBook, updateRecommendedBook, getRecommendedBookByIsbn,
-    getAllRecommendedBooks
+    getAllRecommendedBooks, getAllRecommendedBooksAddedToLibrary, getAllRecommendedBooksNotAddedToLibrary
 } from '@/database/databaseOperations';
 import { Book } from '@/types/book';
 import { useSQLiteContext } from 'expo-sqlite';
@@ -59,6 +59,16 @@ const TestRecommendedBooks = () => {
         closeModal();
     };
 
+    const handleGetAddedToLibrary = async () => {
+        const addedToLibraryBooks = await getAllRecommendedBooksAddedToLibrary();
+        alert(addedToLibraryBooks?.map(book => JSON.stringify(book, null, 2)).join('\n\n') || 'No recommended books found in the library.');
+    };
+
+    const handleGetNotAddedToLibrary = async () => {
+        const notAddedToLibraryBooks = await getAllRecommendedBooksNotAddedToLibrary();
+        alert(notAddedToLibraryBooks?.map(book => JSON.stringify(book, null, 2)).join('\n\n') || 'All recommended books are in the library.');
+    };
+
     const resetRecommendedBooksTable = async () => {
         try {
             await db.runAsync('DELETE FROM recommendedBooks');
@@ -78,28 +88,26 @@ const TestRecommendedBooks = () => {
                 data={recommendedBooks}
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={({ item }) => (
-                    <View className="mr-4 p-2 bg-gray-100 rounded-lg">
+                    <View className="mr-4 p-2 bg-gray-100 rounded-lg max-h-80">
                         <Text className="text-sm text-gray-700">
                             {JSON.stringify(item, null, 2)}
                         </Text>
                     </View>
                 )}
-                contentContainerStyle={{ paddingHorizontal: 10 }}
             />
             <Button title="Add Recommended Book" onPress={() => openModal('addRecommendedBook')} />
             <Button title="Delete Recommended Book" onPress={() => openModal('deleteRecommendedBook')} />
             <Button title="Update Recommended Book" onPress={() => openModal('updateRecommendedBook')} />
             <Button title="Get Recommended Book by ISBN" onPress={() => openModal('getRecommendedBookByIsbn')} />
+            <Button title="Show Books Added to Library" onPress={handleGetAddedToLibrary} />
+            <Button title="Show Books Not Added to Library" onPress={handleGetNotAddedToLibrary} />
             <Button title="Reset Recommended Books" onPress={resetRecommendedBooksTable} color="#FF5252" />
 
             <Modal visible={modalVisible} transparent>
-                <View className="flex-1 justify-center items-center bg-black bg-opacity-50">
+                <View className="flex-1 justify-center items-center">
                     <View className="w-72 p-5 bg-white rounded-lg">
                         <Text className="font-bold text-base mb-3">Enter Values</Text>
-                        {[
-                            'isbn', 'title', 'author', 'excerpt', 'summary', 'image',
-                            'rating', 'genres', 'publisher', 'publishedDate', 'pageCount'
-                        ].map((key) => (
+                        {['isbn', 'title', 'author', 'excerpt', 'summary', 'image', 'rating', 'genres', 'publisher', 'publishedDate', 'pageCount'].map((key) => (
                             <TextInput
                                 key={key}
                                 placeholder={key}
@@ -108,7 +116,6 @@ const TestRecommendedBooks = () => {
                                 className="border-b border-gray-300 mb-3 p-2"
                             />
                         ))}
-                        {/* Switches for boolean fields */}
                         <View className="flex-row items-center mb-3">
                             <Text>Add to Library:</Text>
                             <Switch

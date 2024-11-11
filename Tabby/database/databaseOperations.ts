@@ -116,6 +116,68 @@ export const getAllUserBooks = async (): Promise<Book[] | null> => {
     }
 };
 
+// Get all favorite user books
+export const getAllFavoriteUserBooks = async (): Promise<Book[] | null> => {
+    try {
+        const result = await (await db).getAllAsync('SELECT * FROM userBooks WHERE isFavorite = 1');
+        console.log("All favorite user books:", result);
+        return result.map((item: any) => ({
+            ...item
+        })) as Book[];
+    } catch (error) {
+        console.error("Error retrieving all favorite user books:", error);
+        return null;
+    }
+};
+
+// Get all non-favorite user books
+export const getAllNonFavoriteUserBooks = async (): Promise<Book[] | null> => {
+    try {
+        const result = await (await db).getAllAsync('SELECT * FROM userBooks WHERE isFavorite = 0');
+        console.log("All non-favorite user books:", result);
+        return result.map((item: any) => ({
+            ...item
+        })) as Book[];
+    } catch (error) {
+        console.error("Error retrieving all non-favorite user books:", error);
+        return null;
+    }
+};
+
+// get all favorite user books by category
+export const getAllFavoriteUserBooksByCategory = async (category: string): Promise<Book[] | null> => {
+    try {
+        const result = await (await db).getAllAsync(
+            'SELECT * FROM userBooks WHERE isFavorite = 1 AND category = ?',
+            [category]
+        );
+        console.log(`All favorite user books in category ${category}:`, result);
+        return result.map((item: any) => ({
+            ...item
+        })) as Book[];
+    } catch (error) {
+        console.error(`Error retrieving all favorite user books in category ${category}:`, error);
+        return null;
+    }
+};
+
+// get all non-favorite user books by category
+export const getAllNonFavoriteUserBooksByCategory = async (category: string): Promise<Book[] | null> => {
+    try {
+        const result = await (await db).getAllAsync(
+            'SELECT * FROM userBooks WHERE isFavorite = 0 AND category = ?',
+            [category]
+        );
+        console.log(`All non-favorite user books in category ${category}:`, result);
+        return result.map((item: any) => ({
+            ...item
+        })) as Book[];
+    } catch (error) {
+        console.error(`Error retrieving all non-favorite user books in category ${category}:`, error);
+        return null;
+    }
+}
+
 // Get a user book by ISBN
 export const getUserBookByIsbn = async (isbn: string): Promise<Book | null> => {
     try {
@@ -227,6 +289,34 @@ export const getAllRecommendedBooks = async (): Promise<Book[] | null> => {
     }
 };
 
+// get all reccomended books that are added to the library
+export const getAllRecommendedBooksAddedToLibrary = async (): Promise<Book[] | null> => {
+    try {
+        const result = await (await db).getAllAsync('SELECT * FROM recommendedBooks WHERE addToLibrary = 1');
+        console.log("All recommended books added to library:", result);
+        return result.map((item: any) => ({
+            ...item
+        })) as Book[];
+    } catch (error) {
+        console.error("Error retrieving all recommended books added to library:", error);
+        return null;
+    }
+}
+
+// Get all recommended books that are not added to the library
+export const getAllRecommendedBooksNotAddedToLibrary = async (): Promise<Book[] | null> => {
+    try {
+        const result = await (await db).getAllAsync('SELECT * FROM recommendedBooks WHERE addToLibrary = 0');
+        console.log("All recommended books not added to library:", result);
+        return result.map((item: any) => ({
+            ...item
+        })) as Book[];
+    } catch (error) {
+        console.error("Error retrieving all recommended books not added to library:", error);
+        return null;
+    }
+};
+
 // Get a recommended book by ISBN
 export const getRecommendedBookByIsbn = async (isbn: string): Promise<Book | null> => {
     try {
@@ -329,6 +419,30 @@ export const getAllCategories = async (): Promise<Category[] | null> => {
         return null;
     }
 };
+
+// Get all categories that are pinned
+export const getAllPinnedCategories = async (): Promise<Category[] | null> => {
+    try {
+        const result = await (await db).getAllAsync('SELECT * FROM categories WHERE isPinned = 1');
+        console.log("All pinned categories:", result);
+        return result as Category[];
+    } catch (error) {
+        console.error("Error retrieving all pinned categories:", error);
+        return null;
+    }
+}
+
+// Get all categories that are not pinned
+export const getAllNonPinnedCategories = async (): Promise<Category[] | null> => {
+    try {
+        const result = await (await db).getAllAsync('SELECT * FROM categories WHERE isPinned = 0');
+        console.log("All non-pinned categories:", result);
+        return result as Category[];
+    } catch (error) {
+        console.error("Error retrieving all non-pinned categories:", error);
+        return null;
+    }
+}
 
 // Get a category by name
 export const getCategoryByName = async (name: string): Promise<Category | null> => {
