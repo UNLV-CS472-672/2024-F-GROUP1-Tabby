@@ -4,12 +4,13 @@ import { Category } from "@/types/category";
 
 interface RenameModalProps {
     categoriesBeingRenamed: Category[];
-    onRename: (newName: string) => void;
+    onRename: (newName: string) => Promise<void>; // Now returns a Promise<void>
     onCancel: () => void;
     deleteNewCategoryOnCancel: () => void;
     isAddingNewCategory: boolean;
     handleDeselectingNewCategory: () => void;
 }
+
 
 const RenameModal: React.FC<RenameModalProps> = ({
     categoriesBeingRenamed,
@@ -20,38 +21,41 @@ const RenameModal: React.FC<RenameModalProps> = ({
     handleDeselectingNewCategory }) => {
     // if new category is being added then set initial name to empty or if there is more than one category being renamed
     // otherwise set the initial name to the category name being renamed
-    const [newName, setNewName] = useState(
-        (categoriesBeingRenamed.length > 1 || isAddingNewCategory ? '' : categoriesBeingRenamed[0].name) as string);
+    const [newName, setNewName] = useState<string>(
+        categoriesBeingRenamed.length > 1 || isAddingNewCategory
+            ? ''
+            : categoriesBeingRenamed[0]?.name || '' // Using optional chaining and defaulting to an empty string
+    );
     const [errorMessage, setErrorMessage] = useState(null as string | null);
 
-    const handleConfirm = () => {
+    const handleConfirm = async () => {
         setErrorMessage(null);
         const trimmedName = newName.trim();
 
-        // name cannot be empty
         if (trimmedName === "") {
             setErrorMessage("Category name cannot be empty.");
             setNewName('');
-
             return;
         }
 
-        // will diselect the category if the new category being added is renamed
         if (isAddingNewCategory) {
-            handleDeselectingNewCategory()
+            handleDeselectingNewCategory();
         }
 
-
-        // name did not change from initial name
         if (trimmedName === categoriesBeingRenamed[0].name) {
-            onCancel()
-            return
+            onCancel();
+            return;
         }
 
-        onRename(trimmedName);
-        setNewName('');
-
+        try {
+            await onRename(trimmedName); // Await the async onRename function
+            setNewName('');
+        } catch (error) {
+            setErrorMessage("Error renaming category.");
+            console.error(error);
+        }
     };
+
 
 
     const handleCancel = () => {

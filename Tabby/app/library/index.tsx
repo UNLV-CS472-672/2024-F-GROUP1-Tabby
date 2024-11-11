@@ -8,22 +8,36 @@ import RenameModal from "@/components/categories/RenameModal";
 import DeleteConfirmationModal from "@/components/categories/DeleteConfirmationModal";
 import { Category } from "@/types/category";
 import { SearchBar } from "@rneui/themed";
+import { useEffect } from "react";
 import SelectedMenu from "@/components/categories/SelectedMenu";
+import { getAllCategories, addCategory, deleteCategory, updateCategory } from "@/database/databaseOperations";
 
 
 const Categories = () => {
   const router = useRouter();
-  const [categories, setCategories] = useState<Category[]>([
-    { name: "Fiction", isPinned: false, isSelected: false, position: 0 },
-    { name: "Fantasy", isPinned: false, isSelected: false, position: 0 },
-    { name: "Science Fiction", isPinned: false, isSelected: false, position: 0 },
-  ]);
+  // Initialize state with an empty array if initialCategories is null or undefined
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isRenameModalVisible, setIsRenameModalVisible] = useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [search, setSearch] = useState("");
   const defaultNewCategoryName = "New Category";
   const NewCategoryNameRef = useRef(defaultNewCategoryName);
+
+  // only on mount fetch categories from db to initialize categories 
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const initialCategories = await getAllCategories();
+
+        setCategories(sortCategories(initialCategories || []));
+      } catch (error) {
+        console.error("Failed to load categories:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const sortCategories = (categoryArray: Category[]) => {
     return [...categoryArray].sort((a, b) => {
@@ -46,12 +60,20 @@ const Categories = () => {
     router.push(`/library/${category.name}`);
   };
 
-  const handlePinPress = (categoryName: string) => {
+  const handlePinPress = async (categoryName: string) => {
+    // getting category with name
+    const categoryToBeModified = categories.find((category) => category.name === categoryName);
+    if (!categoryToBeModified) {
+      return;
+    }
+    // update category to be pinned in db
+    await updateCategory(categoryName, { ...categoryToBeModified, isPinned: !categoryToBeModified.isPinned });
     const updatedCategories = categories.map((category) =>
       category.name === categoryName
         ? { ...category, isPinned: !category.isPinned }
         : category
     );
+
     setCategories(sortCategories(updatedCategories));
   };
 
@@ -64,30 +86,63 @@ const Categories = () => {
     setCategories(updatedCategories);
   };
 
-  const handleDelete = () => {
-    const remainingCategories = categories.filter(
-      (category) => !category.isSelected
-    );
-    setCategories(sortCategories(remainingCategories));
-    setIsDeleteModalVisible(false);
+  const handleDelete = async () => {
+    try {
+      // Get all selected categories
+      const selectedCategories = getAllSelectedCategories();
+      // Call deleteCategory for each selected category
+      await Promise.all(
+        selectedCategories.map(async (category) => {
+          await deleteCategory(category.name); // Assuming deleteCategory takes category name as parameter
+        })
+      );
+
+      // Update state after deletions are complete
+      const remainingCategories = categories.filter((category) => !category.isSelected);
+      setCategories(sortCategories(remainingCategories));
+      setIsDeleteModalVisible(false);
+    } catch (error) {
+      console.error("Error deleting categories:", error);
+    }
   };
 
-  const handleRename = (newName: string) => {
-    const updatedCategories = [...categories];
-    updatedCategories.forEach((category, index) => {
-      if (category.isSelected) {
-        let uniqueName = newName;
-        let counter = 1;
-        while (updatedCategories.some((c) => c.name === uniqueName)) {
-          uniqueName = `${newName} (${counter})`;
-          counter++;
+  const handleRename = async (newName: string) => {
+    try {
+      const updatedCategories = [...categories];
+
+      for (let index = 0; index < updatedCategories.length; index++) {
+        const category = updatedCategories[index];
+
+        if (category.isSelected) {
+          // Generate a unique name for the renamed category
+          let uniqueName = newName;
+          let counter = 1;
+          while (updatedCategories.some((c) => c.name === uniqueName)) {
+            uniqueName = `${newName} (${counter})`;
+            counter++;
+          }
+
+          // Update the selected category's name and deselect it
+          updatedCategories[index] = { ...category, name: uniqueName, isSelected: false };
+          const currentUpdatedCategory = updatedCategories[index];
+
+          // Perform async database operation
+          if (isAddingCategory) {
+            await addCategory(currentUpdatedCategory); // Add new category
+          } else {
+            await updateCategory(category.name, currentUpdatedCategory); // Update existing category
+          }
         }
-        updatedCategories[index] = { ...category, name: uniqueName, isSelected: false };
       }
-    });
-    setCategories(sortCategories(updatedCategories));
-    setIsRenameModalVisible(false);
+
+      // Update the categories state after renaming
+      setCategories(sortCategories(updatedCategories));
+      setIsRenameModalVisible(false);
+    } catch (error) {
+      console.error("Error renaming categories:", error);
+    }
   };
+
 
   const handleAddCategory = () => {
     if (isAddingCategory) return;
@@ -100,6 +155,7 @@ const Categories = () => {
     }
     NewCategoryNameRef.current = uniqueName;
     const newCategory = { name: uniqueName, isPinned: false, isSelected: true, position: 0 };
+
     setCategories(sortCategories([...categories, newCategory]));
     setIsRenameModalVisible(true);
   };
