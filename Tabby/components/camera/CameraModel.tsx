@@ -1,14 +1,14 @@
 import { View, Text, Pressable, Modal, TouchableWithoutFeedback } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
-import { useCameraPermissions } from "expo-camera";
+// import { useCameraPermissions } from "expo-camera";
 
 interface CameraModalProps {
     closeModal: () => void;
 }
 
 const CameraModal: React.FC<CameraModalProps> = ({ closeModal }) => {
-    const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+    // const [cameraPermission, requestCameraPermission] = useCameraPermissions();
     // use to disable the buttons temporarily when clicking them to prevent multiple clicks
     const [isProcessing, setIsProcessing] = useState(false);
 
