@@ -86,7 +86,15 @@ class ExtractionResult:
 def extract_from_recognized_texts(
     recognized_texts: list[RecognizedText],
 ) -> Optional[ExtractionResult]:
-    """Attempts to extract a result from the recognized texts."""
+    """Attempts to extract a result from the recognized texts by utilizing
+    ChatGPT.
+
+    Args:
+        recognized_texts: List of `RecognizedText` objects to extract from.
+    Returns:
+        An extraction result, which contains a list of options (pairs of
+        titles and authors).
+    """
 
     # Create messages list to send as input
     input_message = "\n".join(
