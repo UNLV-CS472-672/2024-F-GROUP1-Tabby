@@ -1,22 +1,31 @@
 from flask import Flask
 from http import HTTPStatus
-
-# from services.resource_format import books_test   # --- Use with python ---
-from .services.resource_format import books_test  # /-/ Use with pytest /-/
-
-# from vision.yolo_test import yolo_test            # --- Use with python ---
-from .vision.yolo_test import yolo_test  # /-/ Use with pytest /-/
+from .services import resource_format, library
+from .vision import yolo_test
 from .api import books
 
-# You only need to modify this file! I've changed it around so only this
-# breaks pytest or python! No need to modfy additional files beyond!
-# --- IF USING PYTEST OR PYTHON ---
+"""
+This is the central file of our app. Everything is called from here.
+
+Blueprints will lead to other files and packages so they can be accessed.
+
+The functions here are merely tests and should not actually be used.
+"""
 
 app = Flask(__name__)
 
-app.register_blueprint(yolo_test, url_prefix="/yolo")
-app.register_blueprint(books_test, url_prefix="/test")
+# Test Python Files.
+# YOLO or Image Recognition
+app.register_blueprint(yolo_test.yolo_test, url_prefix="/yolo")
+# Google Books
+app.register_blueprint(resource_format.books_test, url_prefix="/test")
+# OCR or Text Recognition
 app.register_blueprint(books.subapp, url_prefix="/books")
+
+# Actual Python Files.
+# Google Books Implementation - 1 Routable Function (search)
+# http://localhost:5000/library/search/
+app.register_blueprint(library.books_api, url_prefix="/library")
 
 
 # Blueprints documentation

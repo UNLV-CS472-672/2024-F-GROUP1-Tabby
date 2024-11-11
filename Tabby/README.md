@@ -109,6 +109,10 @@ When you're ready, run:
 npm run reset-project
 ```
 
+If there is any issue with getting values from .env, use 
+`NODE_ENV=test npx expo start --tunnel`
+so that it can read the env file in the first place.
+
 This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
 
 ## Learn more
