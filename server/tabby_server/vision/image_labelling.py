@@ -62,10 +62,10 @@ def find_books():
     # Use model on given image path and return it.
     # Leaves behind no physical trace.
     output = model(
-        source=(""),    # Retrieves image(s) from specific folder to look at.
-        conf=0.45,          # Minimum accepted confidence
-        save_conf=True,     # Save Confidence to output
-        classes=[0],        # What objects it looks for
+        source=(""),  # Retrieves image(s) from specific folder to look at.
+        conf=0.45,  # Minimum accepted confidence
+        save_conf=True,  # Save Confidence to output
+        classes=[0],  # What objects it looks for
     )
 
     # This is temp code that may be needed later to output multiple classes

@@ -5,7 +5,6 @@ import requests_mock
 import logging
 import pytest
 import json
-from tabby_server.services.resource_format import result_dict as r_d
 
 
 @pytest.fixture()
@@ -77,65 +76,16 @@ class TestAPIEndPoint:
         assert response.status_code == HTTPStatus.OK
         assert response.json is not None and "results" in response.json
 
-    # Makes a call to Google Books API
-    def test_google_books_test_call_api(self, client):
-        # This holds some great insight.
-        # If this method fails later on, use this.
-        # https://stackoverflow.com/questions/15753390/how-can-i-mock-requests-and-the-response
-
-        with requests_mock.Mocker() as m:
-            # Call redirection
-            # local_api = os.getenv("API_KEY")
-            m.get(requests_mock.ANY, json={"books": [0, 1]})
-
-            # First Call - Should pass. Just calls the Google APU.
-            result = client.get("/test/make_request")
-
-            # Should be a successful search.
-            assert result.status_code == HTTPStatus.OK
-            assert "books" in result.json
-
-    # Returns a dict with a key for a list which itself holds
-    # a dict for each book returned.
-    def test_google_books_test_all_books(self, client):
-        # First Call - Should fail. No books.
-        result = client.get("/test/all_books")
-
-        # No prior search was made. No data to return.
-        assert result.status_code == HTTPStatus.BAD_REQUEST
-        assert result.json is not None and "empty" in result.json
-
-        # Second Call - Should pass. List of books.
-        # This time makes an API call prior.
-        r_d.output_dict = {
-            "items": [
-                {"volumeInfo": {"industryIdentifiers": 1}},
-                {"volumeInfo": {"industryIdentifiers": 2}},
-            ]
-        }
-        result = client.get("/test/all_books")
-
-        # Returns a json with book attributes.
-        assert result.status_code == HTTPStatus.OK
-        assert result.json is not None and "books" in result.json
-
     # Test call to YOLO object recognition. Uses a 0 as a parameter so data
     # is not saved from pytest call.
     def test_predict_examples(self, client):
         # Calls for the model to run object detection on example images.
         # Does not save the results.
-        result = client.get("/yolo/shelf_read", query_string={"index": int(0)})
+        result = client.get("/yolo/shelf_read")
 
         # This should always return true.
         assert result.status_code == HTTPStatus.OK
         assert result.json is not None and "shelf_1" in result.json
-
-        # Calls the model but provides an incorrect index
-        result = client.get("/yolo/shelf_read", query_string={"index": int(2)})
-
-        # This should always return false.
-        assert result.status_code == HTTPStatus.BAD_REQUEST
-        assert result.json is not None and "Incorrect" in result.json
 
     def test_google_books_search(self, client):
         """

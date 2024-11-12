@@ -1,4 +1,4 @@
-from flask import Blueprint, request
+from flask import Blueprint
 from http import HTTPStatus
 from ultralytics import YOLO
 import json
@@ -20,7 +20,7 @@ recognition. Credits at the bottom.
 # https://docs.ultralytics.com/modes/predict/#working-with-results
 
 
-def ultralytics_shelf_detection(file_path, save_output):
+def ultralytics_shelf_detection(file_path):
     # Load pretrained model.
     model = YOLO(file_path + "shelf_yolo.pt")
 
@@ -28,8 +28,8 @@ def ultralytics_shelf_detection(file_path, save_output):
     # Outputs the resulting image to vision/example_yolo.
     output = model(
         # What it images it looks at
-        # source=(file_path + "example_shelves"),
-        source=(file_path + "example_shelves/shelf_4.jpg"),
+        source=(file_path + "example_shelves"),
+        # source=(file_path + "example_shelves/shelf_4.jpg"),
         # Minimum accepted conf
         conf=0.45,
         # Saves output to separate files
@@ -61,19 +61,19 @@ def ultralytics_shelf_detection(file_path, save_output):
     #   name of object (copies name of class from what I can tell),
     #   and the bounding shape (boxes only for this model)
 
-    # inc = 1
-    # found = {}
-    # for item in output:
-    #     found["shelf_" + str(inc)] = json.loads(item.to_json())
-    #     inc = inc + 1
+    inc = 1
+    found = {}
+    for item in output:
+        found["shelf_" + str(inc)] = json.loads(item.to_json())
+        inc = inc + 1
 
-    # return found
+    return found
 
     # found = []
     # for item in output:
     #     found.append(json.loads(item.to_json()))
     # return found
-    return json.loads(output[0].to_json())
+    # return json.loads(output[0].to_json())
 
 
 # Callable.
@@ -84,26 +84,12 @@ def ultralytics_shelf_detection(file_path, save_output):
 
 @yolo_test.route("/shelf_read", methods=["GET"])
 def predict_examples():
-    # Get parameter index.
-    # 1 means you want to save (default). 0 means you don't.
-    # Index only exists so we don't save output files from pytest
-    index = int(request.args.get("index", 1))
-
-    # Error check to see if the index is okay or not.
-    if index > 1 or index < 0:
-        return (
-            {"Incorrect": "Please give 0, 1, or nothing"},
-            HTTPStatus.BAD_REQUEST,
-        )
-
     # Runs model on each image file in vision/example_shelves.
     # This is to prevent issues with pytest and main.
     try:
-        objects = ultralytics_shelf_detection(
-            "tabby_server/vision/", bool(index)
-        )
+        objects = ultralytics_shelf_detection("tabby_server/vision/")
     except FileNotFoundError:
-        objects = ultralytics_shelf_detection("", bool(index))
+        objects = ultralytics_shelf_detection("")
 
     # Generic return to HTTP.
     # Eventually might make it return the images. Might be to much work though.
