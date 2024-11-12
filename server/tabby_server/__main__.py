@@ -1,6 +1,6 @@
 from flask import Flask
 from http import HTTPStatus
-from .services import resource_format, library
+from .services import library
 from .vision import yolo_test
 from .api import books
 
@@ -14,18 +14,16 @@ The functions here are merely tests and should not actually be used.
 
 app = Flask(__name__)
 
-# Test Python Files.
-# YOLO or Image Recognition
-app.register_blueprint(yolo_test.yolo_test, url_prefix="/yolo")
-# Google Books
-app.register_blueprint(resource_format.books_test, url_prefix="/test")
-# OCR or Text Recognition
-app.register_blueprint(books.subapp, url_prefix="/books")
-
-# Actual Python Files.
+# Temporary Python Files. These are temporary routing to enable testing
+# of functionality. In production, these routing would be removed or unused.
 # Google Books Implementation - 1 Routable Function (search)
 # http://localhost:5000/library/search/
 app.register_blueprint(library.books_api, url_prefix="/library")
+# You Only Look Once (YOLO) Implementation - 1 Routable Function (shelf_read)
+app.register_blueprint(yolo_test.yolo_test, url_prefix="/yolo")
+
+# Front End Endpoints - 2 Routable Functions (scan_cover and search)
+app.register_blueprint(books.subapp, url_prefix="/books")
 
 
 # Blueprints documentation

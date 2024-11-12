@@ -28,22 +28,22 @@ def ultralytics_shelf_detection(file_path, save_output):
     # Outputs the resulting image to vision/example_yolo.
     output = model(
         # What it images it looks at
-        source=(file_path + "example_shelves"),
-        # source=(file_path + "example_shelves/shelf_4.jpg"),
+        # source=(file_path + "example_shelves"),
+        source=(file_path + "example_shelves/shelf_4.jpg"),
         # Minimum accepted conf
         conf=0.45,
         # Saves output to separate files
         # Saves full image with context
         # .txt with written data
         # Cropped images of each box
-        save=save_output,
-        save_txt=save_output,
-        save_conf=save_output,
-        save_crop=save_output,
+        # save=save_output,
+        # save_txt=save_output,
+        save_conf=True,
+        # save_crop=save_output,
         # What objects it looks for
         classes=[0],
         # Where it saves the output files (images and text)
-        project=(file_path + "example_yolo"),
+        # project=(file_path + "example_yolo"),
         # Show image in debug window
         # show=True,
     )
@@ -60,13 +60,20 @@ def ultralytics_shelf_detection(file_path, save_output):
     #   confidence,
     #   name of object (copies name of class from what I can tell),
     #   and the bounding shape (boxes only for this model)
-    inc = 1
-    found = {}
-    for item in output:
-        found["shelf_" + str(inc)] = json.loads(item.to_json())
-        inc = inc + 1
 
-    return found
+    # inc = 1
+    # found = {}
+    # for item in output:
+    #     found["shelf_" + str(inc)] = json.loads(item.to_json())
+    #     inc = inc + 1
+
+    # return found
+
+    # found = []
+    # for item in output:
+    #     found.append(json.loads(item.to_json()))
+    # return found
+    return json.loads(output[0].to_json())
 
 
 # Callable.
