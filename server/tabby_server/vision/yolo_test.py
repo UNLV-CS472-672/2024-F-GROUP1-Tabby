@@ -36,14 +36,14 @@ def ultralytics_shelf_detection(file_path):
         # Saves full image with context
         # .txt with written data
         # Cropped images of each box
-        # save=save_output,
-        # save_txt=save_output,
+        # save=True,
+        # save_txt=True,
         save_conf=True,
-        # save_crop=save_output,
+        # save_crop=True,
         # What objects it looks for
         classes=[0],
         # Where it saves the output files (images and text)
-        # project=(file_path + "example_yolo"),
+        project=("../example_yolo"),
         # Show image in debug window
         # show=True,
     )
