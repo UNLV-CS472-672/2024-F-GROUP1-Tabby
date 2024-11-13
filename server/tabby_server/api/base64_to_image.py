@@ -2,6 +2,7 @@ import base64
 import cv2
 import io
 import numpy as np
+from PIL import Image
 
 
 """ Example Useage
