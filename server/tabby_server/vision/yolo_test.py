@@ -20,16 +20,39 @@ recognition. Credits at the bottom.
 # https://docs.ultralytics.com/modes/predict/#working-with-results
 
 
-def ultralytics_shelf_detection(file_path):
+def ultralytics_shelf_detection(file_path) -> dict[str, list]:
     # Load pretrained model.
     model = YOLO(file_path + "shelf_yolo.pt")
+
+    # ai-gen start (ChatGPT-4.0, 1)
+
+    import cv2
+
+    # Reads image as a NumPy array
+    image = cv2.imread(file_path + "example_shelves/shelf_2.jpg")
+    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    # Resize to model's expected input
+    resized_image = cv2.resize(image_rgb, (640, 640))
+    # Normalize pixel values
+    normalized_image = resized_image / 255.0
+    import torch
+
+    tensor_image = (
+        torch.from_numpy(normalized_image)
+        .float()
+        .permute(2, 0, 1)
+        .unsqueeze(0)
+    )
+
+    # ai-gen end
 
     # Use model on given image url and return it.
     # Outputs the resulting image to vision/example_yolo.
     output = model(
         # What it images it looks at
-        source=(file_path + "example_shelves"),
-        # source=(file_path + "example_shelves/shelf_4.jpg"),
+        # source=(file_path + "example_shelves"),
+        # source=(file_path + "example_shelves/shelf_8.jpg"),
+        source=tensor_image,
         # Minimum accepted conf
         conf=0.45,
         # Saves output to separate files
@@ -78,8 +101,6 @@ def ultralytics_shelf_detection(file_path):
 
 # Callable.
 # Calls the model for each example file in vision/example_shelves.
-# Doesn't return anything of value to HTTP.
-# Use parameter index to indicate if you want to save the output or not.
 
 
 @yolo_test.route("/shelf_read", methods=["GET"])
@@ -91,8 +112,7 @@ def predict_examples():
     except FileNotFoundError:
         objects = ultralytics_shelf_detection("")
 
-    # Generic return to HTTP.
-    # Eventually might make it return the images. Might be to much work though.
+    # Returns the output of the model
     return (
         objects,
         HTTPStatus.OK,
