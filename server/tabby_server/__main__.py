@@ -16,6 +16,10 @@ app = Flask(__name__)
 
 # Temporary Python Files. These are temporary routing to enable testing
 # of functionality. In production, these routing would be removed or unused.
+
+# Testing Python Files.
+# OCR or Text Recognition
+app.register_blueprint(books.subapp, url_prefix="/books")
 # Google Books Implementation - 1 Routable Function (search)
 # http://localhost:5000/library/search/
 app.register_blueprint(library.books_api, url_prefix="/library")

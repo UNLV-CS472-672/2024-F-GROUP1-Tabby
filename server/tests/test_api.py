@@ -87,7 +87,7 @@ class TestAPIEndPoint:
         assert result.status_code == HTTPStatus.OK
         assert result.json is not None and "shelf_1" in result.json
 
-    def test_google_books_search(self, client):
+    def test_google_books_testing(self, client):
         """
         Should mock a call to Google Books API and act as if it was a real
         call.
@@ -192,7 +192,7 @@ class TestAPIEndPoint:
                 and "summary" in result
                 and "thumbnail" in result
                 and "page_count" in result
-                and "categories" in result
+                and "genres" in result
                 and "publisher" in result
                 and "published_date" in result
             )
