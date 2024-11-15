@@ -18,7 +18,7 @@ type Book = {
 // test data to see how the recconmendation page would look
 const initialBooks: Book[] = [
     {
-        id: '1',
+        id: '9780333791035',
         title: 'The Great Gatsby',
         author: 'F. Scott Fitzgerald',
         summary: 'A novel about the American dream.',
@@ -108,7 +108,7 @@ const Reccomendations: React.FC = () => {
 
     // if the string typed in the search bar is a part of a book title then render the book
     const renderItem = ({ item }: { item: Book }) => {
-        if (search === "" || item.title.toLowerCase().includes(search.toLowerCase())) {
+        if (search === "" || item.title.toLowerCase().includes(search.toLowerCase()) || item.author.toLowerCase().includes(search.toLowerCase()) || item.id.includes(search)) {
             return (
                 <BookPreview
                     book={item}
@@ -122,7 +122,7 @@ const Reccomendations: React.FC = () => {
 
     return (
         <SafeAreaView className="flex-1 p-4">
-            <SearchBar placeholder="Type Here..." onChangeText={updateSearch} value={search} />
+            <SearchBar placeholder="Search by title, ISBN, or author..." onChangeText={updateSearch} value={search} />
             <FlatList
                 data={books}
                 keyExtractor={(item) => item.id}
