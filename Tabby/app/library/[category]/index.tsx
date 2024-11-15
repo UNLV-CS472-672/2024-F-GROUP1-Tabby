@@ -27,10 +27,19 @@ const initialBooks: Book[] = [
     },
     {
         isbn: '2',
-        title: 'Test Book',
+        title: 'To Kill a Mockingbird',
         author: 'F. Scott Fitzgerald',
-        summary: 'A novel about the American dream.',
+        summary: 'A novel about racial injustice and racial segregation.',
         excerpt: 'A novel about the American dream.',
+        image: 'https://m.media-amazon.com/images/I/81aY1lxk+9L._AC_UF1000,1000_QL80_.jpg',
+        isFavorite: false,
+    },
+    {
+        isbn: '3',
+        title: 'My Novel',
+        author: 'Me',
+        summary: 'My personal Novel.',
+        excerpt: 'Blah blah blah',
         image: "",
         isFavorite: false,
     },
@@ -106,7 +115,7 @@ const CategoryPage: React.FC = () => {
                 renderItem={renderItem}
             />
             <Pressable onPress={() => setModalVisible(true)} className="p-2 bg-blue-500 rounded mt-4">
-                <Text className="text-white text-center">Add Book</Text>
+                <Text className="text-white text-center">Add Custom Book</Text>
             </Pressable>
             <Modal
                 animationType="slide"

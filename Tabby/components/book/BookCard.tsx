@@ -16,15 +16,16 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
             <View className="flex-row">
                 <Image
                     source={{ uri: book.image }}
-                    className="w-28 h-40"
+                    className="w-36 h-48"
                 />
 
                 <View className="flex-col pl-4">
                     <Text className="text-lg font-bold text-white">{book.title}</Text>
-                    <Text className="text-md text-white font-semibold italic">{book.author}</Text>
+                    <Text className="text-md text-white font-semibold italic"> By {book.author}</Text>
                     <Text className="mt-3 text-lg text-white">Rating</Text>
                     <StarsRating rating={book.rating || 3} />
                 </View>
+
             </View>
 
             <View className="pt-2">

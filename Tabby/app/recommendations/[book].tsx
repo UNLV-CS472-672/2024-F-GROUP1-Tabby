@@ -1,4 +1,4 @@
-import { View, Pressable } from 'react-native'
+import { View, Pressable, ScrollView, FlatList, Text } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import React from 'react'
 import { useLocalSearchParams } from 'expo-router';
@@ -29,6 +29,9 @@ const BookPage = () => {
         isFavorite: favorite,
         addToLibrary: false,
         genres: "Fiction, Dystopian,Historical Fiction,Science Fiction",
+        pageCount: 281,
+        publisher: "Scribner",
+        publishedDate: "November 19, 1960",
         rating: 4
     }
 
@@ -47,6 +50,8 @@ const BookPage = () => {
     const { book } = useLocalSearchParams();
 
     console.log(book, "is reccomended");
+    const otherData = [`Pages ${BookObj.pageCount}`, `Published by ${BookObj.publisher}`, `First Published ${BookObj.publishedDate}`];
+
 
     return (
         <>
@@ -93,13 +98,31 @@ const BookPage = () => {
                     <ScrollableGenres genres={genresAsArray} />
                 </View>
 
-                {/* <View className="pl-2 pt-5">
-                    <Reviews reviews={BookObj.reviews || [{
-                        name: 'John Doe',
-                        rating: 4,
-                        reviewSummary: 'This book is great!'
-                    }]} />
-                </View> */}
+                <FlatList
+                    className='pt-5'
+                    data={otherData}
+                    horizontal
+                    keyExtractor={(item, index) => (index.toString() + item)}
+                    renderItem={({ item }) => (
+                        <View className='rounded-lg mr-2 border border-white px-4 justify-center items-center h-7'>
+                            <Text className="text-white text-sm">{item}</Text>
+                        </View>
+
+                    )}
+                    showsHorizontalScrollIndicator={false}
+                />
+
+
+
+                <View className="pl-5 pt-5 flex justify-center">
+                    <Text className='text-lg text-white'> Important Notes </Text>
+
+                    <ScrollView className="max-h-40 pl-1">
+                        <Text className='text-sm text-white max-w-sm text-start'>To Kill a Mockingbird by Harper Lee is a powerful novel set in the 1930s Southern United States, tackling themes of racial injustice, empathy, and moral courage through the perspective of Scout Finch, a young girl witnessing her father, Atticus Finch, defend Tom Robinson, a Black man falsely accused of rape. The story presents a nuanced view of a racially divided community and emphasizes the importance of standing up for justice, even when the odds are against you. Rated 4 stars, this book combines elements of fiction, mystery, and dystopian genres and has remained relevant since its publication in 1960 by Scribner. With 281 pages, it’s a reflective, thought-provoking read that has solidified its place as a classic in American literature. The cover image evokes a somber, contemplative mood, fitting for a story of courage amidst adversity.</Text>
+                    </ScrollView>
+                </View>
+
+
 
             </SafeAreaView>
 
