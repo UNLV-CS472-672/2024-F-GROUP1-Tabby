@@ -44,7 +44,7 @@ const FooterNavBar = () => {
       {/* Camera Button to show camera modal */}
       <Pressable onPress={() => setCameraModalVisible(true)} className="flex-col mx-auto">
         <View className="w-16 h-16 items-center justify-center">
-          <CameraIcon height={size} width={size} />
+          <CameraIcon />
         </View>
       </Pressable>
 
