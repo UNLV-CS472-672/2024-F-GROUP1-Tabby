@@ -47,7 +47,7 @@ const FooterNavBar = () => {
       </Pressable>
 
       <Link href="/favorites" asChild>
-        <Pressable className="flex-col mx-auto">
+        <Pressable testID="favoritesButton" className="flex-col mx-auto">
           {pathname.includes("/favorites") ? (
             <SelectedFavorite />
           ) : (

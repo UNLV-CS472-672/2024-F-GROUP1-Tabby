@@ -53,9 +53,9 @@ describe('Camera tests', () => {
     // async because when updaing a modal we have to wait for it to finish
     // otherwise RNTL throws an error   
     test('Camera opens correctly', async () => {
-        // mock successful response for launchCameraAsync
+        // mock failed response for launchCameraAsync
         ImagePicker.launchCameraAsync.mockResolvedValue({
-            cancelled: false,
+            canceled: true,
             uri: 'image-uri',
             base64: 'image-base64',
         });
@@ -95,9 +95,9 @@ describe('Camera tests', () => {
             granted: true,
         });
 
-        // mock successful response for launchImageLibraryAsync
+        // mock failed response for launchImageLibraryAsync
         ImagePicker.launchImageLibraryAsync.mockResolvedValue({
-            cancelled: false,
+            canceled: true,
             uri: 'image-uri',
             base64: 'image-base64',
         });
