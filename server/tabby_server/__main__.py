@@ -18,14 +18,10 @@ app = Flask(__name__)
 # of functionality. In production, these routing would be removed or unused.
 
 # Testing Python Files.
-# OCR or Text Recognition
-app.register_blueprint(books.subapp, url_prefix="/books")
 # Google Books Implementation - 1 Routable Function (search)
-# http://localhost:5000/library/search/
 app.register_blueprint(library.books_api, url_prefix="/library")
 # You Only Look Once (YOLO) Implementation - 1 Routable Function (shelf_read)
 app.register_blueprint(yolo_test.yolo_test, url_prefix="/yolo")
-
 # Front End Endpoints - 2 Routable Functions (scan_cover and search)
 app.register_blueprint(books.subapp, url_prefix="/books")
 
