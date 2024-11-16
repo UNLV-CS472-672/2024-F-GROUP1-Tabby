@@ -85,7 +85,7 @@ const Favorites = () => {
 
     // book heart button to be passed as a prop to the book previews
     const renderBookButton = (book: { id: string; isFavorite: boolean }) => (
-        <Pressable onPress={() => handleFavoritePress(book.id)} className="ml-4">
+        <Pressable testID="heartButton" onPress={() => handleFavoritePress(book.id)} className="ml-4">
             <FavoriteButtonIcon isFavorite={book.isFavorite} />
         </Pressable>
     );
