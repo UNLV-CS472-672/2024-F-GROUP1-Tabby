@@ -1,19 +1,28 @@
 import * as SQLite from 'expo-sqlite';
 import { Book } from '@/types/book';
 import { Category } from '@/types/category';
+// need to import this so uuid can be used
+import 'react-native-get-random-values';
+import { v4 as uuidv4 } from 'uuid';
 
 // Open the database
 const db = SQLite.openDatabaseAsync('bookCollection.db');
 
 // ! === User Books CRUD Functions ===
 
-// Add a new user book
+// Add a new user book can be custom or not
 export const addUserBook = async (book: Book): Promise<Book | null> => {
+    console.log("Adding user book:", book);
 
     try {
+        // check if book is custom if it is will not have isbn so will be set to some uuid
+        if (book.isCustomBook) {
+            console.log("Book is custom so will set isbn to uuid");
+            book.isbn = uuidv4();
+        }
         await (await db).runAsync(
-            `INSERT INTO userBooks (isbn, title, author, excerpt, summary, image, rating, genres, isFavorite, category, publisher, publishedDate, pageCount)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO userBooks (isbn, title, author, excerpt, summary, image, rating, genres, isFavorite, category, publisher, publishedDate, pageCount, isCustomBook)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 book.isbn,
                 book.title,
@@ -28,6 +37,7 @@ export const addUserBook = async (book: Book): Promise<Book | null> => {
                 book.publisher || null,
                 book.publishedDate || null,
                 book.pageCount || null,
+                book.isCustomBook ? 1 : 0,
             ]
         );
 
@@ -86,10 +96,44 @@ export const updateUserBook = async (book: Book): Promise<boolean> => {
 };
 
 // Get all user books by category
-export const getUserBooksByCategory = async (category: string): Promise<Book[] | null> => {
+export const getAllUserBooksByCategory = async (category: string): Promise<Book[] | null> => {
     try {
         const result = await (await db).getAllAsync(
             'SELECT * FROM userBooks WHERE category = ?',
+            [category]
+        );
+        console.log(`User books in category ${category}:`, result);
+        return result.map((item: any) => ({
+            ...item
+        })) as Book[];
+    } catch (error) {
+        console.error(`Error retrieving user books in category ${category}:`, error);
+        return null;
+    }
+};
+
+// Get all custom user books by category
+export const getAllCustomUserBooksByCategory = async (category: string): Promise<Book[] | null> => {
+    try {
+        const result = await (await db).getAllAsync(
+            'SELECT * FROM userBooks WHERE category = ? AND isCustomBook = 1',
+            [category]
+        );
+        console.log(`User books in category ${category}:`, result);
+        return result.map((item: any) => ({
+            ...item
+        })) as Book[];
+    } catch (error) {
+        console.error(`Error retrieving user books in category ${category}:`, error);
+        return null;
+    }
+};
+
+// get all non custom user books by category
+export const getAllNonCustomUserBooksByCategory = async (category: string): Promise<Book[] | null> => {
+    try {
+        const result = await (await db).getAllAsync(
+            'SELECT * FROM userBooks WHERE category = ? AND isCustomBook = 0',
             [category]
         );
         console.log(`User books in category ${category}:`, result);
@@ -116,6 +160,34 @@ export const getAllUserBooks = async (): Promise<Book[] | null> => {
     }
 };
 
+// Get all custom user books
+export const getAllCustomUserBooks = async (): Promise<Book[] | null> => {
+    try {
+        const result = await (await db).getAllAsync('SELECT * FROM userBooks WHERE isCustomBook = 1');
+        console.log("All custom user books:", result);
+        return result.map((item: any) => ({
+            ...item
+        })) as Book[];
+    } catch (error) {
+        console.error("Error retrieving all custom user books:", error);
+        return null;
+    }
+};
+
+// Get all non-custom user books
+export const getAllNonCustomUserBooks = async (): Promise<Book[] | null> => {
+    try {
+        const result = await (await db).getAllAsync('SELECT * FROM userBooks WHERE isCustomBook = 0');
+        console.log("All non-custom user books:", result);
+        return result.map((item: any) => ({
+            ...item
+        })) as Book[];
+    } catch (error) {
+        console.error("Error retrieving all non-custom user books:", error);
+        return null;
+    }
+};
+
 // Get all favorite user books
 export const getAllFavoriteUserBooks = async (): Promise<Book[] | null> => {
     try {
@@ -130,6 +202,34 @@ export const getAllFavoriteUserBooks = async (): Promise<Book[] | null> => {
     }
 };
 
+// get all non custom favorite user books
+export const getAllNonCustomFavoriteUserBooks = async (): Promise<Book[] | null> => {
+    try {
+        const result = await (await db).getAllAsync('SELECT * FROM userBooks WHERE isFavorite = 1 AND isCustomBook = 0');
+        console.log("All non-custom favorite user books:", result);
+        return result.map((item: any) => ({
+            ...item
+        })) as Book[];
+    } catch (error) {
+        console.error("Error retrieving all non-custom favorite user books:", error);
+        return null;
+    }
+};
+
+// get all custom favorite user books
+export const getAllCustomFavoriteUserBooks = async (): Promise<Book[] | null> => {
+    try {
+        const result = await (await db).getAllAsync('SELECT * FROM userBooks WHERE isFavorite = 1 AND isCustomBook = 1');
+        console.log("All custom favorite user books:", result);
+        return result.map((item: any) => ({
+            ...item
+        })) as Book[];
+    } catch (error) {
+        console.error("Error retrieving all custom favorite user books:", error);
+        return null;
+    }
+};
+
 // Get all non-favorite user books
 export const getAllNonFavoriteUserBooks = async (): Promise<Book[] | null> => {
     try {
@@ -140,6 +240,34 @@ export const getAllNonFavoriteUserBooks = async (): Promise<Book[] | null> => {
         })) as Book[];
     } catch (error) {
         console.error("Error retrieving all non-favorite user books:", error);
+        return null;
+    }
+};
+
+// Get all non-custom non-favorite user books
+export const getAllNonCustomNonFavoriteUserBooks = async (): Promise<Book[] | null> => {
+    try {
+        const result = await (await db).getAllAsync('SELECT * FROM userBooks WHERE isFavorite = 0 AND isCustomBook = 0');
+        console.log("All non-custom non-favorite user books:", result);
+        return result.map((item: any) => ({
+            ...item
+        })) as Book[];
+    } catch (error) {
+        console.error("Error retrieving all non-custom non-favorite user books:", error);
+        return null;
+    }
+};
+
+// get all custom non-favorite user books
+export const getAllCustomNonFavoriteUserBooks = async (): Promise<Book[] | null> => {
+    try {
+        const result = await (await db).getAllAsync('SELECT * FROM userBooks WHERE isFavorite = 0 AND isCustomBook = 1');
+        console.log("All custom non-favorite user books:", result);
+        return result.map((item: any) => ({
+            ...item
+        })) as Book[];
+    } catch (error) {
+        console.error("Error retrieving all custom non-favorite user books:", error);
         return null;
     }
 };
@@ -161,6 +289,40 @@ export const getAllFavoriteUserBooksByCategory = async (category: string): Promi
     }
 };
 
+// get all custom favorite user books by category
+export const getAllCustomFavoriteUserBooksByCategory = async (category: string): Promise<Book[] | null> => {
+    try {
+        const result = await (await db).getAllAsync(
+            'SELECT * FROM userBooks WHERE isFavorite = 1 AND category = ? AND isCustomBook = 1',
+            [category]
+        );
+        console.log(`All custom favorite user books in category ${category}:`, result);
+        return result.map((item: any) => ({
+            ...item
+        })) as Book[];
+    } catch (error) {
+        console.error(`Error retrieving all custom favorite user books in category ${category}:`, error);
+        return null;
+    }
+}
+
+// get all non-custom favorite user books by category
+export const getAllNonCustomFavoriteUserBooksByCategory = async (category: string): Promise<Book[] | null> => {
+    try {
+        const result = await (await db).getAllAsync(
+            'SELECT * FROM userBooks WHERE isFavorite = 1 AND category = ? AND isCustomBook = 0',
+            [category]
+        );
+        console.log(`All non-custom favorite user books in category ${category}:`, result);
+        return result.map((item: any) => ({
+            ...item
+        })) as Book[];
+    } catch (error) {
+        console.error(`Error retrieving all non-custom favorite user books in category ${category}:`, error);
+        return null;
+    }
+}
+
 // get all non-favorite user books by category
 export const getAllNonFavoriteUserBooksByCategory = async (category: string): Promise<Book[] | null> => {
     try {
@@ -174,6 +336,40 @@ export const getAllNonFavoriteUserBooksByCategory = async (category: string): Pr
         })) as Book[];
     } catch (error) {
         console.error(`Error retrieving all non-favorite user books in category ${category}:`, error);
+        return null;
+    }
+}
+
+// get all non-custom non-favorite user books by category
+export const getAllNonCustomNonFavoriteUserBooksByCategory = async (category: string): Promise<Book[] | null> => {
+    try {
+        const result = await (await db).getAllAsync(
+            'SELECT * FROM userBooks WHERE isFavorite = 0 AND category = ? AND isCustomBook = 0',
+            [category]
+        );
+        console.log(`All non-custom non-favorite user books in category ${category}:`, result);
+        return result.map((item: any) => ({
+            ...item
+        })) as Book[];
+    } catch (error) {
+        console.error(`Error retrieving all non-custom non-favorite user books in category ${category}:`, error);
+        return null;
+    }
+}
+
+// get all custom non-favorite user books by category
+export const getAllCustomNonFavoriteUserBooksByCategory = async (category: string): Promise<Book[] | null> => {
+    try {
+        const result = await (await db).getAllAsync(
+            'SELECT * FROM userBooks WHERE isFavorite = 0 AND category = ? AND isCustomBook = 1',
+            [category]
+        );
+        console.log(`All custom non-favorite user books in category ${category}:`, result);
+        return result.map((item: any) => ({
+            ...item
+        })) as Book[];
+    } catch (error) {
+        console.error(`Error retrieving all custom non-favorite user books in category ${category}:`, error);
         return null;
     }
 }

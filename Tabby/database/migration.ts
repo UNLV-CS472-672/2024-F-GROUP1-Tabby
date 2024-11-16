@@ -7,6 +7,11 @@ export async function migrateDbIfNeeded() {
   await (await db).execAsync(`
         PRAGMA journal_mode = WAL;
 
+        -- drop tables if they already exist
+        DROP TABLE IF EXISTS categories;
+        DROP TABLE IF EXISTS userBooks;
+        DROP TABLE IF EXISTS recommendedBooks;
+
         -- Create categories table with name as the primary key 
         CREATE TABLE IF NOT EXISTS categories (
           name TEXT PRIMARY KEY NOT NULL,
@@ -14,7 +19,7 @@ export async function migrateDbIfNeeded() {
           position INTEGER NOT NULL
         );
         
-        -- Create userBooks table 
+        -- Create userBooks table to store user's books
         CREATE TABLE IF NOT EXISTS userBooks (
           isbn TEXT PRIMARY KEY NOT NULL,
           title TEXT NOT NULL,
@@ -28,10 +33,11 @@ export async function migrateDbIfNeeded() {
           isFavorite INTEGER,
           publisher TEXT,               
           publishedDate TEXT,           
-          pageCount INTEGER             
+          pageCount INTEGER,
+          isCustomBook INTEGER           
         );
 
-        -- Create recommendedBooks table
+        -- Create recommendedBooks table to store recommended books
         CREATE TABLE IF NOT EXISTS recommendedBooks (
           isbn TEXT PRIMARY KEY NOT NULL,
           title TEXT NOT NULL,

@@ -109,6 +109,11 @@ const Categories = () => {
     try {
       const updatedCategories = [...categories];
 
+      if (newName === "New Category") {
+        console.log("New name is New Category");
+      }
+      console.log("Updated categories:", updatedCategories);
+
       for (let index = 0; index < updatedCategories.length; index++) {
         const category = updatedCategories[index];
 
@@ -127,6 +132,8 @@ const Categories = () => {
 
           // Perform async database operation
           if (isAddingCategory) {
+            // Add new category
+            console.log("Adding new category:", currentUpdatedCategory);
             await addCategory(currentUpdatedCategory); // Add new category
           } else {
             await updateCategory(category.name, currentUpdatedCategory); // Update existing category

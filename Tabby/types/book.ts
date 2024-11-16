@@ -13,4 +13,5 @@ export type Book = {
     pageCount?: number;
     isFavorite?: boolean;
     addToLibrary?: boolean;
+    isCustomBook?: boolean;
 };

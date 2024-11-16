@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button, Modal, TextInput, FlatList, Text, View, Switch, Alert } from 'react-native';
 import {
     addUserBook, deleteUserBook, updateUserBook, getUserBookByIsbn,
-    getAllUserBooks, getUserBooksByCategory, getAllFavoriteUserBooks,
+    getAllUserBooks, getAllUserBooksByCategory, getAllFavoriteUserBooks,
     getAllNonFavoriteUserBooks, getAllFavoriteUserBooksByCategory, getAllNonFavoriteUserBooksByCategory
 } from '@/database/databaseOperations';
 import { Book } from '@/types/book';
@@ -64,7 +64,7 @@ const TestUserBooks = () => {
 
     const fetchBooksByCategory = async () => {
         const category = inputValues.category as string;
-        const books = await getUserBooksByCategory(category);
+        const books = await getAllUserBooksByCategory(category);
         Alert.alert(`Books in Category: ${category}`, JSON.stringify(books, null, 2) || 'No books found in this category.');
     };
 
@@ -144,8 +144,15 @@ const TestUserBooks = () => {
                         <View className="flex-row items-center mb-3">
                             <Text>Favorite:</Text>
                             <Switch
+                                key={"isFavorite"}
                                 value={Boolean(inputValues.isFavorite)}
                                 onValueChange={(value) => handleInputChange('isFavorite', value)}
+                            />
+                            <Text>Custom Book:</Text>
+                            <Switch
+                                key={"isCustomBook"}
+                                value={Boolean(inputValues.isCustomBook)}
+                                onValueChange={(tempValue) => handleInputChange('isCustomBook', tempValue)}
                             />
                         </View>
                         <Button title="Submit" onPress={modalType === 'getFavoritesByCategory' ? handleGetFavoritesByCategory : modalType === 'getNonFavoritesByCategory' ? handleGetNonFavoritesByCategory : handleAction} />

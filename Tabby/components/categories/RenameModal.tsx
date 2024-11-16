@@ -42,7 +42,8 @@ const RenameModal: React.FC<RenameModalProps> = ({
             handleDeselectingNewCategory();
         }
 
-        if (trimmedName === categoriesBeingRenamed[0].name) {
+        if (trimmedName === categoriesBeingRenamed[0].name && !isAddingNewCategory) {
+            console.log("Category name is the same as before.: ", trimmedName);
             onCancel();
             return;
         }
@@ -74,6 +75,9 @@ const RenameModal: React.FC<RenameModalProps> = ({
         setNewName(text);
     }
 
+    // rename label changes based if renaming more than one category
+    const renameLabel = categoriesBeingRenamed.length > 1 ? "Rename Categories" : "Rename Category";
+
     return (
         <Modal
             transparent={true}
@@ -82,7 +86,8 @@ const RenameModal: React.FC<RenameModalProps> = ({
         >
             <View className="flex-1 justify-center items-center bg-transparent bg-opacity-50">
                 <View className="bg-white p-4 rounded w-80">
-                    <Text className="text-lg font-semibold mb-2"> {categoriesBeingRenamed.length > 1 ? "Rename Categories:" : "Rename Category"} </Text>
+
+                    <Text className="text-lg font-semibold mb-2"> {isAddingNewCategory ? "Add New Category" : renameLabel} </Text>
                     {categoriesBeingRenamed.length > 1 && (<View className='flex-col'>
                         {categoriesBeingRenamed.map((category) => (
 
