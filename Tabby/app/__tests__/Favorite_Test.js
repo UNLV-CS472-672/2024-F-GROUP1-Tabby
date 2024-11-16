@@ -1,13 +1,11 @@
 import React from 'react';
 import FooterNavBar from '@/components/FooterNavBar';
-import { render, fireEvent, act, screen, waitFor } from '@testing-library/react-native';
-import { useLocalSearchParams, usePathname, useRouter } from 'expo-router';
-import Favorites from '@/app/favorites';
+import { render, fireEvent } from '@testing-library/react-native';
+import { usePathname, useRouter } from 'expo-router';
 
 jest.mock('expo-router', () => {
     const { Pressable } = require('react-native');
     return {
-        useLocalSearchParams: jest.fn().mockReturnValue({ category: "tempCategory" }),
         usePathname: jest.fn(),
         useRouter: jest.fn(),
         Link: ({ href, children }) => (
