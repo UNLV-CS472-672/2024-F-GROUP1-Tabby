@@ -11,11 +11,14 @@ type BookCardProps = {
 
 const BookCard: React.FC<BookCardProps> = ({ book }) => {
 
+    // Use default image if `book.image` is not set or is invalid
+    const imageSource = book.image ? { uri: book.image } : require('@/assets/book/default-book-cover.jpg');
+
     return (
         <View className="pl-7 pt-7">
             <View className="flex-row">
                 <Image
-                    source={{ uri: book.image }}
+                    source={imageSource}
                     className="w-36 h-48"
                 />
 
@@ -23,7 +26,7 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
                     <Text className="text-lg font-bold text-white">{book.title}</Text>
                     <Text className="text-md text-white font-semibold italic"> By {book.author}</Text>
                     <Text className="mt-3 text-lg text-white">Rating</Text>
-                    <StarsRating rating={book.rating || 3} />
+                    <StarsRating rating={book.rating || 1} />
                 </View>
 
             </View>

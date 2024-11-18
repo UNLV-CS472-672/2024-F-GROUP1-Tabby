@@ -15,16 +15,13 @@ export const addUserBook = async (book: Book): Promise<Book | null> => {
     console.log("Adding user book:", book);
 
     try {
-        // check if book is custom if it is will not have isbn so will be set to some uuid
-        if (book.isCustomBook) {
-            console.log("Book is custom so will set isbn to uuid");
-            book.isbn = uuidv4();
-        }
+        // all books will have a uuid as their uuid will allows for multiple categories having the same book
+        book.id = uuidv4();
         await (await db).runAsync(
-            `INSERT INTO userBooks (isbn, title, author, excerpt, summary, image, rating, genres, isFavorite, category, publisher, publishedDate, pageCount, isCustomBook)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO userBooks (id, title, author, excerpt, summary, image, rating, genres, isFavorite, category, publisher, publishedDate, pageCount, isCustomBook, notes, isbn)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
-                book.isbn,
+                book.id,
                 book.title,
                 book.author,
                 book.excerpt,
@@ -38,11 +35,13 @@ export const addUserBook = async (book: Book): Promise<Book | null> => {
                 book.publishedDate || null,
                 book.pageCount || null,
                 book.isCustomBook ? 1 : 0,
+                book.notes || null,
+                book.isbn || null
             ]
         );
 
         // Fetch and return the inserted book
-        const result = await (await db).getFirstAsync('SELECT * FROM userBooks WHERE isbn = ?', [book.isbn]);
+        const result = await (await db).getFirstAsync('SELECT * FROM userBooks WHERE id = ?', [book.id]);
         console.log("User book added successfully:", result);
         return result ? { ...result } as Book : null;
     } catch (error) {
@@ -51,12 +50,12 @@ export const addUserBook = async (book: Book): Promise<Book | null> => {
     }
 };
 
-// Delete a user book by ISBN
-export const deleteUserBook = async (isbn: string): Promise<boolean> => {
+// Delete a user book by id
+export const deleteUserBookById = async (id: string): Promise<boolean> => {
     try {
         await (await db).runAsync(
-            `DELETE FROM userBooks WHERE isbn = ?`,
-            [isbn]
+            `DELETE FROM userBooks WHERE id = ?`,
+            [id]
         );
         console.log("User book deleted successfully");
         return true;
@@ -66,11 +65,12 @@ export const deleteUserBook = async (isbn: string): Promise<boolean> => {
     }
 };
 
-// Update a user book by ISBN
+// Update a user book by passing book object
 export const updateUserBook = async (book: Book): Promise<boolean> => {
+    console.log("--- Updating user book with this book:", book, "---");
     try {
-        await (await db).runAsync(
-            `UPDATE userBooks SET title = ?, author = ?, excerpt = ?, summary = ?, image = ?, rating = ?, genres = ?, isFavorite = ?, category = ?, publisher = ?, publishedDate = ?, pageCount = ? WHERE isbn = ?`,
+        const result = await (await db).runAsync(
+            `UPDATE userBooks SET title = ?, author = ?, excerpt = ?, summary = ?, image = ?, rating = ?, genres = ?, isFavorite = ?, category = ?, publisher = ?, publishedDate = ?, pageCount = ?, notes = ?, isbn = ? WHERE id = ?`,
             [
                 book.title,
                 book.author,
@@ -84,11 +84,14 @@ export const updateUserBook = async (book: Book): Promise<boolean> => {
                 book.publisher || null,
                 book.publishedDate || null,
                 book.pageCount || null,
-                book.isbn,
+                book.notes || null,
+                book.isbn || null,
+                book.id,
             ]
         );
-        console.log("User book updated successfully");
-        return true;
+        const getUpdatedResult = await getUserBookById(book.id);
+        console.log("---User book updated successfully:", getUpdatedResult, "---");
+        return getUpdatedResult ? true : false;
     } catch (error) {
         console.error("Error updating user book:", error);
         return false;
@@ -374,11 +377,11 @@ export const getAllCustomNonFavoriteUserBooksByCategory = async (category: strin
     }
 }
 
-// Get a user book by ISBN
-export const getUserBookByIsbn = async (isbn: string): Promise<Book | null> => {
+// Get a user book by id
+export const getUserBookById = async (id: string): Promise<Book | null> => {
     try {
-        const result = await (await db).getFirstAsync('SELECT * FROM userBooks WHERE isbn = ?', [isbn]);
-        console.log("User book by ISBN:", result);
+        const result = await (await db).getFirstAsync('SELECT * FROM userBooks WHERE id = ?', [id]);
+        console.log("--- User book by id:", result, "---");
         if (result) {
             return {
                 ...result
@@ -386,7 +389,7 @@ export const getUserBookByIsbn = async (isbn: string): Promise<Book | null> => {
         }
         return null;
     } catch (error) {
-        console.error("Error retrieving user book by ISBN:", error);
+        console.error("Error retrieving user book by id:", error);
         return null;
     }
 };
@@ -395,14 +398,16 @@ export const getUserBookByIsbn = async (isbn: string): Promise<Book | null> => {
 
 // Add a new recommended book
 export const addRecommendedBook = async (book: Book): Promise<Book | null> => {
-
+    console.log("Adding recommended book:", book);
 
     try {
+        // all books will have a uuid as their id allows for multiple categories having the same book
+        book.id = uuidv4();
         await (await db).runAsync(
-            `INSERT INTO recommendedBooks (isbn, title, author, excerpt, summary, image, rating, genres, addToLibrary, publisher, publishedDate, pageCount)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO recommendedBooks (id, title, author, excerpt, summary, image, rating, genres, addToLibrary, publisher, publishedDate, pageCount, notes, isbn)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
-                book.isbn,
+                book.id,
                 book.title,
                 book.author,
                 book.excerpt,
@@ -414,11 +419,13 @@ export const addRecommendedBook = async (book: Book): Promise<Book | null> => {
                 book.publisher || null,
                 book.publishedDate || null,
                 book.pageCount || null,
+                book.notes || null,
+                book.isbn || null
             ]
         );
 
         // Fetch and return the inserted book
-        const result = await (await db).getFirstAsync('SELECT * FROM recommendedBooks WHERE isbn = ?', [book.isbn]);
+        const result = await (await db).getFirstAsync('SELECT * FROM recommendedBooks WHERE id = ?', [book.id]);
         console.log("Recommended book added successfully:", result);
         return result ? { ...result } as Book : null;
     } catch (error) {
@@ -427,12 +434,12 @@ export const addRecommendedBook = async (book: Book): Promise<Book | null> => {
     }
 };
 
-// Delete a recommended book by ISBN
-export const deleteRecommendedBook = async (isbn: string): Promise<boolean> => {
+// Delete a recommended book by id which will be isbn for book from api 
+export const deleteRecommendedBookById = async (id: string): Promise<boolean> => {
     try {
         await (await db).runAsync(
-            `DELETE FROM recommendedBooks WHERE isbn = ?`,
-            [isbn]
+            `DELETE FROM recommendedBooks WHERE id = ?`,
+            [id]
         );
         console.log("Recommended book deleted successfully");
         return true;
@@ -442,12 +449,12 @@ export const deleteRecommendedBook = async (isbn: string): Promise<boolean> => {
     }
 };
 
-// Update a recommended book by ISBN
+// Update a recommended book by passing book object
 export const updateRecommendedBook = async (book: Book): Promise<boolean> => {
 
     try {
         await (await db).runAsync(
-            `UPDATE recommendedBooks SET title = ?, author = ?, excerpt = ?, summary = ?, image = ?, rating = ?, genres = ?, addToLibrary = ?, publisher = ?, publishedDate = ?, pageCount = ? WHERE isbn = ?`,
+            `UPDATE recommendedBooks SET title = ?, author = ?, excerpt = ?, summary = ?, image = ?, rating = ?, genres = ?, addToLibrary = ?, publisher = ?, publishedDate = ?, pageCount = ?, notes = ?, isbn = ? WHERE id = ?`,
             [
                 book.title,
                 book.author,
@@ -460,7 +467,9 @@ export const updateRecommendedBook = async (book: Book): Promise<boolean> => {
                 book.publisher || null,
                 book.publishedDate || null,
                 book.pageCount || null,
-                book.isbn,
+                book.notes || null,
+                book.isbn || null,
+                book.id,
             ]
         );
         console.log("Recommended book updated successfully");
@@ -485,7 +494,7 @@ export const getAllRecommendedBooks = async (): Promise<Book[] | null> => {
     }
 };
 
-// get all reccomended books that are added to the library
+// get all recommended books that are added to the library
 export const getAllRecommendedBooksAddedToLibrary = async (): Promise<Book[] | null> => {
     try {
         const result = await (await db).getAllAsync('SELECT * FROM recommendedBooks WHERE addToLibrary = 1');
@@ -513,11 +522,11 @@ export const getAllRecommendedBooksNotAddedToLibrary = async (): Promise<Book[] 
     }
 };
 
-// Get a recommended book by ISBN
-export const getRecommendedBookByIsbn = async (isbn: string): Promise<Book | null> => {
+// Get a recommended book by id (should be id)
+export const getRecommendedBookById = async (id: string): Promise<Book | null> => {
     try {
-        const result = await (await db).getFirstAsync('SELECT * FROM recommendedBooks WHERE isbn = ?', [isbn]);
-        console.log("Recommended book by ISBN:", result);
+        const result = await (await db).getFirstAsync('SELECT * FROM recommendedBooks WHERE id = ?', [id]);
+        console.log("Recommended book by id:", result);
         if (result) {
             return {
                 ...result
@@ -525,7 +534,7 @@ export const getRecommendedBookByIsbn = async (isbn: string): Promise<Book | nul
         }
         return null;
     } catch (error) {
-        console.error("Error retrieving recommended book by ISBN:", error);
+        console.error("Error retrieving recommended book by id:", error);
         return null;
     }
 };

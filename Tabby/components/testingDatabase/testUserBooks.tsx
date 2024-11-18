@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Modal, TextInput, FlatList, Text, View, Switch, Alert } from 'react-native';
 import {
-    addUserBook, deleteUserBook, updateUserBook, getUserBookByIsbn,
+    addUserBook, deleteUserBookById, updateUserBook, getUserBookById,
     getAllUserBooks, getAllUserBooksByCategory, getAllFavoriteUserBooks,
     getAllNonFavoriteUserBooks, getAllFavoriteUserBooksByCategory, getAllNonFavoriteUserBooksByCategory
 } from '@/database/databaseOperations';
@@ -44,13 +44,13 @@ const TestUserBooks = () => {
                 await addUserBook(bookData);
                 break;
             case 'deleteUserBook':
-                await deleteUserBook(bookData.isbn as string);
+                await deleteUserBookById(bookData.id as string);
                 break;
             case 'updateUserBook':
                 await updateUserBook(bookData);
                 break;
-            case 'getUserBookByIsbn':
-                const userBook = await getUserBookByIsbn(bookData.isbn as string);
+            case 'getUserBookById':
+                const userBook = await getUserBookById(bookData.id as string);
                 Alert.alert("User Book", JSON.stringify(userBook, null, 2) || 'No book found.');
                 break;
             case 'getBooksByCategory':
@@ -119,7 +119,7 @@ const TestUserBooks = () => {
             <Button title="Add User Book" onPress={() => openModal('addUserBook')} />
             <Button title="Delete User Book" onPress={() => openModal('deleteUserBook')} />
             <Button title="Update User Book" onPress={() => openModal('updateUserBook')} />
-            <Button title="Get User Book by ISBN" onPress={() => openModal('getUserBookByIsbn')} />
+            <Button title="Get User Book by id" onPress={() => openModal('getUserBookById')} />
             <Button title="Get Books by Category" onPress={() => openModal('getBooksByCategory')} />
             <Button title="Get All Favorite Books" onPress={handleGetFavorites} />
             <Button title="Get All Non-Favorite Books" onPress={handleGetNonFavorites} />
@@ -131,14 +131,14 @@ const TestUserBooks = () => {
                 <View className="flex-1 justify-center items-center">
                     <View className="w-72 p-5 bg-white rounded-lg">
                         <Text className="font-bold text-base mb-3">Enter Values</Text>
-                        {['isbn', 'title', 'author', 'excerpt', 'summary', 'image', 'rating', 'genres', 'category', 'publisher', 'publishedDate', 'pageCount'
+                        {['id', 'title', 'author', 'excerpt', 'summary', 'image', 'rating', 'genres', 'category', 'publisher', 'publishedDate', 'pageCount', 'notes', 'isbn'
                         ].map((key) => (
                             <TextInput
                                 key={key}
                                 placeholder={key}
                                 value={inputValues[key as keyof Book]?.toString() || ''}
                                 onChangeText={(value) => handleInputChange(key as keyof Book, value)}
-                                className="border-b border-gray-300 mb-3 p-2"
+                                className="border-b border-gray-300 mb-2 p-2"
                             />
                         ))}
                         <View className="flex-row items-center mb-3">

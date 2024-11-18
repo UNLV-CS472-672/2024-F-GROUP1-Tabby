@@ -1,56 +1,94 @@
-import { View, Pressable, ScrollView, FlatList, Text } from 'react-native'
+import { View, Pressable, Text, ScrollView, FlatList } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
-import React from 'react'
 import { useLocalSearchParams } from 'expo-router';
 import BookCard from '@/components/book/BookCard';
-import ScrollableGenres from '@/components/book/ScrollableGenres';
+import ScrollableHorizontalList from '@/components/book/ScrollableHorizontalList';
 import { Book } from "@/types/book";
-import { useState } from 'react';
-import FavoriteButtonIcon from '@/components/FavoriteButtonIcon';
+import { useEffect, useState } from 'react';
+import AddButtonIcon from '@/components/AddButtonIcon';
+import MenuIcon from '@/components/book/MenuIcon';
 import DropdownMenu from '@/components/book/DropDownMenu';
 import DeleteIcon from "@/assets/categories/delete-icon.svg";
 import DeleteBookModal from '@/components/book/DeleteBookModal';
-import AddButtonIcon from '@/components/AddButtonIcon';
+
+import { getRecommendedBookById, deleteRecommendedBookById, updateRecommendedBook, getAllCategories, addUserBook } from '@/database/databaseOperations';
+import { useRouter } from "expo-router";
 
 
 const BookPage = () => {
-    const [favorite, setFavorite] = useState(false);
+    const router = useRouter();
     const [isMoveMenuVisible, setIsMoveMenuVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-
-    // test book data to see how the book page will look with all its components
-    const BookObj: Book = {
-        isbn: '2',
-        title: 'To Kill a Mockingbird',
-        author: 'Harper Lee',
-        excerpt: 'A novel about racial injustice and racial segregation.',
-        summary: "Set against the backdrop of the racially segregated South during the tumultuous 1930s, To Kill a Mockingbird unfolds through the perspective of young Scout Finch, a precocious girl navigating the complexities of childhood in the small town of Maycomb, Alabama. As the narrative progresses, Scout's innocence is challenged by the harsh realities of prejudice and injustice when her father, Atticus Finch, takes on the formidable task of defending Tom Robinson, a Black man wrongfully accused of raping a white woman.\n\n The novel delves deep into the themes of racism, exploring how deeply entrenched societal biases shape the lives of its characters and the community at large. Scout, along with her brother Jem and their friend Dill, grapple with their understanding of morality and justice as they witness the community's reaction to the trial. Through her interactions with various townsfolk, including the enigmatic Boo Radley, Scout learns invaluable lessons about empathy, compassion, and the importance of standing up for what is right, even when it is unpopular. \n\n As Atticus bravely confronts the prejudices that pervade Maycomb, the narrative not only highlights his moral courage but also serves as a poignant commentary on the struggles against systemic racism and the quest for justice in a deeply divided society. The story ultimately reflects the loss of innocence that accompanies the realization of societal flaws, while also emphasizing the potential for growth and understanding in the face of adversity. Through Scout’s eyes, Harper Lee masterfully weaves a tale that resonates with readers, inviting them to reflect on their own beliefs and the enduring impact of empathy in the fight against injustice.",
-        image: 'https://m.media-amazon.com/images/I/81aY1lxk+9L._AC_UF1000,1000_QL80_.jpg',
-        isFavorite: favorite,
-        addToLibrary: false,
-        genres: "Fiction, Dystopian,Historical Fiction,Science Fiction",
-        pageCount: 281,
-        publisher: "Scribner",
-        publishedDate: "November 19, 1960",
-        rating: 4
-    }
-
-    const genresAsArray = BookObj.genres?.split(",") || [""];
-
-    const handleMoveToCategory = (category: string) => {
-        console.log(`Moving book to category: ${category}`);
-    };
-
-    const handleDeleteBook = () => {
-        setIsDeleteModalVisible(false);
-        console.log(`Deleting ${book} from reccomendations`);
-    };
+    const [currentBook, setCurrentBook] = useState<Book>({ id: "default", title: "", author: "", excerpt: "", summary: "", image: "", addToLibrary: false });
+    const [categories, setCategories] = useState<string[]>([]);
 
     // Extract both category and book slugs
-    const { book } = useLocalSearchParams();
+    const { category, book } = useLocalSearchParams();
 
-    console.log(book, "is reccomended");
-    const otherData = [`Pages ${BookObj.pageCount}`, `Published by ${BookObj.publisher}`, `First Published ${BookObj.publishedDate}`];
+    console.log(book, "is from", category);
+
+    // get book data from database
+    useEffect(() => {
+        const fetchBookDataAndCategories = async () => {
+            try {
+                const bookResponse = await getRecommendedBookById(book as string);
+                const categoriesResponse = await getAllCategories();
+
+                console.log(bookResponse);
+                console.log(categoriesResponse);
+                // set current book if not empty
+                if (bookResponse) {
+                    setCurrentBook(bookResponse);
+                }
+                // set categories if not empty
+                if (categoriesResponse) {
+                    setCategories(categoriesResponse.map((currentCategory) => (currentCategory.name)));
+                }
+            } catch (error) {
+                console.error("Error fetching book data:", error);
+            }
+        }
+
+        fetchBookDataAndCategories();
+
+    }, []);
+
+    const genresAsArray = currentBook.genres?.split(",") || [];
+    const otherData = [`Pages ${currentBook?.pageCount || "Unknown"}`, `Published by ${currentBook?.publisher || "Unknown"}`, `First Published ${currentBook?.publishedDate || "Unknown"}`];
+
+    const handleAddToCategory = async (addToThisCategory: string) => {
+        console.log(`Moving book to category: ${addToThisCategory}`);
+        // updating book to be added to library and category for user books 
+        const updatedBook = { ...currentBook, addToLibrary: true, category: addToThisCategory };
+        const result = await addUserBook(updatedBook);
+        if (!result) {
+            console.error("Failed to add user book");
+            return;
+        }
+        setCurrentBook(updatedBook);
+    };
+
+    const handleAddToLibrary = async () => {
+        const updatedBook = { ...currentBook, addToLibrary: !currentBook.addToLibrary };
+        const result = await updateRecommendedBook(updatedBook);
+        if (!result) {
+            console.error("Failed to update recommended book");
+            return;
+        }
+        setCurrentBook(updatedBook);
+
+    }
+
+    const handleDeleteBook = async () => {
+        setIsDeleteModalVisible(false);
+        console.log(`Deleting ${book} from ${category}`);
+        // deleting book from db 
+        await deleteRecommendedBookById(book as string);
+        router.push("/recommendations");
+
+    };
+
+
 
 
     return (
@@ -63,7 +101,8 @@ const BookPage = () => {
                         <DeleteIcon width={40} height={40} />
                     </Pressable>
 
-                    {/* Delete Modal that shows up when delete button on the top right is pressed*/}
+                    {/* Delete Modal */}
+
                     <DeleteBookModal
                         visible={isDeleteModalVisible}
                         onClose={() => setIsDeleteModalVisible(false)}
@@ -72,60 +111,53 @@ const BookPage = () => {
 
 
 
-                    <Pressable onPress={() => setFavorite(!favorite)} className=" p-1 mr-2">
-                        <FavoriteButtonIcon isFavorite={favorite} StrokeColor='white' />
+                    <Pressable onPress={() => handleAddToLibrary()} className=" p-1 mr-2">
+                        <AddButtonIcon isAdded={currentBook.addToLibrary || false} />
                     </Pressable>
 
                     <Pressable onPress={() => setIsMoveMenuVisible(!isMoveMenuVisible)} className="p-1 mr-2" >
 
-                        <AddButtonIcon isAdded={isMoveMenuVisible} />
+                        <MenuIcon isSelected={isMoveMenuVisible} />
                     </Pressable>
                     {/* Custom DropdownMenu */}
                     <DropdownMenu
                         visible={isMoveMenuVisible}
-                        items={genresAsArray}
-                        onSelect={handleMoveToCategory}
+                        items={categories}
+                        onSelect={handleAddToCategory}
                         onClose={() => setIsMoveMenuVisible(false)}
-                        heading="Add To Category"
+                        heading={"Add To Category"}
                     />
                 </View>
 
+
+
                 <View>
-                    <BookCard book={BookObj} />
+                    <BookCard book={currentBook} />
                 </View>
+
+                {genresAsArray.length > 0 && <View className="pl-1 pt-5">
+                    <ScrollableHorizontalList listOfStrings={genresAsArray} />
+                </View>}
 
                 <View className="pl-1 pt-5">
-                    <ScrollableGenres genres={genresAsArray} />
+                    <ScrollableHorizontalList listOfStrings={otherData} />
                 </View>
 
-                <FlatList
-                    className='pt-5'
-                    data={otherData}
-                    horizontal
-                    keyExtractor={(item, index) => (index.toString() + item)}
-                    renderItem={({ item }) => (
-                        <View className='rounded-lg mr-2 border border-white px-4 justify-center items-center h-7'>
-                            <Text className="text-white text-sm">{item}</Text>
-                        </View>
 
-                    )}
-                    showsHorizontalScrollIndicator={false}
-                />
 
 
 
                 <View className="pl-5 pt-5 flex justify-center">
-                    <Text className='text-lg text-white'> Important Notes </Text>
+                    <Text className='text-lg text-white'> My Notes</Text>
 
                     <ScrollView className="max-h-40 pl-1">
-                        <Text className='text-sm text-white max-w-sm text-start'>To Kill a Mockingbird by Harper Lee is a powerful novel set in the 1930s Southern United States, tackling themes of racial injustice, empathy, and moral courage through the perspective of Scout Finch, a young girl witnessing her father, Atticus Finch, defend Tom Robinson, a Black man falsely accused of rape. The story presents a nuanced view of a racially divided community and emphasizes the importance of standing up for justice, even when the odds are against you. Rated 4 stars, this book combines elements of fiction, mystery, and dystopian genres and has remained relevant since its publication in 1960 by Scribner. With 281 pages, it’s a reflective, thought-provoking read that has solidified its place as a classic in American literature. The cover image evokes a somber, contemplative mood, fitting for a story of courage amidst adversity.</Text>
+                        <Text className='text-sm text-white max-w-sm text-start'>{currentBook.notes}</Text>
                     </ScrollView>
                 </View>
 
 
 
             </SafeAreaView>
-
 
 
         </>

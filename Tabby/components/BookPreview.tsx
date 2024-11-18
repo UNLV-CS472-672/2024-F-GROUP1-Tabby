@@ -6,18 +6,18 @@ import { Book } from "@/types/book";
 type BookPreviewProps = {
     book: Book;
     button: React.ReactElement<typeof Pressable>;
-    isReccommendation?: boolean;
+    isRecommendation?: boolean;
 };
 
-const BookPreview: React.FC<BookPreviewProps> = ({ book, button, isReccommendation }) => {
+const BookPreview: React.FC<BookPreviewProps> = ({ book, button, isRecommendation }) => {
     const router = useRouter();
     const { category } = useLocalSearchParams();
 
     const handleBookPress = () => {
-        if (isReccommendation) {
-            router.push(`/recommendations/${book.title}`);
+        if (isRecommendation) {
+            router.push(`/recommendations/${book.id}`);
         } else {
-            router.push(`/library/${category}/${book.title}`);
+            router.push(`/library/${category}/${book.id}`);
         }
     };
 

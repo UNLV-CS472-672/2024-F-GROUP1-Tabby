@@ -6,12 +6,7 @@ export async function migrateDbIfNeeded() {
 
   await (await db).execAsync(`
         PRAGMA journal_mode = WAL;
-
-        -- drop tables if they already exist
-        DROP TABLE IF EXISTS categories;
-        DROP TABLE IF EXISTS userBooks;
-        DROP TABLE IF EXISTS recommendedBooks;
-
+    
         -- Create categories table with name as the primary key 
         CREATE TABLE IF NOT EXISTS categories (
           name TEXT PRIMARY KEY NOT NULL,
@@ -19,9 +14,9 @@ export async function migrateDbIfNeeded() {
           position INTEGER NOT NULL
         );
         
-        -- Create userBooks table to store user's books
+        -- Create userBooks table to store user's books: id will be isbn for book that is gotten from api otherwise it will be a uuid for custom book
         CREATE TABLE IF NOT EXISTS userBooks (
-          isbn TEXT PRIMARY KEY NOT NULL,
+          id TEXT PRIMARY KEY NOT NULL,
           title TEXT NOT NULL,
           author TEXT NOT NULL,
           excerpt TEXT,
@@ -29,17 +24,19 @@ export async function migrateDbIfNeeded() {
           image TEXT,
           rating INTEGER,
           genres TEXT,
-          Category TEXT,
+          category TEXT,
           isFavorite INTEGER,
           publisher TEXT,               
           publishedDate TEXT,           
           pageCount INTEGER,
-          isCustomBook INTEGER           
+          isCustomBook INTEGER,
+          isbn TEXT,
+          notes TEXT          
         );
 
-        -- Create recommendedBooks table to store recommended books
+        -- Create recommendedBooks table to store recommended books: id will be isbn for a recommended book
         CREATE TABLE IF NOT EXISTS recommendedBooks (
-          isbn TEXT PRIMARY KEY NOT NULL,
+          id TEXT PRIMARY KEY NOT NULL,
           title TEXT NOT NULL,
           author TEXT NOT NULL,
           excerpt TEXT,
@@ -50,7 +47,9 @@ export async function migrateDbIfNeeded() {
           addToLibrary INTEGER,
           publisher TEXT,               
           publishedDate TEXT,           
-          pageCount INTEGER             
+          pageCount INTEGER,
+          isbn TEXT,
+          notes TEXT             
         );
       `);
 

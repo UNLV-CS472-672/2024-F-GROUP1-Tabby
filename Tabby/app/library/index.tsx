@@ -1,7 +1,6 @@
 import { useRouter } from "expo-router";
 import { View, Text, Pressable, FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { FontAwesome } from "@expo/vector-icons";
 import { useState, useRef } from "react";
 import PinnedIcon from "@/components/categories/PinnedIcon";
 import RenameModal from "@/components/categories/RenameModal";
@@ -11,7 +10,7 @@ import { SearchBar } from "@rneui/themed";
 import { useEffect } from "react";
 import SelectedMenu from "@/components/categories/SelectedMenu";
 import { getAllCategories, addCategory, deleteCategory, updateCategory } from "@/database/databaseOperations";
-
+import PlusIcon from "@/assets/categories/plus-icon.svg";
 
 const Categories = () => {
   const router = useRouter();
@@ -46,6 +45,7 @@ const Categories = () => {
   };
 
   const handleCategoryPress = (category: Category) => {
+    // if any category is selected, toggle the selection for the clicked category instead of navigating to category page 
     if (areAnyCategoriesSelected()) {
       const updatedCategories = categories.map((currentCategory) => {
         if (currentCategory.name === category.name) {
@@ -56,6 +56,7 @@ const Categories = () => {
       setCategories(updatedCategories);
       return;
     }
+    // otherwise go to category page 
     router.push(`/library/${category.name}`);
   };
 
@@ -204,7 +205,8 @@ const Categories = () => {
   };
 
   const renderItem = ({ item, index }: { item: Category; index: number }) => {
-    if (search === "" || item.name.toLowerCase().includes(search.toLowerCase())) {
+    // do not render new category that is about to be added as it has a temp name and should not be shown
+    if ((search === "" || item.name.toLowerCase().includes(search.toLowerCase())) && (NewCategoryNameRef.current !== item.name)) {
       return (
         <View>
           <Pressable
@@ -238,21 +240,24 @@ const Categories = () => {
 
 
         {/* Top row for add category icon and search bar */}
-        <View className="flex-row justify-end">
 
-          {/* only show search bar if no categories are selected */}
 
-          {!areAnyCategoriesSelected() && <View className="w-[85%]" >
+        {/* only show search bar if no categories are selected */}
+
+        <View className="flex-row items-center justify-between" >
+          <View className="w-[85%] mx-auto">
             <SearchBar placeholder="Type Here..." onChangeText={updateSearch} value={search} />
-          </View>}
-          <Pressable className="p-2" onPress={handleAddCategory}>
-            <FontAwesome
-              name="plus"
-              size={areAnyCategoriesSelected() || isAddingCategory ? 0 : 46}
-              color="white"
-            />
+          </View>
+
+          <Pressable className="p-2 mx-auto" onPress={handleAddCategory}>
+
+            {(!areAnyCategoriesSelected()) && (<PlusIcon height={38} width={38} />)}
+
+
           </Pressable>
         </View>
+
+
 
         {/* Content area to allow FlatList and menu to stack correctly */}
         <View className="flex-1">
@@ -260,7 +265,7 @@ const Categories = () => {
         </View>
 
         {/* Bottom menu: shown when categories are selected */}
-        {categories.some((category) => category.isSelected) && (
+        {(areAnyCategoriesSelected() && !isAddingCategory) && (
 
 
           <SelectedMenu openDeleteModal={() => setIsDeleteModalVisible(true)} openRenameModal={() => setIsRenameModalVisible(true)} openCancelModal={() => deselectAllCategories()} />

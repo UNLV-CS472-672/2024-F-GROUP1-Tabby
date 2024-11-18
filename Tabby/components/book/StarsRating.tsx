@@ -3,7 +3,7 @@ import { FlatList } from "react-native";
 import StarIcon from "@/components/book/StarIcon";
 
 type StarsRatingProps = {
-    rating: 1 | 2 | 3 | 4 | 5;
+    rating: 0 | 1 | 2 | 3 | 4 | 5;
     height?: number;
     width?: number;
 };
