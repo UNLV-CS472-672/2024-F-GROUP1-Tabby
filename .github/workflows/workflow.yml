@@ -55,3 +55,7 @@ jobs:
         run: |
           cd Tabby
           npm run lint
+      - name: Tests
+        run: |
+          cd Tabby
+          npm run testFinal
