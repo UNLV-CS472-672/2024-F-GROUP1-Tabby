@@ -12,3 +12,6 @@ def test_finding_text():
     results = recognizer.find_text(image)
 
     assert any(r.text.lower() == "easyocr" for r in results)
+    for r in results:
+        assert r.area > 0
+        assert r.center.shape == (2,)

@@ -181,7 +181,7 @@ const Categories = () => {
           {/* only show search bar if no categories are selected */}
 
           {!areAnyCategoriesSelected() && <View className="w-[85%]" >
-            <SearchBar placeholder="Type Here..." onChangeText={updateSearch} value={search} />
+            <SearchBar placeholder="Search for a category..." onChangeText={updateSearch} value={search} />
           </View>}
           <Pressable className="p-2" onPress={handleAddCategory}>
             <FontAwesome
@@ -203,6 +203,7 @@ const Categories = () => {
 
           <SelectedMenu openDeleteModal={() => setIsDeleteModalVisible(true)} openRenameModal={() => setIsRenameModalVisible(true)} openCancelModal={() => deselectAllCategories()} />
         )}
+
       </SafeAreaView>
 
       {/* Rename Modal */}
