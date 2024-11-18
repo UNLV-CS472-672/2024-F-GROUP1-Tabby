@@ -43,7 +43,7 @@ def scan_cover(image: MatLike) -> list:
     Args:
         image: Image to scan.
     Returns:
-        List of book information to scan. Empty if there is a failure at any
+        List of book information scanned. Empty if there is a failure at any
         part.
     """
 
@@ -58,7 +58,13 @@ def scan_cover(image: MatLike) -> list:
     if extraction_result is None:
         return []
 
-    return []
+    # Make the request to Google Books
+    top_option = extraction_result.options[0]
+    books = google_books.request_volumes_get(
+        phrase=top_option.title, author=top_option.author
+    )
+
+    return books
 
 
 @cache
@@ -116,22 +122,25 @@ def books_search() -> tuple[dict, HTTPStatus]:
 
     # If no books, note that in the message
     if len(books) <= 0:
-        result = {
+        result = _get_result_dict([])
+        return result, HTTPStatus.OK
+
+    # Wrap it up in another dictionary and send!
+    result = _get_result_dict(books)
+    return result, HTTPStatus.OK
+
+
+def _get_result_dict(books: list[google_books.Book]) -> dict:
+    results_count = len(books)
+    if results_count <= 0:
+        return {
             "message": "No books found.",
             "results": [],
             "resultsCount": 0,
         }
-        return result, HTTPStatus.OK
-
-    # Convert to dictionaries to put in the JSON
-    results_count = len(books)
     book_dicts = [asdict(b) for b in books]
-
-    # Wrap it up in another dictionary and send!
-    result = {
+    return {
         "message": f"Found {results_count} books.",
         "results": book_dicts,
         "resultsCount": results_count,
     }
-
-    return result, HTTPStatus.OK
