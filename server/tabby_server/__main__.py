@@ -1,6 +1,6 @@
 from flask import Flask
 from http import HTTPStatus
-from .services import resource_format, library
+from .services import library
 from .vision import yolo_test
 from .api import books
 
@@ -17,8 +17,6 @@ app = Flask(__name__)
 # Test Python Files.
 # YOLO or Image Recognition
 app.register_blueprint(yolo_test.yolo_test, url_prefix="/yolo")
-# Google Books
-app.register_blueprint(resource_format.books_test, url_prefix="/test")
 # OCR or Text Recognition
 app.register_blueprint(books.subapp, url_prefix="/books")
 

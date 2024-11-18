@@ -30,13 +30,13 @@ books_api = Blueprint("library", __name__)
 class Book:
     isbn: str
     title: str
-    authors: list
+    authors: str
     rating: str
     excerpt: str = field(init=False)  # Cannot be initialized
-    summary: str = ""
+    summary: str
     thumbnail: str
     page_count: str
-    categories: list
+    genres: str
     publisher: str
     published_date: str
 
@@ -135,11 +135,13 @@ def collect_book_attrs(book: dict = {}) -> dict[str, str]:
             # Attempts to collect attributes from the book if they exist.
             # If they don't, defaults to an empty string.
             title=book.get("title", ""),
-            authors=book.get("authors", ""),
+            # Converts the list of authors into a comma separated string.
+            authors=",".join(book.get("authors", "")),
             rating=book.get("averageRating", ""),
             summary=book.get("description", ""),
             page_count=book.get("pageCount", ""),
-            categories=book.get("categories", ""),
+            # Converts the list of categories into a comma separated string.
+            genres=",".join(book.get("categories", "")),
             publisher=book.get("publisher", ""),
             published_date=book.get("publishedDate", ""),
             # Must check if a thumbnail is provided wit this entry.
@@ -153,11 +155,19 @@ def collect_book_attrs(book: dict = {}) -> dict[str, str]:
     )
 
 
-@books_api.route("/search/", methods=["GET"])
-def google_books_search():
+def google_books_search(
+    phrase: str = "",
+    title: str = "",
+    author: str = "",
+    publisher: str = "",
+    subject: str = "",
+    isbn: str = "",
+) -> tuple:
     """
-    Call this with paramters to make a call to Google Books API.
-    Returns nothing if no correct arguments are given.
+    Takes in parameters to assemble a query to the Google Books API. This
+    expects at least one of the above parameters to be not blank or empty.
+
+    If all parameters are empty, returns nothing instead.
 
     Args:
         phrase:     Primary search string. Looks for books with this string.
@@ -172,16 +182,9 @@ def google_books_search():
                      Books must have an ISBN 13 to be returned.
     """
 
-    # If no arguments are given, return nothing. OR
-    # If no expected arguement is given, return nothing.
-    if not len(request.args) or not (
-        request.args.get("phrase")
-        or request.args.get("title")
-        or request.args.get("author")
-        or request.args.get("publisher")
-        or request.args.get("subject")
-        or request.args.get("isbn")
-    ):
+    # If no arguments are given, return nothing.
+    # Will not make a call with nothing in it.
+    if not (phrase or title or author or publisher or subject or isbn):
         return (
             {"badArgs": "Incorrect argument parameters"},
             HTTPStatus.BAD_REQUEST,
@@ -189,12 +192,12 @@ def google_books_search():
 
     # Combines the arguments into a single usable phrase
     query = get_google_books_query(
-        request.args.get("phrase", ""),
-        request.args.get("title", ""),
-        request.args.get("author", ""),
-        request.args.get("publisher", ""),
-        request.args.get("subject", ""),
-        request.args.get("isbn", ""),
+        phrase,
+        title,
+        author,
+        publisher,
+        subject,
+        isbn,
     )
 
     # Make call to Google Books with assembled query.
