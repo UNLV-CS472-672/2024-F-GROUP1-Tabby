@@ -1,5 +1,9 @@
+from functools import cache
 from flask import Blueprint, request
 from http import HTTPStatus
+from cv2.typing import MatLike
+from ..vision import ocr
+from ..vision import extraction
 
 
 subapp = Blueprint(name="books", import_name=__name__)
@@ -27,6 +31,35 @@ def books_scan_cover():
         }, HTTPStatus.BAD_REQUEST
 
     return {"results": []}, HTTPStatus.OK
+
+
+def scan_cover(image: MatLike) -> list:
+    """Takes in an image of a cover and returns a list of results.
+
+    Args:
+        image: Image to scan.
+    Returns:
+        List of book information to scan. Empty if there is a failure at any
+        part.
+    """
+
+    # Find text
+    text_recognizer = _get_text_recognizer()
+    recognized_texts = text_recognizer.find_text(image)
+
+    # Extract Title and Author
+    extraction_result = extraction.extract_from_recognized_texts(
+        recognized_texts
+    )
+    if extraction_result is None:
+        return []
+
+    return []
+
+
+@cache
+def _get_text_recognizer() -> ocr.TextRecognizer:
+    return ocr.TextRecognizer()
 
 
 @subapp.route("/search", methods=["GET"])

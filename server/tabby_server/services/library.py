@@ -226,3 +226,47 @@ def google_books_search():
 
     # If no books with an ISBN 13 were found, we return an error.
     return {"error": "No Books Found"}, HTTPStatus.OK
+
+
+def request_google_books(
+    phrase: str = "",
+    title: str = "",
+    author: str = "",
+    publisher: str = "",
+    subject: str = "",
+    isbn: str = "",
+):
+
+    query = get_google_books_query(
+        phrase, title, author, publisher, subject, isbn
+    )
+
+    # Make call to Google Books with assembled query.
+    # Save only the books themselves if any were found.
+    response = requests.get(
+        url="https://www.googleapis.com/books/v1/volumes",
+        params={
+            "key": API_KEY,
+            "q": query,
+            "maxResults": MAX_RESULTS,
+        },
+    )
+
+    # Checks if books were returned. Entirely possible that no books matched
+    # our search criteria.
+    if "items" not in response.json():
+        # Returns early if no books were found.
+        return {"matchless": "No Books Match Criteria"}, HTTPStatus.OK
+    items = response.json()["items"]
+
+    # Loops through each book returned and collects their attributes.
+    # Stops after the first book with an ISBN 13 is found.
+    for book in items:
+        cur_book = collect_book_attrs(book.get("volumeInfo", {}))
+        # If a bad book was sent, we will get back a dict with the key "blank".
+        if not cur_book.get("blank"):
+            # Returns it as a json string.
+            return json.dumps(cur_book, indent=4), HTTPStatus.OK
+
+    # If no books with an ISBN 13 were found, we return an error.
+    return {"error": "No Books Found"}, HTTPStatus.OK
