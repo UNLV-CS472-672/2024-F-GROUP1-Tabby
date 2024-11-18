@@ -1,10 +1,10 @@
+from tabby_server.__main__ import app
+from flask.testing import FlaskClient
+from http import HTTPStatus
+import requests_mock
 import logging
 import pytest
-from tabby_server.services.resource_format import result_dict as r_d
-from http import HTTPStatus
-from flask.testing import FlaskClient
-import requests_mock
-from tabby_server.__main__ import app
+import json
 
 
 @pytest.fixture()
@@ -76,48 +76,6 @@ class TestAPIEndPoint:
         assert response.status_code == HTTPStatus.OK
         assert response.json is not None and "results" in response.json
 
-    # Makes a call to Google Books API
-    def test_google_books_test_call_api(self, client):
-        # This holds some great insight.
-        # If this method fails later on, use this.
-        # https://stackoverflow.com/questions/15753390/how-can-i-mock-requests-and-the-response
-
-        with requests_mock.Mocker() as m:
-            # Call redirection
-            # local_api = os.getenv("API_KEY")
-            m.get(requests_mock.ANY, json={"books": [0, 1]})
-
-            # First Call - Should pass. Just calls the Google APU.
-            result = client.get("/test/make_request")
-
-            # Should be a successful search.
-            assert result.status_code == HTTPStatus.OK
-            assert "books" in result.json
-
-    # Returns a dict with a key for a list which itself holds
-    # a dict for each book returned.
-    def test_google_books_test_all_books(self, client):
-        # First Call - Should fail. No books.
-        result = client.get("/test/all_books")
-
-        # No prior search was made. No data to return.
-        assert result.status_code == HTTPStatus.BAD_REQUEST
-        assert result.json is not None and "empty" in result.json
-
-        # Second Call - Should pass. List of books.
-        # This time makes an API call prior.
-        r_d.output_dict = {
-            "items": [
-                {"volumeInfo": {"industryIdentifiers": 1}},
-                {"volumeInfo": {"industryIdentifiers": 2}},
-            ]
-        }
-        result = client.get("/test/all_books")
-
-        # Returns a json with book attributes.
-        assert result.status_code == HTTPStatus.OK
-        assert result.json is not None and "books" in result.json
-
     # Test call to YOLO object recognition. Uses a 0 as a parameter so data
     # is not saved from pytest call.
     def test_predict_examples(self, client):
@@ -135,3 +93,113 @@ class TestAPIEndPoint:
         # This should always return false.
         assert result.status_code == HTTPStatus.BAD_REQUEST
         assert result.json is not None and "Incorrect" in result.json
+
+    def test_google_books_testing(self, client):
+        """
+        Should mock a call to Google Books API and act as if it was a real
+        call.
+        Should return a json of book attributes.
+        Makes use of flower_of_algernon_test_40_output.json as test output.
+
+        Does call get_google_books_query and attr_collecter.
+        """
+
+        # Load example output.
+        # This was a json output from testing.
+        with open("tests/flower_of_algernon_test_40_output.json", "r") as f:
+            test_output = json.load(f)
+
+        # Setup Mocker
+        # Intercepts all Request Calls.
+        with requests_mock.Mocker() as m:
+            # Intercept an request message and make it always return the
+            # example json.
+            m.get(requests_mock.ANY, json={"book": "bad"})
+
+            # -- Make Call to Function Using App Route --
+            # No Arguments Given.
+            # This should fail.
+            result = client.get("/library/search/")
+            assert result.json is not None and "badArgs" in result.json
+            assert result.status_code == HTTPStatus.BAD_REQUEST
+
+            # Bad Arguments Given. We have a format we need to follow!
+            # This should fail.
+            result = client.get(
+                "/library/search/", query_string={"notIncluded": "nonexistent"}
+            )
+            assert result.json is not None and "badArgs" in result.json
+            assert result.status_code == HTTPStatus.BAD_REQUEST
+
+            # Correct Arguments, but No Results
+            # The values here don't matter so long as the argument key is
+            # valid. This should pass but we have it see nothing at right now.
+            result = client.get(
+                "/library/search/", query_string={"author": "nonexistent"}
+            )
+            assert result.json is not None and "matchless" in result.json
+            assert result.status_code == HTTPStatus.OK
+
+            # Intercepted request messages now return a single blank book.
+            # This is to test if we somehow found books, but none have a
+            # valid ISBN 13 id.
+            m.get(
+                requests_mock.ANY,
+                json={
+                    "items": [
+                        {
+                            "industryIdentifiers": [
+                                {"identifier": "123", "type": "bad"},
+                                {"identifier": "456", "type": "bad"},
+                            ]
+                        },
+                        {
+                            "industryIdentifiers": [
+                                {"identifier": "123", "type": "bad"},
+                                {"identifier": "456", "type": "bad"},
+                            ]
+                        },
+                    ]
+                },
+            )
+
+            # Matches Found, but None Valid.
+            # Theoretically possible for us to get books in a return but
+            # none of them have an ISBN 13.
+            result = client.get(
+                "/library/search/", query_string={"author": "who cares"}
+            )
+            assert result.json is not None and "error" in result.json
+            assert result.status_code == HTTPStatus.OK
+
+            # Intercept an request message and make it always return the
+            # example json.
+            # Now all requests will return that full json we have.
+            m.get(requests_mock.ANY, json=test_output)
+
+            # Flowers of Algernon Request.
+            # Again, our values don't actually matter but this is what was
+            # used to get our example anyways.
+            result = client.get(
+                "/library/search/",
+                query_string={"phrase": "flowers", "author": "keyes"},
+            )
+            # The return is actually a json string. So we convert it into
+            # a dict object to work with instead.
+            # This will have all attributes from the Book() dataclass.
+            assert result.status_code == HTTPStatus.OK
+            result = json.loads(result.get_data(as_text=True))
+            assert (
+                result is not None
+                and "isbn" in result
+                and "title" in result
+                and "authors" in result
+                and "rating" in result
+                and "excerpt" in result
+                and "summary" in result
+                and "thumbnail" in result
+                and "page_count" in result
+                and "genres" in result
+                and "publisher" in result
+                and "published_date" in result
+            )
