@@ -4,7 +4,6 @@ from dataclasses import asdict
 import json
 import requests_mock
 from tabby_server.services.google_books import (
-    BooksInvalid,
     get_google_books_query,
     request_volumes_get,
     volume_info_to_book,

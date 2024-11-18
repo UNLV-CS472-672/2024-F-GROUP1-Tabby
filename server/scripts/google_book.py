@@ -2,13 +2,10 @@ import atexit
 import logging
 from pathlib import Path
 from pprint import pprint
-import sys
 import cyclopts as cy
 from cyclopts.types import ResolvedFile
 
 from tabby_server.services import google_books
-from tabby_server.services.google_books import request_volumes_get
-from tabby_server.services.library import google_books_search
 
 
 app = cy.App()

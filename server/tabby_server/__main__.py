@@ -1,6 +1,5 @@
 from flask import Flask
 from http import HTTPStatus
-from .services import library
 from .vision import yolo_test
 from .api import books
 
@@ -19,11 +18,6 @@ app = Flask(__name__)
 app.register_blueprint(yolo_test.yolo_test, url_prefix="/yolo")
 # OCR or Text Recognition
 app.register_blueprint(books.subapp, url_prefix="/books")
-
-# Actual Python Files.
-# Google Books Implementation - 1 Routable Function (search)
-# http://localhost:5000/library/search/
-app.register_blueprint(library.books_api, url_prefix="/library")
 
 
 # Blueprints documentation

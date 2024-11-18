@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 import logging
 import os
-from pprint import pformat, pprint
+from pprint import pformat
 from typing import Any
 from dotenv import load_dotenv
 import requests
