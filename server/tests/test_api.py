@@ -101,13 +101,13 @@ class TestAPIEndPoint:
             )
             assert response.json["resultsCount"] == 0
 
-            # Success, 2 results
+            # Success, 2 results out of 3 results
             items = [
                 {
                     "volumeInfo": {
                         "title": "APPLES",
                         "industryIdentifiers": [
-                            {"identifier": "123", "type": "bad"},
+                            {"identifier": "1234243532", "type": "ISBN_13"},
                             {"identifier": "456", "type": "bad"},
                         ],
                     }
@@ -117,6 +117,15 @@ class TestAPIEndPoint:
                         "title": "BANANAS",
                         "industryIdentifiers": [
                             {"identifier": "123", "type": "bad"},
+                            {"identifier": "456", "type": "bad"},
+                        ],
+                    }
+                },
+                {
+                    "volumeInfo": {
+                        "title": "CHERRIES",
+                        "industryIdentifiers": [
+                            {"identifier": "1243567", "type": "ISBN_13"},
                             {"identifier": "456", "type": "bad"},
                         ],
                     }
@@ -137,7 +146,7 @@ class TestAPIEndPoint:
             )
             assert response.json["resultsCount"] == 2
             assert response.json["results"][0]["title"] == "APPLES"
-            assert response.json["results"][1]["title"] == "BANANAS"
+            assert response.json["results"][1]["title"] == "CHERRIES"
 
     # Test call to YOLO object recognition. Uses a 0 as a parameter so data
     # is not saved from pytest call.

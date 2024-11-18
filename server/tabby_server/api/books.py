@@ -111,6 +111,9 @@ def books_search() -> tuple[dict, HTTPStatus]:
         isbn=isbn,
     )
 
+    # Filter out books without ISBNs
+    books = [b for b in books if b.isbn]
+
     # If no books, note that in the message
     if len(books) <= 0:
         result = {
