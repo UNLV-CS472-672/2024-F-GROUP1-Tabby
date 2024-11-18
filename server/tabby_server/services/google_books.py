@@ -173,8 +173,15 @@ def request_volumes_get(
 
     # Catch bad responses
     if not (200 <= response.status_code <= 299):
-        logging.info(f"Bad response ({response.status_code}):")
-        logging.info(pformat(response.json()))
+        logging.info(f"Bad response ({response.status_code})")
+        # Log JSON if available
+        try:
+            response_json = response.json()
+        except requests.exceptions.JSONDecodeError:
+            response_json = ""
+        if response_json:
+            logging.info("JSON:")
+            logging.info(pformat(response_json))
         return []
 
     response_json = response.json()

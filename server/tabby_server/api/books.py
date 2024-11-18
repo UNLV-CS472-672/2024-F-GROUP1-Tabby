@@ -1,7 +1,11 @@
+from collections.abc import Mapping
+from dataclasses import asdict
 from functools import cache
-from flask import Blueprint, request
+from typing import Any
+from flask import Blueprint, Response, request
 from http import HTTPStatus
 from cv2.typing import MatLike
+from tabby_server.services import google_books
 from ..vision import ocr
 from ..vision import extraction
 
@@ -63,18 +67,68 @@ def _get_text_recognizer() -> ocr.TextRecognizer:
 
 
 @subapp.route("/search", methods=["GET"])
-def books_search():
-    """Receives a query representing a title and returns a list of possible
-    books that could match.
+def books_search() -> tuple[dict, HTTPStatus]:
+    """Receives a query for a search and returns a list of books.
 
-    Expected query parameters:
-    - `"title"`: Title query from user.
+    Required args:
+        phrase: Phrase to search with. Think of this as the Search Bar in
+            Google.
+
+    Optional args:
+        title:     Title to search for.
+        author:    Author to search for.
+        publisher: Publisher to search for.
+        subject:   Subject to search for.
+        isbn:      ISBN to search for.
+
+    Responds with a JSON object with guaranteed three fields:
+        message: Message for the result.
+        results: Array of books found.
+        resultCount: Number of results in 'result'.
     """
 
-    title = request.args.get("title")
-    if not title:
+    # Check required arg
+    phrase = request.args.get("phrase")
+    if not phrase:
         return {
-            "message": "Must specify 'title' as a non-empty query parameter."
+            "message": "Must specify 'phrase' as a non-empty query parameter."
         }, HTTPStatus.BAD_REQUEST
 
-    return {"results": []}, HTTPStatus.OK  # TODO: remove placeholder
+    # Extract optional args
+    title = request.args.get("title", "")
+    author = request.args.get("author", "")
+    publisher = request.args.get("publisher", "")
+    subject = request.args.get("subject", "")
+    isbn = request.args.get("isbn", "")
+
+    # Make the request
+    books = google_books.request_volumes_get(
+        phrase=phrase,
+        title=title,
+        author=author,
+        publisher=publisher,
+        subject=subject,
+        isbn=isbn,
+    )
+
+    # If no books, note that in the message
+    if len(books) <= 0:
+        result = {
+            "message": "No books found.",
+            "results": [],
+            "resultsCount": 0,
+        }
+        return result, HTTPStatus.OK
+
+    # Convert to dictionaries to put in the JSON
+    results_count = len(books)
+    book_dicts = [asdict(b) for b in books]
+
+    # Wrap it up in another dictionary and send!
+    result = {
+        "message": f"Found {results_count} books.",
+        "results": book_dicts,
+        "resultsCount": results_count,
+    }
+
+    return result, HTTPStatus.OK

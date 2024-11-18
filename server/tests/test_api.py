@@ -1,3 +1,4 @@
+import requests_mock
 from tabby_server.__main__ import app
 from flask.testing import FlaskClient
 from http import HTTPStatus
@@ -48,31 +49,95 @@ class TestAPIEndPoint:
     def test_search(self, client: FlaskClient):
         """Tests endpoint /books/search"""
 
+        # No phrase parameter -> fail
         response = client.get("/books/search")
         logging.info(response.json)
         assert response.status_code == HTTPStatus.BAD_REQUEST
         assert response.json is not None and "message" in response.json
 
+        # No phrase parameter despite JSON body -> fail
         response = client.get("/books/search", json={})
         logging.info(response.json)
         assert response.status_code == HTTPStatus.BAD_REQUEST
         assert response.json is not None and "message" in response.json
 
+        # Phrase in body but not as query parameter -> fail
         response = client.get(
             "/books/search",
-            json={"title": "All Quiet on the Western Front"},
+            json={"phrase": "All Quiet on the Western Front"},
         )
         logging.info(response.json)
         assert response.status_code == HTTPStatus.BAD_REQUEST
         assert response.json is not None and "message" in response.json
 
-        response = client.get(
-            "/books/search",
-            query_string={"title": "All Quiet on the Western Front"},
-        )
-        logging.info(response.json)
-        assert response.status_code == HTTPStatus.OK
-        assert response.json is not None and "results" in response.json
+        # Phrase in query -> success
+        with requests_mock.Mocker() as m:
+
+            google_books_url = "https://www.googleapis.com/books/v1/volumes"
+
+            # Successful, but no results
+            m.get(google_books_url, json={"totalItems": 0})
+            response = client.get(
+                "/books/search",
+                query_string={"phrase": "All Quiet on the Western Front"},
+            )
+            logging.info(response.json)
+            assert response.status_code == HTTPStatus.OK
+            assert (
+                response.json is not None and "resultsCount" in response.json
+            )
+            assert response.json["resultsCount"] == 0
+
+            # No results because bad response
+            m.get(google_books_url, status_code=500)
+            response = client.get(
+                "/books/search",
+                query_string={"phrase": "All Quiet on the Western Front"},
+            )
+            logging.info(response.json)
+            assert response.status_code == HTTPStatus.OK
+            assert (
+                response.json is not None and "resultsCount" in response.json
+            )
+            assert response.json["resultsCount"] == 0
+
+            # Success, 2 results
+            items = [
+                {
+                    "volumeInfo": {
+                        "title": "APPLES",
+                        "industryIdentifiers": [
+                            {"identifier": "123", "type": "bad"},
+                            {"identifier": "456", "type": "bad"},
+                        ],
+                    }
+                },
+                {
+                    "volumeInfo": {
+                        "title": "BANANAS",
+                        "industryIdentifiers": [
+                            {"identifier": "123", "type": "bad"},
+                            {"identifier": "456", "type": "bad"},
+                        ],
+                    }
+                },
+            ]
+            m.get(
+                google_books_url,
+                json={"items": items, "totalItems": len(items)},
+            )
+            response = client.get(
+                "/books/search",
+                query_string={"phrase": "All Quiet on the Western Front"},
+            )
+            logging.info(response.json)
+            assert response.status_code == HTTPStatus.OK
+            assert (
+                response.json is not None and "resultsCount" in response.json
+            )
+            assert response.json["resultsCount"] == 2
+            assert response.json["results"][0]["title"] == "APPLES"
+            assert response.json["results"][1]["title"] == "BANANAS"
 
     # Test call to YOLO object recognition. Uses a 0 as a parameter so data
     # is not saved from pytest call.
