@@ -22,7 +22,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal }) => {
         }
 
         const result = await ImagePicker.launchCameraAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            mediaTypes: ['images'],
             allowsEditing: true,
             quality: 1,
             base64: true,
@@ -31,6 +31,8 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal }) => {
         setIsProcessing(false);
         if (!result.canceled) {
             const resultBase64 = result.assets[0].base64; // base64 string to send to backend
+            if (resultBase64)
+                console.log(resultBase64[12]);
             closeModal();
         }
     };
@@ -45,7 +47,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal }) => {
         }
 
         const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            mediaTypes: ['images'],
             allowsEditing: true,
             quality: 1,
             base64: true,
@@ -54,6 +56,8 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal }) => {
         setIsProcessing(false);
         if (!result.canceled) {
             const resultBase64 = result.assets[0].base64; // base64 string to send to backend
+            if (resultBase64)
+                console.log(resultBase64[12]);
             closeModal();
         }
     };
