@@ -43,7 +43,7 @@ with temp_dir("tabby_server/vision/"):
     model = YOLO("shelf_yolo.pt")
 
 
-def find_books(tensor_image=None) -> dict[str, list]:
+def find_books(tensor_image=None) -> list[dict[str, list]]:
     """
     When called, it will be given a tensor image matrix. It will verify that it
     is compatible with the yolo model before working.
@@ -116,7 +116,7 @@ def find_books(tensor_image=None) -> dict[str, list]:
     # Quickly check that an image was provided.
     # If not, return nothing.
     if tensor_image is None:
-        return {"no_image": [0]}
+        return [{"no_image": [0]}]
 
     # These are a series of verifications to ensure the tensor image is
     # compatible with yolo.
@@ -146,7 +146,7 @@ def find_books(tensor_image=None) -> dict[str, list]:
         and tensor_image.max() <= 1.0
         and tensor_image.min() >= 0.0
     ):
-        return {"bad_tensor": [1]}
+        return [{"bad_tensor": [1]}]
     # tensor_image = tensor_image.float()   # Converts tensor to float32.
     # tensor_image = tensor_image / 255.0   # Normalizes tensor image.
 

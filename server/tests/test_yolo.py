@@ -15,7 +15,7 @@ def test_find_books():
 
     # No Arguments
     result = find_books()
-    assert result is not None and "no_image" in result
+    assert result is not None and "no_image" in result[0]
 
     # Generate Incorrect Tensor Images
 
@@ -25,27 +25,27 @@ def test_find_books():
     # Omits batch dimension.
     bad_image = torch.rand(3, 640, 640)
     result = find_books(bad_image)
-    assert result is not None and "bad_tensor" in result
+    assert result is not None and "bad_tensor" in result[0]
 
     # Incorrect Number of Channels.
     bad_image = torch.rand(1, 1, 640, 640)
     result = find_books(bad_image)
-    assert result is not None and "bad_tensor" in result
+    assert result is not None and "bad_tensor" in result[0]
 
     # Incorrect Image Shape.
     bad_image = torch.rand(1, 3, 700, 500)
     result = find_books(bad_image)
-    assert result is not None and "bad_tensor" in result
+    assert result is not None and "bad_tensor" in result[0]
 
     # Incorrect dtype.
     bad_image = torch.randint(0, 256, (1, 3, 640, 640), dtype=torch.uint8)
     result = find_books(bad_image)
-    assert result is not None and "bad_tensor" in result
+    assert result is not None and "bad_tensor" in result[0]
 
     # Incorrect Normalization.
     bad_image = bad_image.float()
     result = find_books(bad_image)
-    assert result is not None and "bad_tensor" in result
+    assert result is not None and "bad_tensor" in result[0]
 
     # ai-gen end
 
