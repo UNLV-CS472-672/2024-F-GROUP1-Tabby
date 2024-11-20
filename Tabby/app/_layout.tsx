@@ -3,7 +3,7 @@ import { View, Text } from 'react-native';
 import { Slot } from 'expo-router';
 import { usePathname } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { SQLiteProvider } from 'expo-sqlite';
+import * as SQLite from 'expo-sqlite';
 import FooterNavBar from '@/components/FooterNavBar';
 import { styled } from 'nativewind';
 import { NativeWindStyleSheet } from "nativewind";
@@ -35,14 +35,14 @@ export default function RootLayout() {
     return (
         <SafeAreaProvider>
             <Container>
-                <Suspense fallback={<Fallback />}>
-                    <SQLiteProvider databaseName="bookCollection.db" onInit={migrateDbIfNeeded} useSuspense>
-                        <ContentContainer>
-                            <Slot />
-                        </ContentContainer>
-                        {!isWelcomePage && <FooterNavBar />}
-                    </SQLiteProvider>
-                </Suspense>
+
+
+                <ContentContainer>
+                    <Slot />
+                </ContentContainer>
+                {!isWelcomePage && <FooterNavBar />}
+
+
             </Container>
         </SafeAreaProvider>
     );
