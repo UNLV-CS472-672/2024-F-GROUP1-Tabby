@@ -8,7 +8,41 @@ import { useLocalSearchParams } from 'expo-router';
 import { getAllUserBooksByCategory, addUserBook, updateUserBook, getUserBookById } from "@/database/databaseOperations";
 import { Book } from "@/types/book";
 
+<<<<<<< HEAD
 const defaultBooks: Book[] = [
+=======
+type Book = {
+    id: string;
+    title: string;
+    author: string;
+    summary: string;
+    excerpt: string;
+    image: string;
+    isFavorite: boolean;
+};
+
+const initialBooks: Book[] = [
+    {
+        id: '9780333791035',
+        title: 'The Great Gatsby',
+        author: 'F. Scott Fitzgerald',
+        summary: 'A novel about the American dream.',
+        excerpt: 'A novel about the American dream.',
+        image: 'https://m.media-amazon.com/images/I/81QuEGw8VPL._AC_UF1000,1000_QL80_.jpg',
+        isFavorite: false,
+    },
+    {
+        id: '2',
+        title: 'To Kill a Mockingbird',
+        author: 'Harper Lee',
+        excerpt: 'A novel about racism and injustice.',
+        summary: 'A novel about racism and injustice.',
+        image: 'https://m.media-amazon.com/images/I/81aY1lxk+9L._AC_UF1000,1000_QL80_.jpg',
+        isFavorite: true,
+    },
+    // Add more book objects as needed
+
+>>>>>>> main
     {
         id: 'default',
         title: '',
@@ -97,12 +131,16 @@ const CategoryPage: React.FC = () => {
     );
 
     const renderItem = ({ item }: { item: Book }) => {
+<<<<<<< HEAD
         // check if book array has the default book if it does do not render anything meaning category has no books yet
         if (item.id === "default") {
             return (null);
         }
         if (search === "" || item.title.toLowerCase().includes(search.toLowerCase())) {
             const partialBookObj = { id: item.id, isFavorite: item.isFavorite || false };
+=======
+        if (search === "" || item.title.toLowerCase().includes(search.toLowerCase()) || item.author.toLowerCase().includes(search.toLowerCase()) || item.id.includes(search)) {
+>>>>>>> main
             return (
                 <BookPreview
                     book={item}
@@ -148,8 +186,12 @@ const CategoryPage: React.FC = () => {
 
     return (
         <SafeAreaView className="flex-1 p-4">
+<<<<<<< HEAD
             {/* <Image source={require('@/assets/book/default-book-cover.jpg')}></Image> */}
             <SearchBar placeholder="Type Here..." onChangeText={updateSearch} value={search} />
+=======
+            <SearchBar placeholder="Search by title, ISBN, or author..." onChangeText={updateSearch} value={search} />
+>>>>>>> main
             <FlatList
                 data={books}
                 keyExtractor={(item) => item.id}

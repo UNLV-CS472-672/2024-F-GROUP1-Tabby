@@ -17,6 +17,8 @@ poethepoet = "^0.29.0"
 ultralytics = "^8.3.26"
 opencv-python = "^4.10.0.84"
 opencv-python-headless = "^4.10.0.84"
+pillow = "^11.0.0"
+openai = "^1.54.1"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -26,6 +28,7 @@ pytest-cov = "^5.0.0"
 requests-mock = "^1.12.1"
 mypy = "^1.13.0"
 black = "^24.10.0"
+pytest-socket = "^0.7.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -37,11 +40,29 @@ log_file = "logs/pytest.log"
 log_file_level = "INFO"
 
 [tool.poe.tasks]
-test = "pytest tests -vv --cov=tabby_server --cov-report=term-missing"
-lint = "flake8 tabby_server tests scripts"
-type = "mypy tabby_server tests scripts"
-format = "black tabby_server tests --line-length 79"
+
+test.cmd = "pytest -vv --cov=tabby_server --cov-report=term-missing --disable-socket ${posargs}"
+test.args = [
+  { name = "posargs", positional = true, multiple = true, default = "tests" }
+]
+
+lint.cmd = "flake8 ${posargs}"
+lint.args = [
+  { name = "posargs", positional = true, multiple = true, default = "tabby_server tests scripts" }
+]
+
+type.cmd = "mypy ${posargs}"
+type.args = [
+  { name = "posargs", positional = true, multiple = true, default = "tabby_server tests scripts" }
+]
+
+format.cmd = "black --line-length 79 ${posargs}"
+format.args = [
+  { name = "posargs", positional = true, multiple = true, default = "tabby_server tests scripts" }
+]
+
 ci = ["lint", "type", "test"]
+
 dev = "python -m tabby_server"
 
 [tool.mypy]

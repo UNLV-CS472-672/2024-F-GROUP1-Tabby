@@ -270,6 +270,7 @@ const Categories = () => {
 
           <SelectedMenu openDeleteModal={() => setIsDeleteModalVisible(true)} openRenameModal={() => setIsRenameModalVisible(true)} openCancelModal={() => deselectAllCategories()} />
         )}
+
       </SafeAreaView>
 
       {/* Rename Modal */}

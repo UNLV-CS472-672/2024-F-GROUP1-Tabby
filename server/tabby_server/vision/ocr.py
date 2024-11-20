@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-import easyocr
 import numpy as np
 
 
@@ -18,13 +17,31 @@ class RecognizedText:
     """Float from 0 to 1 representing how confident that the text matches the
     image."""
 
+    @property
+    def area(self) -> float:
+        """Area that the bounding box takes up."""
+        a = np.min(self.corners, axis=0)
+        b = np.max(self.corners, axis=0)
+        w, h = b - a
+        return float(w * h)
+
+    @property
+    def center(self) -> np.ndarray:
+        """Center of the bounding box."""
+        return np.average(self.corners, axis=0)
+
 
 class TextRecognizer:
     """Wrapper class to recognize text from images."""
 
     def __init__(self) -> None:
         """Creates a new TextRecognizer object."""
-        self._reader = easyocr.Reader(lang_list=["en"])
+        import easyocr
+
+        self._reader = easyocr.Reader(
+            lang_list=["en"],
+            model_storage_directory="./tabby_server/vision/EasyOCR",
+        )
 
     def find_text(self, image: np.ndarray) -> list[RecognizedText]:
         """Finds text from the given image and returns the result."""
