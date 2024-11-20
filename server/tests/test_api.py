@@ -1,4 +1,4 @@
-from tabby_server.__main__ import app
+from __main__ import app
 from flask.testing import FlaskClient
 from http import HTTPStatus
 import requests_mock
