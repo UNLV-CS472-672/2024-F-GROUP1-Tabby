@@ -2,7 +2,7 @@ import os
 from http import HTTPStatus
 from tabby_server.services import library
 from tabby_server.api import books
-from tabby_server import create_app_instance
+from tabby_server import app
 
 """
 This is the central file of our app. Everything is called from here.
@@ -13,8 +13,6 @@ The functions here are merely tests and should not actually be used.
 """
 
 PORT = os.getenv("PORT", "8000")
-
-app = create_app_instance()
 
 # Test Python Files.
 # OCR or Text Recognition
