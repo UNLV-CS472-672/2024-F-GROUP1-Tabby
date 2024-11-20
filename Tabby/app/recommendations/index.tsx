@@ -4,21 +4,8 @@ import BookPreview from '@/components/BookPreview'; // Adjust the path as necess
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AddButtonIcon from '@/components/AddButtonIcon';
 import { SearchBar } from "@rneui/themed";
-<<<<<<< HEAD
 import { getAllCategories, getAllRecommendedBooks, addRecommendedBook, deleteRecommendedBookById, updateRecommendedBook, getRecommendedBookById } from "@/database/databaseOperations";
 import { Book } from "@/types/book";
-=======
-
-type Book = {
-    id: string;
-    title: string;
-    author: string;
-    summary: string;
-    excerpt: string;
-    image: string;
-    isAddedToLibrary: boolean;
-};
->>>>>>> main
 
 // test data to see how the recommendation page would look
 const defaultBooks: Book[] = [
@@ -140,14 +127,10 @@ const Recommendations: React.FC = () => {
 
     // if the string typed in the search bar is a part of a book title then render the book
     const renderItem = ({ item }: { item: Book }) => {
-<<<<<<< HEAD
         console.log("render: ", item);
         if (search === "" || item.title.toLowerCase().includes(search.toLowerCase())) {
 
             const partialBookObj = { id: item.id, isAddedToLibrary: item.addToLibrary || false };
-=======
-        if (search === "" || item.title.toLowerCase().includes(search.toLowerCase()) || item.author.toLowerCase().includes(search.toLowerCase()) || item.id.includes(search)) {
->>>>>>> main
             return (
                 <BookPreview
                     book={item}
