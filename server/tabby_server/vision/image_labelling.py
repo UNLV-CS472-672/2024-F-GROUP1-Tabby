@@ -38,9 +38,9 @@ def temp_dir(path):
 EXPECTED_SIZE = (640, 640)
 
 # TODO: Relative path changed constantly depending
-# on which command and where it is ran. For now, 
+# on which command and where it is ran. For now,
 # this implimentation works but should be improved
-# in the future. 
+# in the future.
 with temp_dir("tabby_server/vision/"):
     # Load pretrained model from other directory.
     model = YOLO("shelf_yolo.pt")
