@@ -161,6 +161,11 @@ This section specifies how Koyeb should build the project.
 
 ![Koyeb Build](./../.github/assets/koyeb_build.png)
 
+### Environmental Variables
+If the project needs environmental variables, it would have to be set here. Evidently, our project does require some environmental variables in the form of API keys and each of them will have to be listed here.
+
+![Koyeb Environmental Variables](./../.github/assets/koyeb_EV.png)
+
 ### Instances
 A few instances are offered with a majority of them being CPU instances. Notable, the free instance only allows for 2000MB of disk storage which apparently exceeds the size of the build for the project. Requiring an upgrade to another CPU instance so that it can be build properly. 
 
@@ -175,6 +180,6 @@ Depending on the selected instance, different regions will become avalible. For 
 Depending on the selected instance, different options will become avalible for scaling; wheither it be fixed or autoscaled. Scaling will help with load balancing and prevent long wait times for the server to respond. 
 Currently, just one instance is sufficient for most tasks. 
 
-![Koyeb Instances](./../.github/assets/koyeb_instance.png)
+![Koyeb Instance Scaling](./../.github/assets/koyeb_instance.png)
 
 ❗❗❗Once again, it is important to stop the instance if it is not in use to prevent acruding uneccessary cost. 
