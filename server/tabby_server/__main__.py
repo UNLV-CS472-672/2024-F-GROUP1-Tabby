@@ -33,9 +33,11 @@ app.register_blueprint(library.books_api, url_prefix="/library")
 def members():
     return {"members": ["Member1", "Member2", "Member3"]}, HTTPStatus.OK
 
+
 @app.route("/")
 def hello_world():
     return {"message": "Hello from Koyeb..."}, HTTPStatus.OK
+
 
 @app.route("/api/test", methods=["POST"])
 def test():

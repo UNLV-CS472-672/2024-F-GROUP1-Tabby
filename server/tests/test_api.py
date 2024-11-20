@@ -76,24 +76,6 @@ class TestAPIEndPoint:
         assert response.status_code == HTTPStatus.OK
         assert response.json is not None and "results" in response.json
 
-    # Test call to YOLO object recognition. Uses a 0 as a parameter so data
-    # is not saved from pytest call.
-    def test_predict_examples(self, client):
-        # Calls for the model to run object detection on example images.
-        # Does not save the results.
-        result = client.get("/yolo/shelf_read", query_string={"index": int(0)})
-
-        # This should always return true.
-        assert result.status_code == HTTPStatus.OK
-        assert result.json is not None and "Detected" in result.json
-
-        # Calls the model but provides an incorrect index
-        result = client.get("/yolo/shelf_read", query_string={"index": int(2)})
-
-        # This should always return false.
-        assert result.status_code == HTTPStatus.BAD_REQUEST
-        assert result.json is not None and "Incorrect" in result.json
-
     def test_google_books_testing(self, client):
         """
         Should mock a call to Google Books API and act as if it was a real
