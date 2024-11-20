@@ -13,6 +13,15 @@ jest.mock('expo-router', () => {
     }
 });
 
+// mocks to make expo sdk 52 stop throwing errors
+jest.mock('expo-font', () => {
+    return {
+        isLoaded: jest.fn(),
+        forEach: jest.fn(),
+        loadAsync: jest.fn(),
+    };
+});
+
 // tests relating to the search bar
 describe('Favorite tab tests', () => {
     // make sure that the search bar takes input correctly on each page that it's on
