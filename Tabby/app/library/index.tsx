@@ -9,7 +9,7 @@ import { Category } from "@/types/category";
 import { SearchBar } from "@rneui/themed";
 import { useEffect } from "react";
 import SelectedMenu from "@/components/categories/SelectedMenu";
-import { getAllCategories, addCategory, deleteCategory, updateCategory } from "@/database/databaseOperations";
+import { getAllCategories, addCategory, deleteCategory, updateCategory, getAllUserBooksByCategory, updateMultipleUserBooksCategory, deleteAllUserBooksByCategory } from "@/database/databaseOperations";
 import PlusIcon from "@/assets/categories/plus-icon.svg";
 
 const Categories = () => {
@@ -22,13 +22,31 @@ const Categories = () => {
   const [search, setSearch] = useState("");
   const defaultNewCategoryName = "New Category";
   const NewCategoryNameRef = useRef(defaultNewCategoryName);
+  // if there are no categories in db add default category 
+  const defaultCategoryName = "Books";
 
   // only on mount fetch categories from db to initialize categories 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const initialCategories = await getAllCategories();
-        setCategories(sortCategories(initialCategories || []));
+        if (initialCategories && initialCategories.length > 0) {
+          setCategories(sortCategories(initialCategories));
+        }
+        // if initialCategories is null or undefined then add default category to db and set categories to have default category
+        else {
+          const defaultCategory = { name: defaultCategoryName, isPinned: true, isSelected: false, position: 0 };
+          const resultOnAddingDefaultCategory = await addCategory(defaultCategory);
+          if (!resultOnAddingDefaultCategory) {
+            console.log("Error adding default category");
+            return;
+          }
+          console.log("Default category added successfully");
+          setCategories(sortCategories([defaultCategory]));
+
+
+        }
+
       } catch (error) {
         console.error("Failed to load categories:", error);
       }
@@ -90,10 +108,17 @@ const Categories = () => {
     try {
       // Get all selected categories
       const selectedCategories = getAllSelectedCategories();
+      // check if all categories are selected to be deleted
+      if (selectedCategories.length === categories.length) {
+        return "Cannot delete all categories";
+      }
       // Call deleteCategory for each selected category
       await Promise.all(
         selectedCategories.map(async (category) => {
-          await deleteCategory(category.name); // Assuming deleteCategory takes category name as parameter
+          const resultOfDeletingCategory = await deleteCategory(category.name); // Assuming deleteCategory takes category name as parameter
+          { (resultOfDeletingCategory) ? (console.log("Category deleted successfully")) : (console.log("Error deleting category")) }
+          const resultOfDeletingUserBooksWithCategoryName = await deleteAllUserBooksByCategory(category.name);
+          { (resultOfDeletingUserBooksWithCategoryName) ? (console.log("User books deleted successfully with category name")) : (console.log("Error deleting user books with category name")) }
         })
       );
 
@@ -101,8 +126,10 @@ const Categories = () => {
       const remainingCategories = categories.filter((category) => !category.isSelected);
       setCategories(sortCategories(remainingCategories));
       setIsDeleteModalVisible(false);
+      return "Categories deleted successfully";
     } catch (error) {
       console.error("Error deleting categories:", error);
+      return "Error occurred while deleting categories";
     }
   };
 
@@ -118,17 +145,20 @@ const Categories = () => {
       for (let index = 0; index < updatedCategories.length; index++) {
         const category = updatedCategories[index];
 
+        // get old name
+        const oldName = category.name;
+
         if (category.isSelected) {
           // Generate a unique name for the renamed category
-          let uniqueName = newName;
+          let newUniqueName = newName;
           let counter = 1;
-          while (updatedCategories.some((c) => c.name === uniqueName)) {
-            uniqueName = `${newName} (${counter})`;
+          while (updatedCategories.some((c) => c.name === newUniqueName)) {
+            newUniqueName = `${newName} (${counter})`;
             counter++;
           }
 
           // Update the selected category's name and deselect it
-          updatedCategories[index] = { ...category, name: uniqueName, isSelected: false };
+          updatedCategories[index] = { ...category, name: newUniqueName, isSelected: false };
           const currentUpdatedCategory = updatedCategories[index];
 
           // Perform async database operation
@@ -136,8 +166,18 @@ const Categories = () => {
             // Add new category
             console.log("Adding new category:", currentUpdatedCategory);
             await addCategory(currentUpdatedCategory); // Add new category
-          } else {
+          }
+          // renaming a category 
+          else {
             await updateCategory(category.name, currentUpdatedCategory); // Update existing category
+            // get all user books with old category name 
+            const userBooksWithOldCategory = await getAllUserBooksByCategory(oldName);
+            // update all user books with new category name only if there are user books with old category name
+            if (userBooksWithOldCategory) {
+              const result = await updateMultipleUserBooksCategory(userBooksWithOldCategory, newUniqueName);
+              { result ? (console.log("User books updated successfully with new category name")) : (console.log("Error updating user books with new category name")) }
+            }
+
           }
         }
       }
@@ -205,7 +245,7 @@ const Categories = () => {
   };
 
   const renderItem = ({ item, index }: { item: Category; index: number }) => {
-    // do not render new category that is about to be added as it has a temp name and should not be shown
+    // do not render new category that is about to be added as it has a temp name and should not be shown until it is actually added
     if ((search === "" || item.name.toLowerCase().includes(search.toLowerCase())) && (NewCategoryNameRef.current !== item.name)) {
       return (
         <View>
@@ -246,7 +286,7 @@ const Categories = () => {
 
         <View className="flex-row items-center justify-between" >
           <View className="w-[85%] mx-auto">
-            <SearchBar placeholder="Type Here..." onChangeText={updateSearch} value={search} />
+            <SearchBar placeholder="Search by category name..." onChangeText={updateSearch} value={search} />
           </View>
 
           <Pressable className="p-2 mx-auto" onPress={handleAddCategory}>

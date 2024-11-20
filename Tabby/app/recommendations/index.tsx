@@ -10,7 +10,8 @@ import { Book } from "@/types/book";
 // test data to see how the recommendation page would look
 const defaultBooks: Book[] = [
     {
-        id: '9780333791035',
+        id: '1',
+        isbn: '9780333791035',
         title: 'The Great Gatsby',
         author: 'F. Scott Fitzgerald',
         summary: 'A novel about the American dream. It is a classic novel about the American dream. It is a classic novel about the American dream. It is a classic novel about the American dream. It is a classic novel about the American dream.',
@@ -22,9 +23,11 @@ const defaultBooks: Book[] = [
         publisher: 'F. Scott Fitzgerald',
         publishedDate: 'October 15, 1925',
         addToLibrary: false,
+        rating: 1
     },
     {
         id: '2',
+        isbn: '9780061120084',
         title: '1984',
         author: 'George Orwell',
         summary: 'A dystopian novel about a totalitarian society.',
@@ -36,6 +39,7 @@ const defaultBooks: Book[] = [
         publishedDate: 'October 15, 1949',
         image: 'https://m.media-amazon.com/images/I/7180qjGSgDL._SL1360_.jpg',
         addToLibrary: false,
+        rating: 1
     },
 
 
@@ -125,10 +129,10 @@ const Recommendations: React.FC = () => {
         </Pressable>
     );
 
-    // if the string typed in the search bar is a part of a book title then render the book
+    // if the string typed in the search bar is a part of a book title, isbn, or author then render the book
     const renderItem = ({ item }: { item: Book }) => {
         console.log("render: ", item);
-        if (search === "" || item.title.toLowerCase().includes(search.toLowerCase())) {
+        if (search === "" || item.title.toLowerCase().includes(search.toLowerCase()) || item.author.toLowerCase().includes(search.toLowerCase()) || item.isbn?.toLowerCase().includes(search)) {
 
             const partialBookObj = { id: item.id, isAddedToLibrary: item.addToLibrary || false };
             return (

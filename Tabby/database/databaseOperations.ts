@@ -65,6 +65,21 @@ export const deleteUserBookById = async (id: string): Promise<boolean> => {
     }
 };
 
+// delete user books that have category name passed in
+export const deleteAllUserBooksByCategory = async (category: string): Promise<boolean> => {
+    try {
+        await (await db).runAsync(
+            `DELETE FROM userBooks WHERE category = ?`,
+            [category]
+        );
+        console.log("User books deleted successfully");
+        return true;
+    } catch (error) {
+        console.error("Error deleting user books:", error);
+        return false;
+    }
+}
+
 // Update a user book by passing book object
 export const updateUserBook = async (book: Book): Promise<boolean> => {
     console.log("--- Updating user book with this book:", book, "---");
@@ -98,6 +113,23 @@ export const updateUserBook = async (book: Book): Promise<boolean> => {
     }
 };
 
+// update an array of user books to have this category
+export const updateMultipleUserBooksCategory = async (userBooks: Book[], category: string): Promise<boolean> => {
+    try {
+        for (const book of userBooks) {
+            const result = await (await db).runAsync(
+                `UPDATE userBooks SET category = ? WHERE id = ?`,
+                [category, book.id]
+            );
+        }
+        console.log("User books updated successfully");
+        return true;
+    } catch (error) {
+        console.error("Error updating user books:", error);
+        return false;
+    }
+}
+
 // Get all user books by category
 export const getAllUserBooksByCategory = async (category: string): Promise<Book[] | null> => {
     try {
@@ -114,6 +146,40 @@ export const getAllUserBooksByCategory = async (category: string): Promise<Book[
         return null;
     }
 };
+
+// get all user books by isbn
+export const getAllUserBooksByIsbn = async (isbn: string): Promise<Book[] | null> => {
+    try {
+        const result = await (await db).getAllAsync(
+            'SELECT * FROM userBooks WHERE isbn = ?',
+            [isbn]
+        );
+        console.log(`User books with isbn ${isbn}:`, result);
+        return result.map((item: any) => ({
+            ...item
+        })) as Book[];
+    } catch (error) {
+        console.error(`Error retrieving user books with isbn ${isbn}:`, error);
+        return null;
+    }
+};
+
+// get all distinct category names from user books that have isbn passed in
+export const getCategoryNamesWithIsbn = async (isbn: string): Promise<string[] | null> => {
+    try {
+        const result = await (await db).getAllAsync(
+            'SELECT DISTINCT category FROM userBooks WHERE isbn = ?',
+            [isbn]
+        );
+        console.log(`Category names with isbn ${isbn}:`, result);
+        return result.map((item: any) => item.category) as string[];
+    } catch (error) {
+        console.error(`Error retrieving category names with isbn ${isbn}:`, error);
+        return null;
+    }
+};
+
+
 
 // Get all custom user books by category
 export const getAllCustomUserBooksByCategory = async (category: string): Promise<Book[] | null> => {

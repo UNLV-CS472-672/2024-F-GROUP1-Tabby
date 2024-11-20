@@ -23,9 +23,7 @@ const BookPage = () => {
     const [categories, setCategories] = useState<string[]>([]);
 
     // Extract both category and book slugs
-    const { category, book } = useLocalSearchParams();
-
-    console.log(book, "is from", category);
+    const { book } = useLocalSearchParams();
 
     // get book data from database
     useEffect(() => {
@@ -58,30 +56,32 @@ const BookPage = () => {
 
     const handleAddToCategory = async (addToThisCategory: string) => {
         console.log(`Moving book to category: ${addToThisCategory}`);
-        // updating book to be added to library and category for user books 
-        const updatedBook = { ...currentBook, addToLibrary: true, category: addToThisCategory };
-        const result = await addUserBook(updatedBook);
-        if (!result) {
+        // adding book to user books
+        const bookToBeAddedToUserBooks = { ...currentBook, category: addToThisCategory };
+        const addResult = await addUserBook(bookToBeAddedToUserBooks);
+        if (!addResult) {
             console.error("Failed to add user book");
             return;
         }
-        setCurrentBook(updatedBook);
-    };
 
-    const handleAddToLibrary = async () => {
-        const updatedBook = { ...currentBook, addToLibrary: !currentBook.addToLibrary };
-        const result = await updateRecommendedBook(updatedBook);
-        if (!result) {
-            console.error("Failed to update recommended book");
-            return;
+        // updating book in recommended books to be added to library if it was not already added 
+        // update recommended book in db
+        if (!currentBook.addToLibrary) {
+            const updatedBook = { ...currentBook, addToLibrary: true };
+            const updatedResult = await updateRecommendedBook(updatedBook);
+            if (!updatedResult) {
+                console.error("Failed to update recommended book");
+                return;
+            }
+            setCurrentBook(updatedBook);
         }
-        setCurrentBook(updatedBook);
 
-    }
+
+    };
 
     const handleDeleteBook = async () => {
         setIsDeleteModalVisible(false);
-        console.log(`Deleting ${book} from ${category}`);
+        console.log(`Deleting ${book} from recommendations`);
         // deleting book from db 
         await deleteRecommendedBookById(book as string);
         router.push("/recommendations");
@@ -109,15 +109,8 @@ const BookPage = () => {
                         onConfirm={handleDeleteBook}
                     />
 
-
-
-                    <Pressable onPress={() => handleAddToLibrary()} className=" p-1 mr-2">
-                        <AddButtonIcon isAdded={currentBook.addToLibrary || false} />
-                    </Pressable>
-
                     <Pressable onPress={() => setIsMoveMenuVisible(!isMoveMenuVisible)} className="p-1 mr-2" >
-
-                        <MenuIcon isSelected={isMoveMenuVisible} />
+                        <AddButtonIcon isAdded={isMoveMenuVisible} />
                     </Pressable>
                     {/* Custom DropdownMenu */}
                     <DropdownMenu

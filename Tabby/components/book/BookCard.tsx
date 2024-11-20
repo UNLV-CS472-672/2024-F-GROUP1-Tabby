@@ -19,7 +19,7 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
             <View className="flex-row">
                 <Image
                     source={imageSource}
-                    className="w-36 h-48"
+                    className="w-36 h-52"
                 />
 
                 <View className="flex-col pl-4">

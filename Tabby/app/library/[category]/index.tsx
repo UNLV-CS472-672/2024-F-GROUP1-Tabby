@@ -148,8 +148,7 @@ const CategoryPage: React.FC = () => {
 
     return (
         <SafeAreaView className="flex-1 p-4">
-            {/* <Image source={require('@/assets/book/default-book-cover.jpg')}></Image> */}
-            <SearchBar placeholder="Type Here..." onChangeText={updateSearch} value={search} />
+            <SearchBar placeholder="Search by title, ISBN, or author..." onChangeText={updateSearch} value={search} />
             <FlatList
                 data={books}
                 keyExtractor={(item) => item.id}
