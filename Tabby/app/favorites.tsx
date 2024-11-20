@@ -1,4 +1,4 @@
-import BookCard from '@/components/BookCard';
+import BookPreview from '@/components/BookPreview';
 import React, { useState } from 'react';
 import { FlatList, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -93,7 +93,7 @@ const Favorites = () => {
     const renderItem = ({ item }: { item: Book }) => {
         if (item.isFavorite && (search === "" || item.title.toLowerCase().includes(search.toLowerCase()) || item.author.toLowerCase().includes(search.toLowerCase()) || item.id.includes(search))) {
             return (
-                <BookCard
+                <BookPreview
                     book={item}
                     button={renderBookButton(item)}
                 />

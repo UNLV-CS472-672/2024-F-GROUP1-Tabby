@@ -22,7 +22,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal }) => {
         }
 
         const result = await ImagePicker.launchCameraAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            mediaTypes: ['images'],
             allowsEditing: true,
             quality: 1,
             base64: true,
@@ -45,7 +45,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal }) => {
         }
 
         const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            mediaTypes: ['images'],
             allowsEditing: true,
             quality: 1,
             base64: true,
