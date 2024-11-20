@@ -1,1 +1,1 @@
-web: gunicorn -b :$PORT tabby:app
+web: gunicorn -b :$PORT tabby_server:app
