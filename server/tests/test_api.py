@@ -1,4 +1,3 @@
-from contextlib import contextmanager
 from io import BytesIO
 from unittest.mock import Mock
 import numpy as np
@@ -14,13 +13,14 @@ from werkzeug.datastructures import FileStorage
 
 @pytest.fixture()
 def client():
-    print(f"{app.config['MAX_CONTENT_LENGTH'] = }")
-    # app.config["MAX_CONTENT_LENGTH"] = 64 * 1024 * 1024
     return app.test_client()
 
 
 @pytest.fixture(scope="function")
-def mock_recognizer():
+def mock_recognizer(request):
+
+    original_function = ocr.TextRecognizer.find_text
+
     ocr.TextRecognizer.find_text = Mock()
     ocr.TextRecognizer.find_text.return_value = [
         ocr.RecognizedText(
@@ -30,15 +30,27 @@ def mock_recognizer():
         )
     ]
 
+    def teardown():
+        ocr.TextRecognizer.find_text = original_function
+
+    request.addfinalizer(teardown)
+
 
 @pytest.fixture(scope="function")
-def mock_extract():
+def mock_extract(request):
+
+    original_function = extraction.extract_from_recognized_texts
 
     extraction.extract_from_recognized_texts = Mock()
     extraction.extract_from_recognized_texts.return_value = None
 
     def set_value(value):
         extraction.extract_from_recognized_texts.return_value = value
+
+    def teardown():
+        extraction.extract_from_recognized_texts = original_function
+
+    request.addfinalizer(teardown)
 
     return set_value
 

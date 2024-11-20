@@ -1,6 +1,5 @@
 import logging
 import sys
-from typing import Annotated
 import cv2 as cv
 import cyclopts as cy
 from pprint import pprint

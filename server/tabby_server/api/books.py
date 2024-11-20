@@ -1,12 +1,10 @@
-from collections.abc import Mapping
 from dataclasses import asdict
 from functools import cache
 from io import BytesIO
 import logging
-from typing import Any
 from PIL import Image
 import PIL
-from flask import Blueprint, Response, request
+from flask import Blueprint, request
 from http import HTTPStatus
 import cv2 as cv
 from cv2.typing import MatLike
@@ -29,9 +27,6 @@ def books_scan_cover():
     """
 
     logging.info("scanning image")
-
-    with open("tmp/tmp.jpg", "wb+") as f:
-        f.write(request.data)
 
     # Try scan image
     try:
