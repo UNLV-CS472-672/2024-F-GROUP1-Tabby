@@ -13,6 +13,11 @@ The functions here are merely tests and should not actually be used.
 
 app = Flask(__name__)
 
+# # ai-gen start (ChatGPT-4o, 2)
+# Set the maximum allowed payload size (e.g., 16 MB)
+# app.config["MAX_CONTENT_LENGTH"] = 64 * 1024 * 1024  # 16 MB
+# ai-gen end
+
 # Test Python Files.
 # YOLO or Image Recognition
 app.register_blueprint(yolo_test.yolo_test, url_prefix="/yolo")

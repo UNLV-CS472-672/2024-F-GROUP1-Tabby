@@ -1,10 +1,16 @@
 from collections.abc import Mapping
 from dataclasses import asdict
 from functools import cache
+from io import BytesIO
+import logging
 from typing import Any
+from PIL import Image
+import PIL
 from flask import Blueprint, Response, request
 from http import HTTPStatus
+import cv2 as cv
 from cv2.typing import MatLike
+import numpy as np
 from tabby_server.services import google_books
 from ..vision import ocr
 from ..vision import extraction
@@ -22,22 +28,42 @@ def books_scan_cover():
     - `"image"`: Base64 data representing the image.
     """
 
-    if not request.is_json:
+    logging.info("scanning image")
+
+    with open("tmp/tmp.jpg", "wb+") as f:
+        f.write(request.data)
+
+    # Try scan image
+    try:
+        img = Image.open(BytesIO(request.data))
+    except PIL.UnidentifiedImageError:
         return {
-            "message": "Content type must be JSON."
-        }, HTTPStatus.BAD_REQUEST
-    data = request.get_json()
-
-    image = data.get("image")
-    if not image:
-        return {
-            "message": "Must specify 'image' as a non-empty string in body."
+            "message": "Couldn't read an image from the given body."
         }, HTTPStatus.BAD_REQUEST
 
-    return {"results": []}, HTTPStatus.OK
+    img = img.convert("RGB")
+
+    logging.info("creating matrix")
+
+    # ai-gen start (ChatGPT-4o, 2)
+    img_mat = np.array(img)
+    img_mat = cv.cvtColor(img_mat, cv.COLOR_RGB2BGR)
+    # ai-gen end
+
+    logging.info("got to scan cover")
+
+    books = scan_cover(img_mat)
+    logging.info("after scan cover")
+
+    # Filter out books without ISBNs
+    books = [b for b in books if b.isbn]
+
+    # Wrap it up in another dictionary and send!
+    result = _get_result_dict(books)
+    return result, HTTPStatus.OK
 
 
-def scan_cover(image: MatLike) -> list:
+def scan_cover(image: MatLike) -> list[google_books.Book]:
     """Takes in an image of a cover and returns a list of results.
 
     Args:
@@ -48,7 +74,7 @@ def scan_cover(image: MatLike) -> list:
     """
 
     # Find text
-    text_recognizer = _get_text_recognizer()
+    text_recognizer = get_text_recognizer()
     recognized_texts = text_recognizer.find_text(image)
 
     # Extract Title and Author
@@ -67,8 +93,15 @@ def scan_cover(image: MatLike) -> list:
     return books
 
 
+# Creates object on first call, then returns that same object
 @cache
-def _get_text_recognizer() -> ocr.TextRecognizer:
+def get_text_recognizer() -> ocr.TextRecognizer:
+    """Gets the text recognizer. Creates the object if it's not already
+    created.
+
+    Returns:
+        Text recognizer object.
+    """
     return ocr.TextRecognizer()
 
 
@@ -90,7 +123,7 @@ def books_search() -> tuple[dict, HTTPStatus]:
     Responds with a JSON object with guaranteed three fields:
         message: Message for the result.
         results: Array of books found.
-        resultCount: Number of results in 'result'.
+        resultsCount: Number of results in 'result'.
     """
 
     # Check required arg
@@ -119,11 +152,6 @@ def books_search() -> tuple[dict, HTTPStatus]:
 
     # Filter out books without ISBNs
     books = [b for b in books if b.isbn]
-
-    # If no books, note that in the message
-    if len(books) <= 0:
-        result = _get_result_dict([])
-        return result, HTTPStatus.OK
 
     # Wrap it up in another dictionary and send!
     result = _get_result_dict(books)
