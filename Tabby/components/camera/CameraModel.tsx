@@ -1,7 +1,7 @@
 import { View, Text, Pressable, Modal, TouchableWithoutFeedback } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
-// import { useCameraPermissions } from "expo-camera";
+import { Buffer } from 'buffer';
 
 interface CameraModalProps {
     closeModal: () => void;
@@ -30,7 +30,14 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal }) => {
 
         setIsProcessing(false);
         if (!result.canceled) {
-            const resultBase64 = result.assets[0].base64; // base64 string to send to backend
+            let resultBase64 = result.assets[0].base64; // base64 string to send to backend
+            if (resultBase64) {
+                let buffer = Buffer.from(resultBase64, 'base64');
+                let binaryArray = Array.from(buffer, (byte) =>
+                    byte.toString(2).padStart(8, '0')
+                );
+                let rawBinaryString = binaryArray.join(''); // raw binary string to send to backend
+            }
             closeModal();
         }
     };
@@ -53,7 +60,14 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal }) => {
 
         setIsProcessing(false);
         if (!result.canceled) {
-            const resultBase64 = result.assets[0].base64; // base64 string to send to backend
+            let resultBase64 = result.assets[0].base64; // base64 string to send to backend
+            if (resultBase64) {
+                let buffer = Buffer.from(resultBase64, 'base64');
+                let binaryArray = Array.from(buffer, (byte) =>
+                    byte.toString(2).padStart(8, '0')
+                );
+                let rawBinaryString = binaryArray.join(''); // raw binary string to send to backend
+            }
             closeModal();
         }
     };
