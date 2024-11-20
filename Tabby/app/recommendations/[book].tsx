@@ -32,8 +32,8 @@ const BookPage = () => {
                 const bookResponse = await getRecommendedBookById(book as string);
                 const categoriesResponse = await getAllCategories();
 
-                console.log(bookResponse);
-                console.log(categoriesResponse);
+                // console.log(bookResponse);
+                // console.log(categoriesResponse);
                 // set current book if not empty
                 if (bookResponse) {
                     setCurrentBook(bookResponse);

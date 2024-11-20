@@ -22,8 +22,8 @@ const ContentContainer = styled(View, 'flex-grow');
 // Fallback component displayed while database initializes
 function Fallback() {
     return (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <Text style={{ color: 'white' }}>Loading...</Text>
+        <View className='flex-1 justify-center items-center'>
+            <Text className='text-white'>Loading...</Text>
         </View>
     );
 }

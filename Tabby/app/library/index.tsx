@@ -253,7 +253,7 @@ const Categories = () => {
             onPress={() => handleCategoryPress(item)}
             onLongPress={() => handleLongPress(item.name)}
             className={`flex-row items-center justify-between py-4 px-6 
-              ${item.isSelected ? "bg-blue-500" : index % 2 === 0 ? "bg-black" : "bg-gray-300"}`}          >
+              ${item.isSelected ? "bg-blue-500 opacity-80" : index % 2 === 0 ? "bg-black" : "bg-gray-300"}`}          >
             <View className="items-center flex-1">
               <Text
                 className={`text-xl font-semibold ${index % 2 === 0 ? "text-white" : "text-black"}`}

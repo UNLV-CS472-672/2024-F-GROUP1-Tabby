@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import { Text, View, Image, Pressable } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Book } from "@/types/book";
@@ -7,13 +7,30 @@ type BookPreviewProps = {
     book: Book;
     button: React.ReactElement<typeof Pressable>;
     isRecommendation?: boolean;
+    toggleSelected?: (id: string) => void;
+    selectedBooks?: string[]; // List of selected book IDs
 };
 
-const BookPreview: React.FC<BookPreviewProps> = ({ book, button, isRecommendation }) => {
+const BookPreview: React.FC<BookPreviewProps> = ({
+    book,
+    button,
+    isRecommendation,
+    toggleSelected,
+    selectedBooks = []
+}) => {
     const router = useRouter();
     const { category } = useLocalSearchParams();
 
+    const isSelected = selectedBooks.includes(book.id);
+
     const handleBookPress = () => {
+        // If any books are selected, toggle the current book's selection
+        if (selectedBooks.length > 0) {
+            handleSelectedPress();
+            return;
+        }
+
+        // Navigate to book detail page if no books are selected
         if (isRecommendation) {
             router.push(`/recommendations/${book.id}`);
         } else {
@@ -21,11 +38,23 @@ const BookPreview: React.FC<BookPreviewProps> = ({ book, button, isRecommendatio
         }
     };
 
+    const handleSelectedPress = () => {
+        if (toggleSelected) {
+            console.log(`Toggling selected book: ${book.id}`);
+            toggleSelected(book.id);
+        }
+    };
+
     // Use default image if `book.image` is not set or is invalid
     const imageSource = book.image ? { uri: book.image } : require('@/assets/book/default-book-cover.jpg');
+    const buttonStyles = isSelected ? "bg-blue-500 opacity-80" : "";
 
     return (
-        <Pressable onPress={handleBookPress} className="flex-row items-center p-4 rounded-lg">
+        <Pressable
+            onPress={handleBookPress}
+            onLongPress={handleSelectedPress}
+            className={`flex-row items-center p-4 rounded-lg ${buttonStyles} my-1`}
+        >
             <Image
                 source={imageSource}
                 className="w-28 h-40 mr-4"
@@ -37,7 +66,7 @@ const BookPreview: React.FC<BookPreviewProps> = ({ book, button, isRecommendatio
                 <Text className="text-sm text-white italic">{book.author}</Text>
                 <Text className="text-sm text-white" numberOfLines={2}>{book.summary}</Text>
             </View>
-            {button}
+            {selectedBooks.length > 0 ? null : button}
         </Pressable>
     );
 };
