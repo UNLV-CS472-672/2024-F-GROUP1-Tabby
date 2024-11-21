@@ -45,10 +45,10 @@ def books_scan_cover():
     img_mat = cv.cvtColor(img_mat, cv.COLOR_RGB2BGR)
     # ai-gen end
 
-    logging.info("got to scan cover")
+    logging.info("scanning cover")
 
     books = scan_cover(img_mat)
-    logging.info("after scan cover")
+    logging.info("filtering book results")
 
     # Filter out books without ISBNs
     books = [b for b in books if b.isbn]
