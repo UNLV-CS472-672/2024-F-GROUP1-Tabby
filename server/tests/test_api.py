@@ -81,18 +81,11 @@ class TestAPIEndPoint:
     def test_predict_examples(self, client):
         # Calls for the model to run object detection on example images.
         # Does not save the results.
-        result = client.get("/yolo/shelf_read", query_string={"index": int(0)})
+        result = client.get("/yolo/shelf_read")
 
         # This should always return true.
         assert result.status_code == HTTPStatus.OK
-        assert result.json is not None and "Detected" in result.json
-
-        # Calls the model but provides an incorrect index
-        result = client.get("/yolo/shelf_read", query_string={"index": int(2)})
-
-        # This should always return false.
-        assert result.status_code == HTTPStatus.BAD_REQUEST
-        assert result.json is not None and "Incorrect" in result.json
+        assert result.json is not None and "shelf_1" in result.json
 
     def test_google_books_testing(self, client):
         """
