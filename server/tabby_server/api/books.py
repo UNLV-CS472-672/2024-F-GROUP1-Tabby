@@ -154,6 +154,14 @@ def books_search() -> tuple[dict, HTTPStatus]:
 
 
 def _get_result_dict(books: list[google_books.Book]) -> dict:
+    """Creates a result dictionary for a set of books.
+
+    Returns:
+        Dictionary for a single book, containing three attributes:
+            'message': Describes the status of the response.
+            'results': List of books
+            'resultsCount': How many results there are
+    """
     results_count = len(books)
     if results_count <= 0:
         return {
