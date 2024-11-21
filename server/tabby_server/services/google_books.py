@@ -111,12 +111,12 @@ def volume_info_to_book(volume_info: dict[str, Any]) -> Book:
     # - Any attributes that don't exist are replaced with ""
     # - Sequences are joined into a string, elements separated by commas
     return Book(
-        isbn=isbn,
+        isbn=str(isbn),
         title=volume_info.get("title", ""),
         authors=",".join(volume_info.get("authors", [])),
-        rating=volume_info.get("averageRating", ""),
+        rating=str(volume_info.get("averageRating", "")),
         summary=volume_info.get("description", ""),
-        page_count=volume_info.get("pageCount", ""),
+        page_count=str(volume_info.get("pageCount", 0)),
         genres=",".join(volume_info.get("categories", [])),
         publisher=volume_info.get("publisher", ""),
         published_date=volume_info.get("publishedDate", ""),
