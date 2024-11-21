@@ -1,6 +1,7 @@
-from flask import Blueprint, request
+from flask import Blueprint
 from http import HTTPStatus
 from ultralytics import YOLO
+import json
 
 
 # Blueprint for this file. Adds the 'test' prefix in __main__.py.
@@ -16,53 +17,104 @@ recognition. Credits at the bottom.
 
 # Instantiates the model.
 # Runs it. Outputs files to vision/example_yolo.
+# https://docs.ultralytics.com/modes/predict/#working-with-results
 
 
-def ultralytics_shelf_detection(file_path, save_output):
+def ultralytics_shelf_detection(file_path) -> dict[str, list]:
     # Load pretrained model.
     model = YOLO(file_path + "shelf_yolo.pt")
 
+    # ai-gen start (ChatGPT-4.0, 1)
+
+    import cv2
+
+    # Reads image as a NumPy array
+    image = cv2.imread(file_path + "example_shelves/shelf_2.jpg")
+    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    # Resize to model's expected input
+    resized_image = cv2.resize(image_rgb, (640, 640))
+    # Normalize pixel values
+    normalized_image = resized_image / 255.0
+    import torch
+
+    tensor_image = (
+        torch.from_numpy(normalized_image)
+        .float()
+        .permute(2, 0, 1)
+        .unsqueeze(0)
+    )
+
+    # ai-gen end
+
     # Use model on given image url and return it.
     # Outputs the resulting image to vision/example_yolo.
-    model(
-        source=(file_path + "example_shelves"),
+    output = model(
+        # What it images it looks at
+        # source=(file_path + "example_shelves"),
+        # source=(file_path + "example_shelves/shelf_8.jpg"),
+        source=tensor_image,
+        # Minimum accepted conf
         conf=0.45,
-        save=save_output,
-        project=(file_path + "example_yolo"),
+        # Saves output to separate files
+        # Saves full image with context
+        # .txt with written data
+        # Cropped images of each box
+        # save=True,
+        # save_txt=True,
+        save_conf=True,
+        # save_crop=True,
+        # What objects it looks for
+        classes=[0],
+        # Where it saves the output files (images and text)
+        project=("../example_yolo"),
+        # Show image in debug window
+        # show=True,
     )
+
+    # output is a list of Results.
+    # More can be read here: https://docs.ultralytics.com/modes/predict/#videos
+
+    # This loops through each Result and converts its output to a json which is
+    # converted to a dict. This is then added to a global dict which is
+    # returned and printed.
+
+    # This lists each object found by the model including:
+    #   class type (in this case it is only looking for class 'books'),
+    #   confidence,
+    #   name of object (copies name of class from what I can tell),
+    #   and the bounding shape (boxes only for this model)
+
+    inc = 1
+    found = {}
+    for item in output:
+        found["shelf_" + str(inc)] = json.loads(item.to_json())
+        inc = inc + 1
+
+    return found
+
+    # found = []
+    # for item in output:
+    #     found.append(json.loads(item.to_json()))
+    # return found
+    # return json.loads(output[0].to_json())
 
 
 # Callable.
 # Calls the model for each example file in vision/example_shelves.
-# Doesn't return anything of value to HTTP.
-# Use parameter index to indicate if you want to save the output or not.
 
 
 @yolo_test.route("/shelf_read", methods=["GET"])
 def predict_examples():
-    # Get parameter index.
-    # 1 means you want to save (default). 0 means you don't.
-    # Index only exists so we don't save output files from pytest
-    index = int(request.args.get("index", 1))
-
-    # Error check to see if the index is okay or not.
-    if index > 1 or index < 0:
-        return (
-            {"Incorrect": "Please give 0, 1, or nothing"},
-            HTTPStatus.BAD_REQUEST,
-        )
-
     # Runs model on each image file in vision/example_shelves.
     # This is to prevent issues with pytest and main.
     try:
-        ultralytics_shelf_detection("tabby_server/vision/", bool(index))
+        objects = ultralytics_shelf_detection("tabby_server/vision/")
     except FileNotFoundError:
-        ultralytics_shelf_detection("", bool(index))
+        objects = ultralytics_shelf_detection("")
 
-    # Generic return to HTTP.
-    # Eventually might make it return the images. Might be to much work though.
+    # Returns the output of the model
     return (
-        {"Detected": "Go to vision/example_yolo for results"},
+        objects,
         HTTPStatus.OK,
     )
 
