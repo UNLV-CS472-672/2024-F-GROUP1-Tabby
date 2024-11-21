@@ -185,8 +185,35 @@ def books_scan_shelf() -> tuple[dict, HTTPStatus]:
         return {
             "message": "Couldn't read an image from the given body."
         }, HTTPStatus.BAD_REQUEST
+
+    img = img.convert('RGB')
+    # ai-gen start (ChatGPT-4o, 2)
+    img_mat = np.array(img)
+    img_mat = cv.cvtColor(img_mat, cv.COLOR_RGB2BGR)
+    # ai-gen end
+
+    # scan shelf
+    scanned_shelf = scan_shelf(img_mat)
     
-    return {}, HTTPStatus.OK
+    # filter out any books without ISBNs
+    # and limit each sublist to a maximum number of books
+    new_shelf = []
+    for books in scanned_shelf:
+        books = [b for b in books if b.isbn]
+        books = books[:_SCAN_SHELF_MAX_RESULTS_PER_BOOK]
+        if len(books) >= 1:  # if not empty, append it
+            new_shelf.append(books)
+
+    # Convert into JSON
+    results = []
+    for books in new_shelf:
+        result = _get_result_dict(books)
+        results.append(result)
+    
+    return {
+        'message': f'Scanned {len(results)} results',
+        'results': results
+    }, HTTPStatus.OK
 
 
 def scan_shelf(image: MatLike) -> list[list[google_books.Book]]:
@@ -230,14 +257,10 @@ def scan_shelf(image: MatLike) -> list[list[google_books.Book]]:
         if np.all(subimage.shape):  # if none of the dimensions are 0, add it
             subimages.append(subimage)
 
-    # Scan each subimage, filter out books without ISBN, and cutting off each list
+    # Scan each subimage
     shelf = []
     for subimage in subimages:
         books = scan_cover(subimage)
-        books = [b for b in books if b.isbn]
-        books = books[:_SCAN_SHELF_MAX_RESULTS_PER_BOOK]
-
-        if len(books) >= 1:  # if not empty, append it
-            shelf.append(books)
+        shelf.append(books)
 
     return shelf
