@@ -22,8 +22,8 @@ def books_scan_cover():
     """Receives an image and returns a list of possible books that the image
     could represent.
 
-    Expected fields in JSON:
-    - `"image"`: Base64 data representing the image.
+    The body of the request should be binary data (JPG or PNG) reprsenting
+    the image.
     """
 
     logging.info("scanning image")
