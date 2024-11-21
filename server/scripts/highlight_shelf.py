@@ -37,11 +37,14 @@ def main(image_path: cy.types.ResolvedExistingFile, *, show_each: bool = False) 
 
     display = image.copy()
     for result in results:
+
+        # scale results to the original image
         x1 = int(result['box']['x1'] / 640.0 * w)
         x2 = int(result['box']['x2'] / 640.0 * w)
         y1 = int(result['box']['y1'] / 640.0 * h)
         y2 = int(result['box']['y2'] / 640.0 * h)
         
+        # ensure coords are in range
         x1 = min(max(x1, 0), w - 1)
         x2 = min(max(x2, 0), w - 1)
         y1 = min(max(y1, 0), h - 1)

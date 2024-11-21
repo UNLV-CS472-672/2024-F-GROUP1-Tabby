@@ -2,6 +2,7 @@ from dataclasses import asdict
 from functools import cache
 from io import BytesIO
 import logging
+from pprint import pprint
 from PIL import Image
 import PIL
 from flask import Blueprint, request
@@ -9,10 +10,14 @@ from http import HTTPStatus
 import cv2 as cv
 from cv2.typing import MatLike
 import numpy as np
+import torch
 from tabby_server.services import google_books
 from ..vision import ocr
 from ..vision import extraction
+from ..vision import image_labelling
 
+_SCAN_SHELF_MAX_RESULTS_PER_BOOK = 5
+"""Maximum results for each book when scanning shelf"""
 
 subapp = Blueprint(name="books", import_name=__name__)
 
@@ -167,3 +172,72 @@ def _get_result_dict(books: list[google_books.Book]) -> dict:
         "results": book_dicts,
         "resultsCount": results_count,
     }
+
+
+@subapp.route('/scan_shelf', methods=['POST'])
+def books_scan_shelf() -> tuple[dict, HTTPStatus]:
+
+    # Load image
+    logging.info("scanning image")
+    try:
+        img = Image.open(BytesIO(request.data))
+    except PIL.UnidentifiedImageError:
+        return {
+            "message": "Couldn't read an image from the given body."
+        }, HTTPStatus.BAD_REQUEST
+    
+    return {}, HTTPStatus.OK
+
+
+def scan_shelf(image: MatLike) -> list[list[google_books.Book]]:
+    """Takes in an image of a shelf and returns a list of list of results.
+
+    Args:
+        image: Image to scan.
+    Returns:
+        List of lists of book information scanned. Each sublist corresponds to a subimage. Empty
+        if there is a failure at any part.
+    """
+
+    w, h, _ = image.shape
+
+    image_processed = cv.resize(image, (640, 640))
+    image_processed = image_processed / 255.0
+    image_tensor = torch.from_numpy(image_processed).float().permute(2, 0, 1).unsqueeze(0)
+
+    # Get subimages
+    subimages = []
+    segmentation_results = image_labelling.find_books(image_tensor)
+    for sr in segmentation_results:
+
+        # scale results to the original image
+        x1 = int(sr['box']['x1'] / 640.0 * w)
+        x2 = int(sr['box']['x2'] / 640.0 * w)
+        y1 = int(sr['box']['y1'] / 640.0 * h)
+        y2 = int(sr['box']['y2'] / 640.0 * h)
+        
+        # ensure coords are in range
+        x1 = min(max(x1, 0), w - 1)
+        x2 = min(max(x2, 0), w - 1)
+        y1 = min(max(y1, 0), h - 1)
+        y2 = min(max(y2, 0), h - 1)
+
+        # ensure x1 < x2 and y1 < y2
+        x1, x2 = min(x1, x2), max(x1, x2)
+        y1, y2 = min(y1, y2), max(y1, y2)
+
+        subimage = image[y1:y2, x1:x2, :]
+        if np.all(subimage.shape):  # if none of the dimensions are 0, add it
+            subimages.append(subimage)
+
+    # Scan each subimage, filter out books without ISBN, and cutting off each list
+    shelf = []
+    for subimage in subimages:
+        books = scan_cover(subimage)
+        books = [b for b in books if b.isbn]
+        books = books[:_SCAN_SHELF_MAX_RESULTS_PER_BOOK]
+
+        if len(books) >= 1:  # if not empty, append it
+            shelf.append(books)
+
+    return shelf
