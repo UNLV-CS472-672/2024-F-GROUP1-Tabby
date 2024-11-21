@@ -2,6 +2,7 @@ from flask import Flask
 from http import HTTPStatus
 from tabby_server.services import library
 from tabby_server.api import books
+from .vision import yolo_test
 
 """
 This is the central file of our app. Everything is called from here.
@@ -24,6 +25,9 @@ app = create_app_instance()
 # Test Python Files.
 # OCR or Text Recognition
 app.register_blueprint(books.subapp, url_prefix="/books")
+
+# You Only Look Once (YOLO) Implementation - 1 Routable Function (shelf_read)
+app.register_blueprint(yolo_test.yolo_test, url_prefix="/yolo")
 
 # Actual Python Files.
 # Google Books Implementation - 1 Routable Function (search)
