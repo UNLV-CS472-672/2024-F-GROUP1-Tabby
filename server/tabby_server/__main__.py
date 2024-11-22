@@ -1,6 +1,5 @@
 from flask import Flask
 from http import HTTPStatus
-from .services import library
 from .vision import yolo_test
 from .api import books
 
@@ -14,15 +13,15 @@ The functions here are merely tests and should not actually be used.
 
 app = Flask(__name__)
 
-# Temporary Python Files. These are temporary routing to enable testing
-# of functionality. In production, these routing would be removed or unused.
+# # ai-gen start (ChatGPT-4o, 2)
+# Set the maximum allowed payload size (e.g., 16 MB)
+# app.config["MAX_CONTENT_LENGTH"] = 64 * 1024 * 1024  # 16 MB
+# ai-gen end
 
-# Testing Python Files.
-# Google Books Implementation - 1 Routable Function (search)
-app.register_blueprint(library.books_api, url_prefix="/library")
-# You Only Look Once (YOLO) Implementation - 1 Routable Function (shelf_read)
+# Test Python Files.
+# YOLO or Image Recognition
 app.register_blueprint(yolo_test.yolo_test, url_prefix="/yolo")
-# Front End Endpoints - 2 Routable Functions (scan_cover and search)
+# OCR or Text Recognition
 app.register_blueprint(books.subapp, url_prefix="/books")
 
 
