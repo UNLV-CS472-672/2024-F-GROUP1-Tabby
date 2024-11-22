@@ -104,16 +104,16 @@ def get_text_recognizer() -> ocr.TextRecognizer:
 def books_search() -> tuple[dict, HTTPStatus]:
     """Receives a query for a search and returns a list of books.
 
-    Required args:
-        phrase: Phrase to search with. Think of this as the Search Bar in
-            Google.
+    The request must contain at least ONE of the parameters.
 
-    Optional args:
+    Parameters:
         title:     Title to search for.
         author:    Author to search for.
         publisher: Publisher to search for.
         subject:   Subject to search for.
         isbn:      ISBN to search for.
+        phrase: Phrase to search with. Think of this as the Search Bar in
+            Google.
 
     Responds with a JSON object with guaranteed three fields:
         message: Message for the result.
@@ -121,19 +121,19 @@ def books_search() -> tuple[dict, HTTPStatus]:
         resultsCount: Number of results in 'result'.
     """
 
-    # Check required arg
-    phrase = request.args.get("phrase")
-    if not phrase:
-        return {
-            "message": "Must specify 'phrase' as a non-empty query parameter."
-        }, HTTPStatus.BAD_REQUEST
-
     # Extract optional args
+    phrase = request.args.get("phrase", "")
     title = request.args.get("title", "")
     author = request.args.get("author", "")
     publisher = request.args.get("publisher", "")
     subject = request.args.get("subject", "")
     isbn = request.args.get("isbn", "")
+
+    if not any([phrase, title, author, publisher, subject, isbn]):
+        return {
+            "message": "Request must contain at least one of the parameters, "
+            "and that parameter must be non-empty."
+        }, HTTPStatus.BAD_REQUEST
 
     # Make the request
     books = google_books.request_volumes_get(
