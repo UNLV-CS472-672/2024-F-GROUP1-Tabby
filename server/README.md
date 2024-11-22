@@ -235,9 +235,11 @@ Expects a request with the following parameters:
 - `titles`: A list of titles, separated by `|---|`.
 - `authors`: A list, with each element being an author or multiple authors
              separated by commas; each element is separated by `|---|`
+- `weights`: A list of numbers corresponding to how heavily weighed is each
+             book, separated by `|---|`. Each number is from 0 to 1.
 
-These two lists are parallel arrays, so the first title corresponds with the
-first author(s), the second title corresponds with the second author(s), and
-so on.
+All lists are parallel arrays, so the first title corresponds with the
+first author(s) and first weight, the second title corresponds with the second
+author(s) and second weight, and so on.
 
 None of the elements can be blank.
