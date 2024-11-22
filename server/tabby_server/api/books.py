@@ -58,11 +58,11 @@ def books_scan_cover():
     return result, HTTPStatus.OK
 
 
-def scan_cover(image: MatLike) -> list[google_books.Book]:
+def scan_cover(image_matrix: MatLike) -> list[google_books.Book]:
     """Takes in an image of a cover and returns a list of results.
 
     Args:
-        image: Image to scan.
+        image_matrix: Image to scan.
     Returns:
         List of book information scanned. Empty if there is a failure at any
         part.
@@ -70,7 +70,7 @@ def scan_cover(image: MatLike) -> list[google_books.Book]:
 
     # Find text
     text_recognizer = get_text_recognizer()
-    recognized_texts = text_recognizer.find_text(image)
+    recognized_texts = text_recognizer.find_text(image_matrix)
 
     # Extract Title and Author
     extraction_result = extraction.extract_from_recognized_texts(
