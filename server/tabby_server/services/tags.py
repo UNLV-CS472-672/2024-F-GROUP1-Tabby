@@ -38,7 +38,7 @@ You will output up to {_TAG_COUNT} tags, each on separate lines. Conditions:
 """
 
 
-def get_tags(books: list[Book]) -> list[str]:
+def get_tags(titles: list[str], authors: list[str]) -> list[str]:
     """Generates a list of tags generalizing the given set of books.
 
     Args:
@@ -48,7 +48,7 @@ def get_tags(books: list[Book]) -> list[str]:
     """
 
     # Create messages list to send as input
-    input_message = get_input_message(books)
+    input_message = get_input_message(titles, authors)
     messages = [
         {"role": "system", "content": _SYSTEM_MESSAGE},
         {"role": "user", "content": input_message},
@@ -86,7 +86,7 @@ def get_tags(books: list[Book]) -> list[str]:
     return tags
 
 
-def get_input_message(books: list[Book]) -> str:
+def get_input_message(titles: list[str], authors: list[str]) -> str:
     """Generates the ChatGPT input message for the list of books.
 
     Args:
@@ -96,7 +96,7 @@ def get_input_message(books: list[Book]) -> str:
     """
 
     lines = []
-    for book in books:
-        lines.append(f"{book.title} {SEPARATOR} {book.authors}")
+    for title, author in zip(titles, authors):
+        lines.append(f"{title} {SEPARATOR} {authors}")
 
     return "\n".join(lines)
