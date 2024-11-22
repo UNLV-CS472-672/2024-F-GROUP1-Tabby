@@ -178,6 +178,7 @@ def _get_result_dict(books: list[google_books.Book]) -> dict:
     }
 
 
+@subapp.route("/recommendations", methods=["GET"])
 def books_recommendations() -> tuple[dict, HTTPStatus]:
     """Gets a list of recommendations for the given set of books.
 
@@ -206,20 +207,16 @@ def books_recommendations() -> tuple[dict, HTTPStatus]:
         }, HTTPStatus.BAD_REQUEST
 
     # Extract each title and author
-    titles_list = []
-    for title in titles_str.split("|---|"):
-        title = title.strip()
-        if title == "":
-            titles_list.append("[BLANK]")
-        else:
-            titles_list.append(title)
-    authors_list = []
-    for author in authors_str.split("|---|"):
-        author = author.strip()
-        if author == "":
-            authors_list.append("[BLANK]")
-        else:
-            authors_list.append(author)
+    titles_list = [t.strip() for t in titles_str.split("|---|")]
+    authors_list = [a.strip() for a in authors_str.split("|---|")]
+    if any(t == "" for t in titles_list):
+        return {
+            "message": ("'titles' cannot have an empty element.")
+        }, HTTPStatus.BAD_REQUEST
+    if any(a == "" for a in authors_list):
+        return {
+            "message": ("'authors' cannot have an empty element.")
+        }, HTTPStatus.BAD_REQUEST
 
     # If not equal-length lists, then return error
     if len(titles_list) != len(authors_list):
@@ -231,6 +228,10 @@ def books_recommendations() -> tuple[dict, HTTPStatus]:
 
     # Get tags
     tags_list = tags.get_tags(titles_list, authors_list)
+    if not tags_list:  # if empty, return error
+        return {
+            "message": "Unable to get tags from the given books."
+        }, HTTPStatus.BAD_REQUEST
 
     # Get related books using list of tags
     books = google_books.request_volumes_get(phrase=", ".join(tags_list))
