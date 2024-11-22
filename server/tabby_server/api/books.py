@@ -10,6 +10,7 @@ import cv2 as cv
 from cv2.typing import MatLike
 import numpy as np
 from tabby_server.services import google_books
+from tabby_server.services import tags
 from ..vision import ocr
 from ..vision import extraction
 
@@ -175,3 +176,68 @@ def _get_result_dict(books: list[google_books.Book]) -> dict:
         "results": book_dicts,
         "resultsCount": results_count,
     }
+
+
+def books_recommendations() -> tuple[dict, HTTPStatus]:
+    """Gets a list of recommendations for the given set of books.
+
+    The request must contain parameters for two parallel lists.
+
+    Required args:
+        titles: List with each element being the title of each book, each
+            separated by |---|
+        authors: List with each element being the author(s) of each book, each
+            separated by |---|
+    """
+
+    # Titles and authors are separated by |---| because they might contain
+    # punctuation like commas, semicolons, etc.
+
+    # Check required args
+    titles_str = request.args.get("titles")
+    if not titles_str:
+        return {
+            "message": "Must specify 'titles' as a non-empty query parameter."
+        }, HTTPStatus.BAD_REQUEST
+    authors_str = request.args.get("authors")
+    if not authors_str:
+        return {
+            "message": "Must specify 'authors' as a non-empty query parameter."
+        }, HTTPStatus.BAD_REQUEST
+
+    # Extract each title and author
+    titles_list = []
+    for title in titles_str.split("|---|"):
+        title = title.strip()
+        if title == "":
+            titles_list.append("[BLANK]")
+        else:
+            titles_list.append(title)
+    authors_list = []
+    for author in authors_str.split("|---|"):
+        author = author.strip()
+        if author == "":
+            authors_list.append("[BLANK]")
+        else:
+            authors_list.append(author)
+
+    # If not equal-length lists, then return error
+    if len(titles_list) != len(authors_list):
+        return {
+            "message": (
+                "Both 'authors' and 'titles' lists must be equal in length."
+            )
+        }, HTTPStatus.BAD_REQUEST
+
+    # Get tags
+    tags_list = tags.get_tags(titles_list, authors_list)
+
+    # Get related books using list of tags
+    books = google_books.request_volumes_get(phrase=", ".join(tags_list))
+
+    # Filter out books without ISBNs
+    books = [b for b in books if b.isbn]
+
+    # Wrap it up in another dictionary and send!
+    result = _get_result_dict(books)
+    return result, HTTPStatus.OK
