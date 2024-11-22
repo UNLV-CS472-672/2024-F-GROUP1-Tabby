@@ -116,7 +116,7 @@ def volume_info_to_book(volume_info: dict[str, Any]) -> Book:
         authors=",".join(volume_info.get("authors", [])),
         rating=str(volume_info.get("averageRating", "")),
         summary=volume_info.get("description", ""),
-        page_count=str(volume_info.get("pageCount", 0)),
+        page_count=str(volume_info.get("pageCount", "")),
         genres=",".join(volume_info.get("categories", [])),
         publisher=volume_info.get("publisher", ""),
         published_date=volume_info.get("publishedDate", ""),
