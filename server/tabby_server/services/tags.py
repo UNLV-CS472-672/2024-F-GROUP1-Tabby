@@ -18,7 +18,7 @@ _MODEL = "gpt-4o"
 _ATTEMPT_MAX = 3
 """Maximum amount of attempts to poll ChatGPT for."""
 
-_TAG_COUNT: int = 6
+_TAG_COUNT: int = 10
 """Number of tags to get from ChatGPT."""
 
 SEPARATOR = "|---|"
