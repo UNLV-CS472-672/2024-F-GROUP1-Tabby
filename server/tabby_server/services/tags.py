@@ -2,7 +2,6 @@ import logging
 import os
 from dotenv import load_dotenv
 from openai import OpenAI
-from tabby_server.services.google_books import Book
 from openai.types.chat import ChatCompletion
 
 
@@ -35,7 +34,7 @@ You will output up to {_TAG_COUNT} tags, each on separate lines. Conditions:
 - Do not bulletpoint or number lines.
 - These tags represent the best tags for the set.
 - The best tags are first.
-"""
+"""  # noqa: E501
 
 
 def get_tags(titles: list[str], authors: list[str]) -> list[str]:

@@ -2,8 +2,7 @@ from typing import Any, Callable
 from unittest.mock import Mock
 
 import pytest
-from tabby_server.services.tags import SEPARATOR, get_input_message, get_tags
-from tabby_server.services.google_books import Book
+from tabby_server.services.tags import get_tags
 
 sample_titles: list[str] = [
     "To Kill a Mockingbird",
