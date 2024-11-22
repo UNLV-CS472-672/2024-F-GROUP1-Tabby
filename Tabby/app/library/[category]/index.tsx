@@ -7,6 +7,8 @@ import { SearchBar } from '@rneui/themed';
 import { useLocalSearchParams } from 'expo-router';
 import { getAllUserBooksByCategory, addUserBook, updateUserBook, getUserBookById } from "@/database/databaseOperations";
 import { Book } from "@/types/book";
+import PlusIcon from "@/assets/menu-icons/plus-icon.svg";
+
 
 const defaultBooks: Book[] = [
     {
@@ -148,15 +150,25 @@ const CategoryPage: React.FC = () => {
 
     return (
         <SafeAreaView className="flex-1">
-            <SearchBar placeholder="Search by title, ISBN, or author..." onChangeText={updateSearch} value={search} />
+
+            <View className="flex-row items-center justify-between" >
+                <View className="w-[85%] mx-auto">
+                    <SearchBar placeholder="Search by title, ISBN, or author..." onChangeText={updateSearch} value={search} />
+                </View>
+
+                <Pressable className="p-2 mx-auto" onPress={() => setModalVisible(true)}>
+
+                    {<PlusIcon height={38} width={38} />}
+
+                </Pressable>
+            </View>
+
+
             <FlatList
                 data={books}
                 keyExtractor={(item) => item.id}
                 renderItem={renderItem}
             />
-            <Pressable onPress={() => setModalVisible(true)} className="p-2 bg-blue-500 rounded mt-4">
-                <Text className="text-white text-center">Add Custom Book</Text>
-            </Pressable>
 
             {/* Modal for adding custom book */}
             <Modal

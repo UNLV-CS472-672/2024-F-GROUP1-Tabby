@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, Modal } from 'react-native';
+import { View, Text, TextInput, Pressable, Modal, FlatList } from 'react-native';
 import { Category } from "@/types/category";
 
 interface RenameModalProps {
@@ -84,44 +84,57 @@ const RenameModal: React.FC<RenameModalProps> = ({
             animationType="slide"
             onRequestClose={onCancel}
         >
+            {/* Backdrop */}
             <Pressable
-                className="flex-1 justify-center items-center"
-                onPress={handleCancel} // Close modal on pressing outside
+                className="flex-1"
+                onPress={onCancel} // Close the modal when clicking outside
             >
-                <View
-                    className="bg-white p-4 rounded w-80"
-                    onStartShouldSetResponder={() => true} // Ensure the modal content is interactive
-                >
-                    <Text className="text-lg font-semibold mb-2">
-                        {isAddingNewCategory ? "Add New Category" : renameLabel}
-                    </Text>
-                    {categoriesBeingRenamed.length > 1 && (
-                        <View className="flex-col">
-                            {categoriesBeingRenamed.map((category) => (
-                                <Text key={category.name} className="mb-2">
-                                    {category.name}
-                                </Text>
-                            ))}
-                        </View>
-                    )}
-                    <TextInput
-                        value={newName}
-                        onChangeText={handleChangeText}
-                        placeholder="Enter new category name"
-                        className="border p-2 mb-4"
+                {/* Empty Pressable ensures clicks outside are registered */}
+            </Pressable>
+
+            <View
+                className="mx-auto bg-white p-4 rounded w-80 z-10"            >
+                <Text className="text-lg font-semibold mb-2">
+                    {isAddingNewCategory ? "Add New Category" : renameLabel}
+                </Text>
+
+                <View>
+
+                    <FlatList
+                        className='max-h-52'
+                        data={categoriesBeingRenamed}
+                        renderItem={({ item }) => (
+                            <Text className="mb-2">{categoriesBeingRenamed.length > 1 ? "• " : ""} {item.name}</Text>
+                        )}
+                        keyExtractor={(item) => item.name}
                     />
-                    {errorMessage && (
-                        <Text className="text-red-500 mb-2">{errorMessage}</Text>
-                    )}
-                    <View className="flex-row justify-between">
-                        <Pressable onPress={handleConfirm} className="bg-blue-500 px-4 p-2 rounded-md">
-                            <Text className="text-white">OK</Text>
-                        </Pressable>
-                        <Pressable onPress={handleCancel} className="px-4 py-2 bg-gray-300 rounded-md">
-                            <Text className="text-black">Cancel</Text>
-                        </Pressable>
-                    </View>
+
                 </View>
+
+
+                <TextInput
+                    value={newName}
+                    onChangeText={handleChangeText}
+                    placeholder="Enter new category name"
+                    className="border p-2 mb-4"
+                />
+                {errorMessage && (
+                    <Text className="text-red-500 mb-2">{errorMessage}</Text>
+                )}
+                <View className="flex-row justify-between">
+                    <Pressable onPress={handleConfirm} className="bg-blue-500 px-4 p-2 rounded-md">
+                        <Text className="text-white">OK</Text>
+                    </Pressable>
+                    <Pressable onPress={handleCancel} className="px-4 py-2 bg-gray-300 rounded-md">
+                        <Text className="text-black">Cancel</Text>
+                    </Pressable>
+                </View>
+            </View>
+            <Pressable
+                className="flex-1"
+                onPress={onCancel} // Close the modal when pressing outside the content
+            >
+
             </Pressable>
         </Modal>
     );

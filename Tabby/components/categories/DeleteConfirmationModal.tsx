@@ -33,44 +33,52 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({ onCon
             onRequestClose={onCancel}
         >
             <Pressable
-                className="flex-1 justify-center items-center"
+                className="flex-1"
                 onPress={onCancel} // Close the modal when pressing outside the content
             >
-                <View
-                    className="w-80 p-5 bg-white rounded-md"
-                    onStartShouldSetResponder={() => true} // Prevent click propagation to the backdrop
-                >
-                    <Text className="text-lg font-bold mb-4 text-center">
-                        {onlySingleItemSelectedToDelete
-                            ? "Are you sure you want to delete this item?"
-                            : "Are you sure you want to delete the selected items?"}
-                    </Text>
-                    <FlatList
-                        data={selectedCategories}
-                        keyExtractor={(item) => item.name}
-                        renderItem={({ item }) => (
-                            <Text className="text-center mb-2">{item.name}</Text>
-                        )}
-                    />
 
-                    {errorMessage && (
-                        <Text className="text-red-500 text-center">{errorMessage}</Text>
+            </Pressable>
+
+            <View
+                className="mx-auto w-80 p-5 bg-white rounded-md z-10"
+            >
+                <Text className="text-lg font-bold mb-4 text-center">
+                    {onlySingleItemSelectedToDelete
+                        ? "Are you sure you want to delete this category?"
+                        : "Are you sure you want to delete the selected categories?"}
+                </Text>
+                <FlatList
+                    className='max-h-52'
+                    data={selectedCategories}
+                    keyExtractor={(item) => item.name}
+                    renderItem={({ item }) => (
+                        <Text className="text-center mb-2"> {item.name}</Text>
                     )}
-                    <View className="flex-row justify-between mt-5">
-                        <Pressable
-                            onPress={handleConfirm}
-                            className="px-4 py-2 bg-red-500 rounded-md"
-                        >
-                            <Text className="text-white">Delete</Text>
-                        </Pressable>
-                        <Pressable
-                            onPress={onCancel}
-                            className="px-4 py-2 bg-gray-300 rounded-md"
-                        >
-                            <Text>Cancel</Text>
-                        </Pressable>
-                    </View>
+                    showsVerticalScrollIndicator={true}
+                />
+
+                {errorMessage && (
+                    <Text className="text-red-500 text-center">{errorMessage}</Text>
+                )}
+                <View className="flex-row justify-between mt-5">
+                    <Pressable
+                        onPress={handleConfirm}
+                        className="px-4 py-2 bg-red-500 rounded-md"
+                    >
+                        <Text className="text-white">Delete</Text>
+                    </Pressable>
+                    <Pressable
+                        onPress={onCancel}
+                        className="px-4 py-2 bg-gray-300 rounded-md"
+                    >
+                        <Text>Cancel</Text>
+                    </Pressable>
                 </View>
+            </View>
+            <Pressable
+                className="flex-1"
+                onPress={onCancel} // Close the modal when pressing outside the content
+            >
             </Pressable>
         </Modal>
     );

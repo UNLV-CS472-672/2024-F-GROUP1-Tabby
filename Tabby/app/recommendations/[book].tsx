@@ -58,6 +58,7 @@ const BookPage = () => {
         console.log(`Moving book to category: ${addToThisCategory}`);
         // adding book to user books
         const bookToBeAddedToUserBooks = { ...currentBook, category: addToThisCategory };
+        console.log("book to be added to user books (library in book page): ", bookToBeAddedToUserBooks)
         const addResult = await addUserBook(bookToBeAddedToUserBooks);
         if (!addResult) {
             console.error("Failed to add user book");

@@ -50,6 +50,45 @@ export const addUserBook = async (book: Book): Promise<Book | null> => {
     }
 };
 
+// add multiple user books to database with category name passed in
+export const addMultipleUserBooksWithCategoryName = async (userBooks: Book[], category: string): Promise<Boolean> => {
+    try {
+        for (const book of userBooks) {
+            book.category = category;
+            // generate unique id
+            const id = uuidv4();
+            await (await db).runAsync(
+                `INSERT INTO userBooks (id, title, author, excerpt, summary, image, rating, genres, isFavorite, category, publisher, publishedDate, pageCount, isCustomBook, notes, isbn)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                    id,
+                    book.title,
+                    book.author,
+                    book.excerpt,
+                    book.summary,
+                    book.image,
+                    book.rating || null,
+                    book.genres || null,
+                    book.isFavorite ? 1 : 0,
+                    book.category || null,
+                    book.publisher || null,
+                    book.publishedDate || null,
+                    book.pageCount || null,
+                    book.isCustomBook ? 1 : 0,
+                    book.notes || null,
+                    book.isbn || null
+                ]
+            );
+        }
+        console.log("User books added successfully with category name:", category);
+        return true;
+    } catch (error) {
+        console.error("Error adding user books with category name:", error);
+        return false;
+    }
+}
+
+
 // Delete a user book by id
 export const deleteUserBookById = async (id: string): Promise<boolean> => {
     try {
@@ -515,8 +554,39 @@ export const deleteRecommendedBookById = async (id: string): Promise<boolean> =>
     }
 };
 
+// delete multiple recommended books by id array
+export const deleteMultipleRecommendedBooksByIds = async (ids: string[]): Promise<boolean> => {
+    try {
+        await (await db).runAsync(
+            `DELETE FROM recommendedBooks WHERE id IN (${ids.map(() => '?').join(',')})`,
+            ids
+        );
+        console.log("Recommended books deleted successfully by id");
+        return true;
+    } catch (error) {
+        console.error("Error deleting recommended books by id:", error);
+        return false;
+    }
+};
+
+// delete multiple recommended books by isbn array
+export const deleteRecommendedBooksByIsbns = async (isbns: string[]): Promise<boolean> => {
+    try {
+        await (await db).runAsync(
+            `DELETE FROM recommendedBooks WHERE isbn IN (${isbns.map(() => '?').join(',')})`,
+            isbns
+        );
+        console.log("Recommended books deleted successfully by isbn");
+        return true;
+    } catch (error) {
+        console.error("Error deleting recommended books by isbn:", error);
+        return false;
+    }
+}
+
 // Update a recommended book by passing book object
 export const updateRecommendedBook = async (book: Book): Promise<boolean> => {
+    console.log("--- Updating recommended book with this book:", book, "---");
 
     try {
         await (await db).runAsync(
@@ -545,6 +615,23 @@ export const updateRecommendedBook = async (book: Book): Promise<boolean> => {
         return false;
     }
 };
+
+// update multiple recommended books by book array passed to be added to library
+export const updateMultipleRecommendedBooksToBeAddedToLibrary = async (books: Book[]): Promise<boolean> => {
+    try {
+        for (const book of books) {
+            const result = await (await db).runAsync(
+                `UPDATE recommendedBooks SET addToLibrary = 1 WHERE id = ?`,
+                [book.id]
+            );
+        }
+        console.log("Recommended books updated successfully");
+        return true;
+    } catch (error) {
+        console.error("Error updating recommended books:", error);
+        return false;
+    }
+}
 
 // Get all recommended books
 export const getAllRecommendedBooks = async (): Promise<Book[] | null> => {

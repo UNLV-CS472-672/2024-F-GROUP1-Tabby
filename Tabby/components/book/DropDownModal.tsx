@@ -28,7 +28,7 @@ const DropdownModal: React.FC<DropdownModalProps> = ({ visible, items, onSelect,
             </Pressable>
 
             {/* Dropdown Content */}
-            <View className="absolute top-12 right-2 bg-white border border-gray-300 rounded-md shadow-lg z-10">
+            <View className="absolute top-12 right-2 bg-white border border-gray-300 rounded-md">
                 {/* Header */}
                 <Text className="text-gray-600 font-bold p-2 border-b border-gray-200 text-center">
                     {heading}
@@ -37,6 +37,7 @@ const DropdownModal: React.FC<DropdownModalProps> = ({ visible, items, onSelect,
                 {/* Category Items */}
                 <FlatList
                     data={items}
+                    className='max-h-52'
                     keyExtractor={(item, index) => `${item}-${index}`}
                     renderItem={({ item }) => (
                         <Pressable

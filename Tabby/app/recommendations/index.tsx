@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { FlatList, Pressable, Button, View, Text } from 'react-native';
+import { FlatList, Pressable, View, Text } from 'react-native';
 import BookPreview from '@/components/BookPreview'; // Adjust the path as necessary
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AddButtonIcon from '@/components/AddButtonIcon';
 import { SearchBar } from "@rneui/themed";
-import { getAllCategories, getAllRecommendedBooks, addRecommendedBook, deleteRecommendedBookById, updateRecommendedBook, getRecommendedBookById } from "@/database/databaseOperations";
+import { getAllCategories, getAllRecommendedBooks, addRecommendedBook, updateRecommendedBook, getRecommendedBookById, deleteMultipleRecommendedBooksByIds, addMultipleUserBooksWithCategoryName, updateMultipleRecommendedBooksToBeAddedToLibrary } from "@/database/databaseOperations";
 import { Book } from "@/types/book";
 import DeleteIcon from "@/assets/menu-icons/delete-icon.svg";
-import RenameIcon from "@/assets/menu-icons/rename-icon.svg";
 import AddSquareIcon from "@/assets/menu-icons/add-square-icon.svg"
 import CancelIcon from "@/assets/menu-icons/cancel-icon.svg";
+import DeleteBooksModal from '@/components/DeleteBooksModal';
+import AddingRecommendationsModal from '@/components/AddingRecommendationsModal';
 
 type SelectableBook = {
     book: Book,
@@ -128,10 +129,22 @@ const Recommendations: React.FC = () => {
     const [selectableBooks, setSelectableBooks] = useState<SelectableBook[]>(defaultSelectableBooks);
     const [search, setSearch] = useState("");
     const [categories, setCategories] = useState<string[]>([]);
+    const [isAddingBookModalVisible, setIsAddingBookModalVisible] = useState(false);
+
+    const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
+
+    const showDeleteModal = () => setDeleteModalVisible(true);
+    const hideDeleteModal = () => setDeleteModalVisible(false);
+
 
     // function to check if any books are selected
     const areAnyBooksSelected = () => {
         return selectableBooks.some((book) => book.isSelected);
+    };
+
+    // get all selectable books that are selected
+    const getSelectedSelectableBooks = () => {
+        return selectableBooks.filter((currentSelectableBook) => currentSelectableBook.isSelected);
     };
 
     // function to get all selected book ids
@@ -139,6 +152,11 @@ const Recommendations: React.FC = () => {
         return selectableBooks
             .filter((book) => book.isSelected)
             .map((book) => book.book.id);
+    };
+
+    // get all unselected Selectable book objects
+    const getUnselectedSelectableBooks = () => {
+        return selectableBooks.filter((currentSelectableBook) => !currentSelectableBook.isSelected);
     };
 
 
@@ -250,6 +268,70 @@ const Recommendations: React.FC = () => {
         </Pressable>
     );
 
+    // delete selected books
+    const deleteSelectedBooks = async () => {
+        const selectedBookIds = getAllSelectedBookIds();
+        const unselectedSelectableBooks = getUnselectedSelectableBooks();
+        const result = await deleteMultipleRecommendedBooksByIds(selectedBookIds);
+        if (result) {
+            console.log("deleted all recommended books that were selected");
+            setSelectableBooks(unselectedSelectableBooks);
+            hideDeleteModal();
+        } else {
+            alert("Failed to delete selected recommended books :`(");
+        }
+
+    };
+
+    // handle adding selected books to categories
+    const handleAddSelectedBooksToCategories = async (categories: string[]) => {
+        const selectedBookObjects = getBookObjectsFromSelectableBooksPassed(getSelectedSelectableBooks());
+        let wasAbleToAddBookToAllCategories = true;
+        console.log("selected book objects: ", selectedBookObjects);
+
+
+
+        // for each category add the selected books
+        for (const category of categories) {
+            const resultOfAddingBooksToCurrentCategory = await addMultipleUserBooksWithCategoryName(selectedBookObjects, category);
+            if (!resultOfAddingBooksToCurrentCategory) {
+                console.error("Failed to add books to current category: ", category);
+                wasAbleToAddBookToAllCategories = false;
+            } else {
+                console.log("Added books to category: ", category);
+            }
+        }
+
+        if (wasAbleToAddBookToAllCategories) {
+            console.log("Added selected books to all categories successfully");
+            const booksSetToAddedToLibrary = selectedBookObjects.map((book) => ({ ...book, addToLibrary: true }));
+            const updateBookToAddedToLibraryResult = await updateMultipleRecommendedBooksToBeAddedToLibrary(booksSetToAddedToLibrary);
+            if (!updateBookToAddedToLibraryResult) {
+                console.error("Failed to add selected books to all categories");
+                return;
+            }
+
+            //set local state of selectable books 
+            const updatedSelectableBooks = selectableBooks.map((currentSelectableBook) => {
+                const updatedBook = booksSetToAddedToLibrary.find((book) => book.id === currentSelectableBook.book.id);
+                return updatedBook ? { isSelected: false, book: updatedBook } : currentSelectableBook;
+            })
+            setSelectableBooks(updatedSelectableBooks);
+            setIsAddingBookModalVisible(false)
+
+        } else {
+            console.error("Failed to add selected books to all categories");
+        }
+
+
+
+    };
+
+    // get book objects array from selectableBooks array
+    const getBookObjectsFromSelectableBooksPassed = (SelectableBooks: SelectableBook[]) => {
+        return SelectableBooks.map((currentSelectableBook) => currentSelectableBook.book);
+    }
+
     // if the string typed in the search bar is a part of a book title, isbn, or author then render the book
     const renderItem = ({ item }: { item: SelectableBook }) => {
         if (search === "" || item.book.title.toLowerCase().includes(search.toLowerCase()) || item.book.author.toLowerCase().includes(search.toLowerCase()) || item.book.isbn?.toLowerCase().includes(search)) {
@@ -281,21 +363,21 @@ const Recommendations: React.FC = () => {
 
                 <View className="flex-row justify-around bg-[#161f2b] w-full border-t border-blue-500">
                     <View className="">
-                        <Pressable className="flex-col items-center" onPress={() => { console.log("delete") }}>
+                        <Pressable className="flex-col items-center" onPress={() => showDeleteModal()}>
                             <DeleteIcon height={size} width={size} />
                             <Text className="text-white text-sm">Delete </Text>
                         </Pressable>
                     </View>
 
                     <View>
-                        <Pressable className="flex-col items-center" onPress={() => { console.log("rename") }}>
+                        <Pressable className="flex-col items-center" onPress={() => setIsAddingBookModalVisible(true)}>
                             <AddSquareIcon height={size} width={size} />
                             <Text className="text-white text-sm">Add</Text>
                         </Pressable>
                     </View>
 
                     <View>
-                        <Pressable className="flex-col items-center" onPress={() => { console.log("cancel") }}>
+                        <Pressable className="flex-col items-center" onPress={() => deselectAllBooks()}>
                             <CancelIcon height={size} width={size} />
                             <Text className="text-white text-sm">Cancel</Text>
 
@@ -305,6 +387,25 @@ const Recommendations: React.FC = () => {
                 </View>
 
             )}
+
+            {/* Delete Books Modal */}
+            <DeleteBooksModal
+                visible={isDeleteModalVisible}
+                onClose={hideDeleteModal}
+                booksToDelete={getBookObjectsFromSelectableBooksPassed(getSelectedSelectableBooks())}
+                onConfirm={deleteSelectedBooks}
+            />
+
+            {/* Add Books to Category Modal */}
+            <AddingRecommendationsModal
+                visible={isAddingBookModalVisible}
+                onClose={() => setIsAddingBookModalVisible(false)}
+                booksToAdd={getBookObjectsFromSelectableBooksPassed(getSelectedSelectableBooks())}
+                categories={categories}
+                onConfirm={handleAddSelectedBooksToCategories}
+            />
+
+
         </SafeAreaView>
     );
 };
