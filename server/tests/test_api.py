@@ -525,7 +525,7 @@ class TestAPIEndpoint:
             query_string={
                 "titles": "T |---| U |---|",
                 "authors": "A |---| B |---| C",
-                "authors": "0.5 |---| 0.6 |---| 0.7",
+                "weights": "0.5 |---| 0.6 |---| 0.7",
             },
         )
         logging.info(response.json)

@@ -2,7 +2,6 @@ from dataclasses import asdict
 from functools import cache
 from io import BytesIO
 import logging
-import math
 from PIL import Image
 import PIL
 from flask import Blueprint, request
