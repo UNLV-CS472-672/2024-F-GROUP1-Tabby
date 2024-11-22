@@ -7,8 +7,8 @@ import { Book } from "@/types/book";
 import { useEffect, useState } from 'react';
 import AddButtonIcon from '@/components/AddButtonIcon';
 import MenuIcon from '@/components/book/MenuIcon';
-import DropdownMenu from '@/components/book/DropDownMenu';
-import DeleteIcon from "@/assets/categories/delete-icon.svg";
+import DropdownModal from '@/components/book/DropDownModal';
+import DeleteIcon from "@/assets/menu-icons/delete-icon.svg";
 import DeleteBookModal from '@/components/book/DeleteBookModal';
 
 import { getRecommendedBookById, deleteRecommendedBookById, updateRecommendedBook, getAllCategories, addUserBook } from '@/database/databaseOperations';
@@ -113,7 +113,7 @@ const BookPage = () => {
                         <AddButtonIcon isAdded={isMoveMenuVisible} />
                     </Pressable>
                     {/* Custom DropdownMenu */}
-                    <DropdownMenu
+                    <DropdownModal
                         visible={isMoveMenuVisible}
                         items={categories}
                         onSelect={handleAddToCategory}

@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { FlatList, Pressable, Button, View } from 'react-native';
+import { FlatList, Pressable, Button, View, Text } from 'react-native';
 import BookPreview from '@/components/BookPreview'; // Adjust the path as necessary
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AddButtonIcon from '@/components/AddButtonIcon';
 import { SearchBar } from "@rneui/themed";
 import { getAllCategories, getAllRecommendedBooks, addRecommendedBook, deleteRecommendedBookById, updateRecommendedBook, getRecommendedBookById } from "@/database/databaseOperations";
 import { Book } from "@/types/book";
+import DeleteIcon from "@/assets/menu-icons/delete-icon.svg";
+import RenameIcon from "@/assets/menu-icons/rename-icon.svg";
+import AddSquareIcon from "@/assets/menu-icons/add-square-icon.svg"
+import CancelIcon from "@/assets/menu-icons/cancel-icon.svg";
 
 type SelectableBook = {
     book: Book,
@@ -47,20 +51,77 @@ const defaultBooks: Book[] = [
         rating: 1
     },
 
+    {
+        id: '3',
+        isbn: '9780333791035',
+        title: 'The Great Gatsby',
+        author: 'F. Scott Fitzgerald',
+        summary: 'A novel about the American dream. It is a classic novel about the American dream. It is a classic novel about the American dream. It is a classic novel about the American dream. It is a classic novel about the American dream.',
+        excerpt: 'A novel about the American dream.',
+        image: 'https://m.media-amazon.com/images/I/81QuEGw8VPL._AC_UF1000,1000_QL80_.jpg',
+        genres: 'Fiction,History,Classic,Drama,Romance,Adventure,Tragedy',
+        notes: 'The Great Gatsby is a classic novel about the American dream. It is a classic novel about the American dream. It is a classic novel about the American dream. It is a classic novel about the American dream. It is a classic novel about the American dream.',
+        pageCount: 218,
+        publisher: 'F. Scott Fitzgerald',
+        publishedDate: 'October 15, 1925',
+        addToLibrary: false,
+        rating: 1
+    },
+    {
+        id: '4',
+        isbn: '9780061120084',
+        title: '1984',
+        author: 'George Orwell',
+        summary: 'A dystopian novel about a totalitarian society.',
+        excerpt: 'A dystopian novel about a totalitarian society.',
+        genres: 'Fiction,Dystopian,Science Fiction,Horror,Adventure,Tragedy',
+        notes: '1984 is a dystopian novel about a totalitarian society. I like it. It is a dystopian novel about a totalitarian society. It is a dystopian novel about a totalitarian society. It is a dystopian novel about a totalitarian society.',
+        pageCount: 328,
+        publisher: 'George Orwell',
+        publishedDate: 'October 15, 1949',
+        image: 'https://m.media-amazon.com/images/I/7180qjGSgDL._SL1360_.jpg',
+        addToLibrary: false,
+        rating: 1
+    },
+
+    {
+        id: '5',
+        isbn: '9780333791035',
+        title: 'The Great Gatsby',
+        author: 'F. Scott Fitzgerald',
+        summary: 'A novel about the American dream. It is a classic novel about the American dream. It is a classic novel about the American dream. It is a classic novel about the American dream. It is a classic novel about the American dream.',
+        excerpt: 'A novel about the American dream.',
+        image: 'https://m.media-amazon.com/images/I/81QuEGw8VPL._AC_UF1000,1000_QL80_.jpg',
+        genres: 'Fiction,History,Classic,Drama,Romance,Adventure,Tragedy',
+        notes: 'The Great Gatsby is a classic novel about the American dream. It is a classic novel about the American dream. It is a classic novel about the American dream. It is a classic novel about the American dream. It is a classic novel about the American dream.',
+        pageCount: 218,
+        publisher: 'F. Scott Fitzgerald',
+        publishedDate: 'October 15, 1925',
+        addToLibrary: false,
+        rating: 1
+    },
+    {
+        id: '6',
+        isbn: '9780061120084',
+        title: '1984',
+        author: 'George Orwell',
+        summary: 'A dystopian novel about a totalitarian society.',
+        excerpt: 'A dystopian novel about a totalitarian society.',
+        genres: 'Fiction,Dystopian,Science Fiction,Horror,Adventure,Tragedy',
+        notes: '1984 is a dystopian novel about a totalitarian society. I like it. It is a dystopian novel about a totalitarian society. It is a dystopian novel about a totalitarian society. It is a dystopian novel about a totalitarian society.',
+        pageCount: 328,
+        publisher: 'George Orwell',
+        publishedDate: 'October 15, 1949',
+        image: 'https://m.media-amazon.com/images/I/7180qjGSgDL._SL1360_.jpg',
+        addToLibrary: false,
+        rating: 1
+    },
 
 ];
 
-const defaultSelectableBooks: SelectableBook[] = [
-    {
-        book: defaultBooks[0],
-        isSelected: false
-    },
-    {
-        book: defaultBooks[1],
-        isSelected: false
-    }
-]
+const defaultSelectableBooks: SelectableBook[] = defaultBooks.map((currentBook) => ({ book: currentBook, isSelected: false }));
 
+const size = 36;
 const Recommendations: React.FC = () => {
     // State to keep track of books and their favorite status
     const [books, setBooks] = useState<Book[]>(defaultBooks);
@@ -206,20 +267,43 @@ const Recommendations: React.FC = () => {
     }
 
     return (
-        <SafeAreaView className="flex-1 p-4">
+        <SafeAreaView className="flex-1">
             <SearchBar placeholder="Search by title, ISBN, or author..." onChangeText={updateSearch} value={search} />
-            <FlatList
-                data={selectableBooks}
-                keyExtractor={(item) => item.book.id}
-                renderItem={renderItem}
-            />
+            <View className='flex-1'>
+                <FlatList
+                    data={selectableBooks}
+                    keyExtractor={(item) => item.book.id}
+                    renderItem={renderItem}
+                />
+            </View>
 
             {areAnyBooksSelected() && (
-                <View className="absolute bottom-0 w-full bg-white p-4 border-t border-gray-300">
-                    <Button title="Delete Selected" onPress={() => { console.log("Delete Selected") }} />
-                    <Button title="Add to Category" onPress={() => { console.log("Add to Category") }} />
-                    <Button title="Deselect All" onPress={deselectAllBooks} />
+
+                <View className="flex-row justify-around bg-[#161f2b] w-full border-t border-blue-500">
+                    <View className="">
+                        <Pressable className="flex-col items-center" onPress={() => { console.log("delete") }}>
+                            <DeleteIcon height={size} width={size} />
+                            <Text className="text-white text-sm">Delete </Text>
+                        </Pressable>
+                    </View>
+
+                    <View>
+                        <Pressable className="flex-col items-center" onPress={() => { console.log("rename") }}>
+                            <AddSquareIcon height={size} width={size} />
+                            <Text className="text-white text-sm">Add</Text>
+                        </Pressable>
+                    </View>
+
+                    <View>
+                        <Pressable className="flex-col items-center" onPress={() => { console.log("cancel") }}>
+                            <CancelIcon height={size} width={size} />
+                            <Text className="text-white text-sm">Cancel</Text>
+
+                        </Pressable>
+                    </View>
+
                 </View>
+
             )}
         </SafeAreaView>
     );

@@ -32,8 +32,14 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({ onCon
             transparent={true}
             onRequestClose={onCancel}
         >
-            <View className="flex-1 justify-center items-center bg-transparent bg-opacity-50">
-                <View className="w-80 p-5 bg-white rounded-md">
+            <Pressable
+                className="flex-1 justify-center items-center"
+                onPress={onCancel} // Close the modal when pressing outside the content
+            >
+                <View
+                    className="w-80 p-5 bg-white rounded-md"
+                    onStartShouldSetResponder={() => true} // Prevent click propagation to the backdrop
+                >
                     <Text className="text-lg font-bold mb-4 text-center">
                         {onlySingleItemSelectedToDelete
                             ? "Are you sure you want to delete this item?"
@@ -47,21 +53,25 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({ onCon
                         )}
                     />
 
-                    {errorMessage && <Text className="text-red-500 text-center">{errorMessage}</Text>}
+                    {errorMessage && (
+                        <Text className="text-red-500 text-center">{errorMessage}</Text>
+                    )}
                     <View className="flex-row justify-between mt-5">
-                        <Pressable onPress={onCancel} className="px-4 py-2 bg-gray-300 rounded-md">
-                            <Text>Cancel</Text>
-                        </Pressable>
                         <Pressable
                             onPress={handleConfirm}
                             className="px-4 py-2 bg-red-500 rounded-md"
                         >
                             <Text className="text-white">Delete</Text>
                         </Pressable>
-
+                        <Pressable
+                            onPress={onCancel}
+                            className="px-4 py-2 bg-gray-300 rounded-md"
+                        >
+                            <Text>Cancel</Text>
+                        </Pressable>
                     </View>
                 </View>
-            </View>
+            </Pressable>
         </Modal>
     );
 };

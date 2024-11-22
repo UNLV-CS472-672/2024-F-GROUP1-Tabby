@@ -84,20 +84,26 @@ const RenameModal: React.FC<RenameModalProps> = ({
             animationType="slide"
             onRequestClose={onCancel}
         >
-            <View className="flex-1 justify-center items-center bg-transparent bg-opacity-50">
-                <View className="bg-white p-4 rounded w-80">
-
-                    <Text className="text-lg font-semibold mb-2"> {isAddingNewCategory ? "Add New Category" : renameLabel} </Text>
-                    {categoriesBeingRenamed.length > 1 && (<View className='flex-col'>
-                        {categoriesBeingRenamed.map((category) => (
-
-                            <Text key={category.name} className="mb-2">
-                                {category.name}
-                            </Text>
-                        ))}
-                    </View>)
-                    }
-
+            <Pressable
+                className="flex-1 justify-center items-center"
+                onPress={handleCancel} // Close modal on pressing outside
+            >
+                <View
+                    className="bg-white p-4 rounded w-80"
+                    onStartShouldSetResponder={() => true} // Ensure the modal content is interactive
+                >
+                    <Text className="text-lg font-semibold mb-2">
+                        {isAddingNewCategory ? "Add New Category" : renameLabel}
+                    </Text>
+                    {categoriesBeingRenamed.length > 1 && (
+                        <View className="flex-col">
+                            {categoriesBeingRenamed.map((category) => (
+                                <Text key={category.name} className="mb-2">
+                                    {category.name}
+                                </Text>
+                            ))}
+                        </View>
+                    )}
                     <TextInput
                         value={newName}
                         onChangeText={handleChangeText}
@@ -108,15 +114,15 @@ const RenameModal: React.FC<RenameModalProps> = ({
                         <Text className="text-red-500 mb-2">{errorMessage}</Text>
                     )}
                     <View className="flex-row justify-between">
-                        <Pressable onPress={handleConfirm} className="bg-blue-500 p-2 rounded">
+                        <Pressable onPress={handleConfirm} className="bg-blue-500 px-4 p-2 rounded-md">
                             <Text className="text-white">OK</Text>
                         </Pressable>
-                        <Pressable onPress={handleCancel} className="bg-gray-400 p-2 rounded">
-                            <Text className="text-white">Cancel</Text>
+                        <Pressable onPress={handleCancel} className="px-4 py-2 bg-gray-300 rounded-md">
+                            <Text className="text-black">Cancel</Text>
                         </Pressable>
                     </View>
                 </View>
-            </View>
+            </Pressable>
         </Modal>
     );
 };

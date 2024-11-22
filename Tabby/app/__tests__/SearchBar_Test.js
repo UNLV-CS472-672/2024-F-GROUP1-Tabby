@@ -3,7 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import Favorites from '@/app/favorites';
 import Categories from '@/app/library';
 import CategoryPage from '@/app/library/[category]';
-import Reccomendations from '@/app/recommendations';
+import Recommendations from '@/app/recommendations';
 
 jest.mock('expo-router', () => {
     const { Pressable } = require('react-native');
@@ -54,7 +54,7 @@ describe('Favorite tab tests', () => {
         expect(searchBar3.props.value).toBe('tempText3');
 
         // render categories page
-        const recommendationsPage = render(<Reccomendations />);
+        const recommendationsPage = render(<Recommendations />);
         // get search bar
         const searchBar4 = recommendationsPage.getByPlaceholderText('Search by title, ISBN, or author...');
         // change text in search bar

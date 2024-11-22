@@ -1,4 +1,4 @@
-import { View, Pressable, Text, ScrollView, FlatList } from 'react-native'
+import { View, Pressable, Text, ScrollView } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
 import BookCard from '@/components/book/BookCard';
@@ -7,8 +7,8 @@ import { Book } from "@/types/book";
 import { useEffect, useState } from 'react';
 import FavoriteButtonIcon from '@/components/FavoriteButtonIcon';
 import MenuIcon from '@/components/book/MenuIcon';
-import DropdownMenu from '@/components/book/DropDownMenu';
-import DeleteIcon from "@/assets/categories/delete-icon.svg";
+import DropdownModal from '@/components/book/DropDownModal';
+import DeleteIcon from "@/assets/menu-icons/delete-icon.svg";
 import DeleteBookModal from '@/components/book/DeleteBookModal';
 
 import { getUserBookById, deleteUserBookById, updateUserBook, getAllCategories } from '@/database/databaseOperations';
@@ -95,7 +95,7 @@ const BookPage = () => {
 
     return (
         <>
-            <SafeAreaView>
+            <SafeAreaView className='flex-1'>
 
                 <View className='flex-row justify-end items-center'>
 
@@ -111,8 +111,6 @@ const BookPage = () => {
                         onConfirm={handleDeleteBook}
                     />
 
-
-
                     <Pressable onPress={() => handleFavoritePress()} className=" p-1 mr-2">
                         <FavoriteButtonIcon isFavorite={currentBook.isFavorite || false} StrokeColor='white' />
                     </Pressable>
@@ -122,7 +120,7 @@ const BookPage = () => {
                         <MenuIcon isSelected={isMoveMenuVisible} />
                     </Pressable>
                     {/* Custom DropdownMenu */}
-                    <DropdownMenu
+                    <DropdownModal
                         visible={isMoveMenuVisible}
                         items={categories}
                         onSelect={handleMoveToCategory}

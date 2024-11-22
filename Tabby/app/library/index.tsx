@@ -10,7 +10,7 @@ import { SearchBar } from "@rneui/themed";
 import { useEffect } from "react";
 import SelectedMenu from "@/components/categories/SelectedMenu";
 import { getAllCategories, addCategory, deleteCategory, updateCategory, getAllUserBooksByCategory, updateMultipleUserBooksCategory, deleteAllUserBooksByCategory } from "@/database/databaseOperations";
-import PlusIcon from "@/assets/categories/plus-icon.svg";
+import PlusIcon from "@/assets/menu-icons/plus-icon.svg";
 
 const Categories = () => {
   const router = useRouter();

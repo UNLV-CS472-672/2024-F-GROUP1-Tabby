@@ -14,7 +14,7 @@ export async function migrateDbIfNeeded() {
           position INTEGER NOT NULL
         );
         
-        -- Create userBooks table to store user's books: id will be isbn for book that is gotten from api otherwise it will be a uuid for custom book
+        -- Create userBooks table to store user's books: id will be uuid generated for book when it is added to db 
         CREATE TABLE IF NOT EXISTS userBooks (
           id TEXT PRIMARY KEY NOT NULL,
           title TEXT NOT NULL,
@@ -34,7 +34,7 @@ export async function migrateDbIfNeeded() {
           notes TEXT          
         );
 
-        -- Create recommendedBooks table to store recommended books: id will be isbn for a recommended book
+        -- Create recommendedBooks table to store recommended books: id will be uuid generated for book when it is added to db
         CREATE TABLE IF NOT EXISTS recommendedBooks (
           id TEXT PRIMARY KEY NOT NULL,
           title TEXT NOT NULL,
@@ -115,5 +115,5 @@ export async function dropAllTablesAndMigrate() {
   );
 `);
 
-  console.log("Database initialized or migrated with new schema");
+  console.log("Database was dropped and recreated with new schema");
 }
