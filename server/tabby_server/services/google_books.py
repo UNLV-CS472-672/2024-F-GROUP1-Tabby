@@ -24,11 +24,11 @@ class Book:
     isbn: str
     title: str
     authors: str
-    rating: str
+    rating: float
     excerpt: str = field(init=False)  # Cannot be initialized
     summary: str
     thumbnail: str
-    page_count: str
+    page_count: int
     genres: str
     publisher: str
     published_date: str
@@ -110,13 +110,22 @@ def volume_info_to_book(volume_info: dict[str, Any]) -> Book:
     # Collect attributes into a Book object
     # - Any attributes that don't exist are replaced with ""
     # - Sequences are joined into a string, elements separated by commas
+    try:
+        rating = float(volume_info.get("averageRating", -1.0))
+    except ValueError:
+        rating = -1.0
+    try:
+        page_count = int(volume_info.get("pageCount", -1))
+    except ValueError:
+        page_count = -1
+
     return Book(
         isbn=str(isbn),
         title=volume_info.get("title", ""),
         authors=",".join(volume_info.get("authors", [])),
-        rating=str(volume_info.get("averageRating", "")),
+        rating=rating,
         summary=volume_info.get("description", ""),
-        page_count=str(volume_info.get("pageCount", "")),
+        page_count=page_count,
         genres=",".join(volume_info.get("categories", [])),
         publisher=volume_info.get("publisher", ""),
         published_date=volume_info.get("publishedDate", ""),
