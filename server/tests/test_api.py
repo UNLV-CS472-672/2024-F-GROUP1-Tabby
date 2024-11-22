@@ -368,35 +368,88 @@ class TestAPIEndpoint:
         assert response.status_code == HTTPStatus.BAD_REQUEST
         assert response.json is not None and "message" in response.json
 
-        # Test only one arg -> fail
-        response = client.get(
-            url,
-            query_string={
-                "titles": "To Kill a Mockingbird",
-                # "authors": "Harper Lee",
-            },
-        )
-        logging.info(response.json)
-        assert response.status_code == HTTPStatus.BAD_REQUEST
-        assert response.json is not None and "message" in response.json
-
+        # Test one missing arg -> fail
         response = client.get(
             url,
             query_string={
                 # "titles": "To Kill a Mockingbird",
                 "authors": "Harper Lee",
+                "weights": "0.5",
             },
         )
         logging.info(response.json)
         assert response.status_code == HTTPStatus.BAD_REQUEST
         assert response.json is not None and "message" in response.json
 
-        # Test both blank -> fail
+        response = client.get(
+            url,
+            query_string={
+                "titles": "To Kill a Mockingbird",
+                # "authors": "Harper Lee",
+                "weights": "0.5",
+            },
+        )
+        logging.info(response.json)
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json is not None and "message" in response.json
+
+        response = client.get(
+            url,
+            query_string={
+                "titles": "To Kill a Mockingbird",
+                "authors": "Harper Lee",
+                # "weights": "0.5",
+            },
+        )
+        logging.info(response.json)
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json is not None and "message" in response.json
+
+        # Test all blank -> fail
         response = client.get(
             url,
             query_string={
                 "titles": "",
                 "authors": "",
+                "weights": "",
+            },
+        )
+        logging.info(response.json)
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json is not None and "message" in response.json
+
+        # Test float conversion
+        response = client.get(
+            url,
+            query_string={
+                "titles": "T |---| U",
+                "authors": "A |---| B |---| C",
+                "weights": "0.5 |---| aa |---| 0.5",
+            },
+        )
+        logging.info(response.json)
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json is not None and "message" in response.json
+
+        # Test in-range floats
+        response = client.get(
+            url,
+            query_string={
+                "titles": "T |---| U",
+                "authors": "A |---| B |---| C",
+                "weights": "0.5 |---| -1.0 |---| 0.5",
+            },
+        )
+        logging.info(response.json)
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json is not None and "message" in response.json
+
+        response = client.get(
+            url,
+            query_string={
+                "titles": "T |---| U",
+                "authors": "A |---| B |---| C",
+                "weights": "0.5 |---| 1.1 |---| 0.5",
             },
         )
         logging.info(response.json)
@@ -404,24 +457,26 @@ class TestAPIEndpoint:
         assert response.json is not None and "message" in response.json
 
         # Test different sizes -> fail
-        # 2 vs. 3
+        # 2 vs. 3 vs. 3
         response = client.get(
             url,
             query_string={
                 "titles": "T |---| U",
                 "authors": "A |---| B |---| C",
+                "weights": "0.5 |---| 1.0 |---| 0.5",
             },
         )
         logging.info(response.json)
         assert response.status_code == HTTPStatus.BAD_REQUEST
         assert response.json is not None and "message" in response.json
 
-        # 3 vs. 2
+        # 3 vs. 2 vs. 3
         response = client.get(
             url,
             query_string={
                 "titles": "T |---| U |---| V",
                 "authors": "A |---| B",
+                "weights": "0.5 |---| 1.0 |---| 0.5",
             },
         )
         logging.info(response.json)
@@ -434,6 +489,7 @@ class TestAPIEndpoint:
             query_string={
                 "titles": "T |---|   |---| V",
                 "authors": "A |---| B |---| C",
+                "weights": "0.5 |---| 0.6 |---| 0.7",
             },
         )
         logging.info(response.json)
@@ -445,6 +501,19 @@ class TestAPIEndpoint:
             query_string={
                 "titles": "T |---| U |---| V",
                 "authors": "A |---|   |---| C",
+                "weights": "0.5 |---| 0.6 |---| 0.7",
+            },
+        )
+        logging.info(response.json)
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json is not None and "message" in response.json
+
+        response = client.get(
+            url,
+            query_string={
+                "titles": "T |---| U |---| V",
+                "authors": "A |---| B |---| C",
+                "weights": "0.5 |---|  |---| 0.7",
             },
         )
         logging.info(response.json)
@@ -456,6 +525,7 @@ class TestAPIEndpoint:
             query_string={
                 "titles": "T |---| U |---|",
                 "authors": "A |---| B |---| C",
+                "authors": "0.5 |---| 0.6 |---| 0.7",
             },
         )
         logging.info(response.json)
@@ -469,6 +539,7 @@ class TestAPIEndpoint:
         query_string_good = {
             "titles": "T |---| U |---| V",
             "authors": "A |---| B |---| C",
+            "weights": "0.5 |---| 0.6 |---| 0.7",
         }
 
         # Test no choices from ChatGPT -> fail
@@ -564,6 +635,7 @@ class TestAPIEndpoint:
                 query_string={
                     "titles": "T |---| U |---| V |---|W|---|E",
                     "authors": "A |---| B |---| C |---|D|---|E",
+                    "weights": "0.1 |---| 0.2 |---| 0.3 |---|0.4|---|0.5",
                 },
             )
             logging.info(response.json)
@@ -575,6 +647,7 @@ class TestAPIEndpoint:
                 query_string={
                     "titles": "T|---asdfi.g,lp E",  # no separator -> 1 element
                     "authors": "A,jasdf|--- E",
+                    "weights": "0.5",
                 },
             )
             logging.info(response.json)

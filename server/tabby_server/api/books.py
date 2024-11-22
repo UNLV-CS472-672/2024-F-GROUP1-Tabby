@@ -2,6 +2,7 @@ from dataclasses import asdict
 from functools import cache
 from io import BytesIO
 import logging
+import math
 from PIL import Image
 import PIL
 from flask import Blueprint, request
@@ -189,6 +190,8 @@ def books_recommendations() -> tuple[dict, HTTPStatus]:
             separated by |---|
         authors: List with each element being the author(s) of each book, each
             separated by |---|
+        weights: List of numbers corresponding to how heavily weighed is each
+            book, separated by |---|. Each number is from 0 to 1.
     """
 
     # Titles and authors are separated by |---| because they might contain
@@ -205,6 +208,11 @@ def books_recommendations() -> tuple[dict, HTTPStatus]:
         return {
             "message": "Must specify 'authors' as a non-empty query parameter."
         }, HTTPStatus.BAD_REQUEST
+    weights_str = request.args.get("weights")
+    if not weights_str:
+        return {
+            "message": "Must specify 'weights' as a non-empty query parameter."
+        }, HTTPStatus.BAD_REQUEST
 
     # Extract each title and author
     titles_list = [t.strip() for t in titles_str.split("|---|")]
@@ -218,16 +226,30 @@ def books_recommendations() -> tuple[dict, HTTPStatus]:
             "message": ("'authors' cannot have an empty element.")
         }, HTTPStatus.BAD_REQUEST
 
+    # Extract each weight
+    weights_list = []
+    for i, wstr in enumerate(weights_str.split("|---|")):
+        wstr = wstr.strip()
+        try:
+            w = float(wstr)
+            if not (0.0 <= w <= 1.0):
+                return {
+                    "message": (f"Element {i} at 'weights' is not in [0, 1].")
+                }, HTTPStatus.BAD_REQUEST
+            weights_list.append(w)
+        except ValueError:
+            return {
+                "message": (f"Element {i} at 'weights' is not a number.")
+            }, HTTPStatus.BAD_REQUEST
+
     # If not equal-length lists, then return error
-    if len(titles_list) != len(authors_list):
+    if not (len(titles_list) == len(authors_list) == len(weights_list)):
         return {
-            "message": (
-                "Both 'authors' and 'titles' lists must be equal in length."
-            )
+            "message": "All lists must be equal in length."
         }, HTTPStatus.BAD_REQUEST
 
     # Get tags
-    tags_list = tags.get_tags(titles_list, authors_list)
+    tags_list = tags.get_tags(titles_list, authors_list, weights_list)
     if not tags_list:  # if empty, return error
         return {
             "message": "Unable to get tags from the given books."

@@ -27,9 +27,11 @@ _SYSTEM_MESSAGE: str = f"""\
 You are a model which accepts a list of titles and authors. Using your knowledge of natural language and the internet, you will give a list of tags which generalizes the set of books. These tags will be used in a search query to find similar books.
 
 In the input, you will accept 3 or more lines of text. Conditions:
-- Each line is the format of "TITLE {SEPARATOR} AUTHOR"
+- Each line is the format of "TITLE |---| AUTHOR |---| WEIGHT"
+- Each weight is a number between 0 and 1.
+- A weight of 0 means that related tags should NOT be included, while a weight of 10 means its tags should be heavily weighed.
 
-You will output up to {_TAG_COUNT} tags, each on separate lines. Conditions:
+You will output {_TAG_COUNT} tags, each on separate lines. Conditions:
 - YOU MUST STRICTLY FOLLOW THIS FORMAT.
 - Do not bulletpoint or number lines.
 - These tags represent the best tags for the set.
@@ -37,17 +39,22 @@ You will output up to {_TAG_COUNT} tags, each on separate lines. Conditions:
 """  # noqa: E501
 
 
-def get_tags(titles: list[str], authors: list[str]) -> list[str]:
+def get_tags(
+    titles: list[str], authors: list[str], weights: list[float]
+) -> list[str]:
     """Generates a list of tags generalizing the given set of books.
 
     Args:
-        books: List of books to use.
+        titles: List of titles.
+        authors: List with each element being an author or multiple authors
+            separated by commas.
+        weights: List of weights for each book.
     Returns:
         List of strings, representing each tag. Empty if failed.
     """
 
     # Create messages list to send as input
-    input_message = get_input_message(titles, authors)
+    input_message = get_input_message(titles, authors, weights)
     messages = [
         {"role": "system", "content": _SYSTEM_MESSAGE},
         {"role": "user", "content": input_message},
@@ -85,17 +92,22 @@ def get_tags(titles: list[str], authors: list[str]) -> list[str]:
     return tags
 
 
-def get_input_message(titles: list[str], authors: list[str]) -> str:
+def get_input_message(
+    titles: list[str], authors: list[str], weights: list[float]
+) -> str:
     """Generates the ChatGPT input message for the list of books.
 
     Args:
-        books: List of books to use.
+        titles: List of titles.
+        authors: List with each element being an author or multiple authors
+            separated by commas.
+        weights: List of weights for each book.
     Returns:
         Input message.
     """
 
     lines = []
-    for title, author in zip(titles, authors):
-        lines.append(f"{title} {SEPARATOR} {authors}")
+    for t, a, w in zip(titles, authors, weights):
+        lines.append(f"{t} {SEPARATOR} {a} {SEPARATOR} {w}")
 
     return "\n".join(lines)
