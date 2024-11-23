@@ -1,4 +1,4 @@
-from __init__ import app
+from tabby_server import app
 import os
 
 
