@@ -1,25 +1,31 @@
 import React, { useState } from 'react';
-import { Modal, Pressable, Text, FlatList, View } from 'react-native';
+import { Modal, Pressable, Text, FlatList, View, Switch } from 'react-native';
 import { Book } from '@/types/book';
 import { Checkbox } from 'expo-checkbox';
 
-interface AddBooksToCategoryModalProps {
+interface AddBooksOrMoveBooksToCategoryModalProps {
     visible: boolean;
     onClose: () => void;
     booksToAdd: Book[];
     categories: string[]; // Categories passed as props
-    onConfirm: (categoriesSelected: string[]) => Promise<void>; // Async success handler
+    onConfirmAddBooks: (categoriesSelected: string[]) => Promise<void>; // Async success handler for adding books 
+    onConfirmMoveBooks?: (categoriesSelected: string[]) => Promise<void>; // Async success handler for adding books 
 }
 
-const AddBooksToCategoryModal: React.FC<AddBooksToCategoryModalProps> = ({
+const AddBooksOrMoveBooksToCategoryModal: React.FC<AddBooksOrMoveBooksToCategoryModalProps> = ({
     visible,
     onClose,
     booksToAdd,
     categories,
-    onConfirm,
+    onConfirmAddBooks,
+    onConfirmMoveBooks,
 }) => {
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [errorMessage, setErrorMessage] = useState<string>("");
+    // checking if possible to move books
+    const isPossibleToMoveBooks = onConfirmMoveBooks !== undefined;
+    // true means will be adding books false means will be moving books by default will set to adding books
+    const [addOrMoveBooks, setAddOrMoveBooks] = useState(true);
 
     // Toggle selection of categories
     const toggleCategorySelection = (category: string) => {
@@ -46,12 +52,38 @@ const AddBooksToCategoryModal: React.FC<AddBooksToCategoryModalProps> = ({
 
         try {
             // Call onConfirm with selected categories and books to add
-            await onConfirm(selectedCategories);
+            if (addOrMoveBooks) {
+                await onConfirmAddBooks(selectedCategories);
+            }
+            // otherwise will move books instead 
+            else if (isPossibleToMoveBooks) {
+                await onConfirmMoveBooks(selectedCategories)
+            } else {
+                console.error("should not happen")
+            }
             setSelectedCategories([]); // Reset selections after success
         } catch (error) {
             console.error('Error adding books to categories:', error);
         }
     };
+
+    const addOrMoveMessage = () => {
+        if (addOrMoveBooks) {
+            return "Select one or more categories to add the selected books to:"
+        } else {
+            return "Select one or more categories to move the selected books to:"
+        }
+    }
+
+    const AddOrMoveSwitch = () => {
+        return (<View className='flex-row mb-3'>
+            <Text className='text-black'>{addOrMoveBooks ? "Add Books" : "Move Books"}</Text>
+            <Switch
+                value={addOrMoveBooks}
+                onValueChange={(value) => setAddOrMoveBooks(value)}
+            />
+        </View>)
+    }
 
     return (
         <Modal
@@ -63,9 +95,15 @@ const AddBooksToCategoryModal: React.FC<AddBooksToCategoryModalProps> = ({
             <Pressable className='flex-1' onPress={onClose}></Pressable>
 
             <View className="p-4 m-4 bg-white rounded-lg mx-auto w-96">
-                <Text className="text-lg text-black font-bold mb-4">
-                    Select one or more categories to add the selected books to:
-                </Text>
+                <View className="">
+                    {/* only render switch if possible to move books*/}
+                    {isPossibleToMoveBooks && (AddOrMoveSwitch())}
+
+                    <Text className="text-lg text-black font-bold mb-4">
+                        {isPossibleToMoveBooks ? (addOrMoveMessage()) : "Select one or more categories to add the selected books to:"}
+                    </Text>
+                </View>
+
                 {/* Category selection */}
                 <FlatList
                     className="max-h-52"
@@ -127,4 +165,4 @@ const AddBooksToCategoryModal: React.FC<AddBooksToCategoryModalProps> = ({
     );
 };
 
-export default AddBooksToCategoryModal;
+export default AddBooksOrMoveBooksToCategoryModal;

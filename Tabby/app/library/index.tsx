@@ -9,7 +9,7 @@ import { Category } from "@/types/category";
 import { SearchBar } from "@rneui/themed";
 import { useEffect } from "react";
 import SelectedMenu from "@/components/categories/SelectedMenu";
-import { getAllCategories, addCategory, deleteCategory, updateCategory, getAllUserBooksByCategory, updateMultipleUserBooksCategory, deleteAllUserBooksByCategory } from "@/database/databaseOperations";
+import { getAllCategories, addCategory, deleteCategory, updateCategory, getAllUserBooksByCategory, updateMultipleUserBooksToHaveCategoryPassed, deleteAllUserBooksByCategory } from "@/database/databaseOperations";
 import PlusIcon from "@/assets/menu-icons/plus-icon.svg";
 
 const Categories = () => {
@@ -174,7 +174,7 @@ const Categories = () => {
             const userBooksWithOldCategory = await getAllUserBooksByCategory(oldName);
             // update all user books with new category name only if there are user books with old category name
             if (userBooksWithOldCategory) {
-              const result = await updateMultipleUserBooksCategory(userBooksWithOldCategory, newUniqueName);
+              const result = await updateMultipleUserBooksToHaveCategoryPassed(userBooksWithOldCategory, newUniqueName);
               { result ? (console.log("User books updated successfully with new category name")) : (console.log("Error updating user books with new category name")) }
             }
 

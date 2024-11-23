@@ -54,7 +54,7 @@ export const addUserBook = async (book: Book): Promise<Book | null> => {
 export const addMultipleUserBooksWithCategoryName = async (userBooks: Book[], category: string): Promise<Boolean> => {
     try {
         for (const book of userBooks) {
-            book.category = category;
+            const updatedCategory = category;
             // generate unique id
             const id = uuidv4();
             await (await db).runAsync(
@@ -70,7 +70,7 @@ export const addMultipleUserBooksWithCategoryName = async (userBooks: Book[], ca
                     book.rating || null,
                     book.genres || null,
                     book.isFavorite ? 1 : 0,
-                    book.category || null,
+                    updatedCategory || null,
                     book.publisher || null,
                     book.publishedDate || null,
                     book.pageCount || null,
@@ -153,7 +153,7 @@ export const updateUserBook = async (book: Book): Promise<boolean> => {
 };
 
 // update an array of user books to have this category
-export const updateMultipleUserBooksCategory = async (userBooks: Book[], category: string): Promise<boolean> => {
+export const updateMultipleUserBooksToHaveCategoryPassed = async (userBooks: Book[], category: string): Promise<boolean> => {
     try {
         for (const book of userBooks) {
             const result = await (await db).runAsync(

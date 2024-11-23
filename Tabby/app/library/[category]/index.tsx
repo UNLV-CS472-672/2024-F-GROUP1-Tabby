@@ -5,10 +5,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import FavoriteButtonIcon from '@/components/FavoriteButtonIcon';
 import { SearchBar } from '@rneui/themed';
 import { useLocalSearchParams } from 'expo-router';
-import { getAllUserBooksByCategory, addUserBook, updateUserBook, getUserBookById } from "@/database/databaseOperations";
+import { getAllUserBooksByCategory, addUserBook, updateUserBook, getUserBookById, updateMultipleUserBooksToHaveCategoryPassed, addMultipleUserBooksWithCategoryName } from "@/database/databaseOperations";
 import { Book } from "@/types/book";
 import PlusIcon from "@/assets/menu-icons/plus-icon.svg";
+import DeleteIcon from "@/assets/menu-icons/delete-icon.svg";
+import AddSquareIcon from "@/assets/menu-icons/add-square-icon.svg"
+import CancelIcon from "@/assets/menu-icons/cancel-icon.svg";
+import DeleteBooksModal from '@/components/DeleteBooksModal';
+import AddBooksOrMoveBooksToCategoryModal from '@/components/AddBooksOrMoveBooksToCategoryModal';
 
+type SelectableBook = {
+    book: Book,
+    isSelected: boolean
+}
 
 const defaultBooks: Book[] = [
     {
@@ -24,10 +33,15 @@ const defaultBooks: Book[] = [
     }
 ]
 
+const defaultSelectableBooks: SelectableBook[] = defaultBooks.map((currentBook) => ({ book: currentBook, isSelected: false }));
+
 const CategoryPage: React.FC = () => {
     const { category } = useLocalSearchParams();
     console.log("Category:", category);
+    const [selectableBooks, setSelectableBooks] = useState<SelectableBook[]>(defaultSelectableBooks);
+    const [isAddingOrMovingBookModalVisible, setIsAddingOrMovingBookModalVisible] = useState(false);
     const [books, setBooks] = useState<Book[]>(defaultBooks);
+    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false)
 
     // will fetch books from database on mount
     useEffect(() => {
@@ -39,7 +53,7 @@ const CategoryPage: React.FC = () => {
                 const initialBooks = await getAllUserBooksByCategory(category as string);
                 // check if initialBooks is an array of books
                 if (Array.isArray(initialBooks)) {
-                    setBooks(initialBooks);
+                    setSelectableBooks(initialBooks.map((currentBook) => ({ book: currentBook, isSelected: false })))
                 }
 
             } catch (error) {
@@ -83,32 +97,33 @@ const CategoryPage: React.FC = () => {
             return;
         }
 
-        setBooks((prevBooks) =>
-            prevBooks?.map((book) =>
-                book.id === bookId
-                    ? { ...book, isFavorite: !book.isFavorite }
-                    : book
-            )
-        );
+        const getBookObjectWithTogglingFavorite = (tempBookObject: Book) => {
+            const favoriteStatus = tempBookObject.isFavorite || false
+            return { ...tempBookObject, isFavorite: !favoriteStatus }
+        }
+
+        setSelectableBooks((prevSelectableBooks) => prevSelectableBooks.map((currentSelectableBook) =>
+            currentSelectableBook.book.id === bookId ? { book: getBookObjectWithTogglingFavorite(currentSelectableBook.book), isSelected: false } : currentSelectableBook))
+
+
     };
 
-    const renderBookButton = (book: { id: string; isFavorite: boolean }) => (
-        <Pressable onPress={() => handleFavoritePress(book.id)} className="ml-4">
-            <FavoriteButtonIcon isFavorite={book.isFavorite} />
+    const renderBookButton = (currentSelectableBook: SelectableBook) => (
+        <Pressable onPress={() => handleFavoritePress(currentSelectableBook.book.id)} className="ml-4">
+            <FavoriteButtonIcon isFavorite={currentSelectableBook.book.isFavorite || false} />
         </Pressable>
     );
 
-    const renderItem = ({ item }: { item: Book }) => {
+    const renderItem = ({ item }: { item: SelectableBook }) => {
         // check if book array has the default book if it does do not render anything meaning category has no books yet
-        if (item.id === "default") {
+        if (item.book.id === "default") {
             return (null);
         }
-        if (search === "" || item.title.toLowerCase().includes(search.toLowerCase())) {
-            const partialBookObj = { id: item.id, isFavorite: item.isFavorite || false };
+        if (search === "" || item.book.title.toLowerCase().includes(search.toLowerCase())) {
             return (
                 <BookPreview
-                    book={item}
-                    button={renderBookButton(partialBookObj)}
+                    book={item.book}
+                    button={renderBookButton(item)}
                 />
             );
         }
@@ -121,7 +136,7 @@ const CategoryPage: React.FC = () => {
 
     const handleAddCustomBook = async () => {
         const newCustomBookDataThatWillBeAdded: Book = {
-            id: (books.length + 1).toString(),
+            id: (selectableBooks.length + 1).toString(),
             title: newCustomBook.title,
             author: newCustomBook.author,
             summary: newCustomBook.summary,
@@ -141,7 +156,7 @@ const CategoryPage: React.FC = () => {
             return;
         }
         // add new book to books has to be done after adding to database as the book object that is returned from database has the proper uuid
-        setBooks([...books, resultOfAddingCustomBook]);
+        setSelectableBooks([...selectableBooks, { book: resultOfAddingCustomBook, isSelected: false }])
         // reset new custom book state
         setNewCustomBook({ title: '', author: '', summary: '', excerpt: '', notes: '', pageCount: 0 });
         // closing modal
@@ -165,8 +180,8 @@ const CategoryPage: React.FC = () => {
 
 
             <FlatList
-                data={books}
-                keyExtractor={(item) => item.id}
+                data={selectableBooks}
+                keyExtractor={(item) => item.book.id}
                 renderItem={renderItem}
             />
 
