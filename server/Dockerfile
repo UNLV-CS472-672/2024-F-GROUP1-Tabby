@@ -7,11 +7,8 @@ RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Poetry (the official way)
-RUN curl -sSL https://install.python-poetry.org | python3 -
-
-# Add Poetry to the PATH
-ENV PATH="/root/.local/bin:$PATH"
+# Install Poetry using pip
+RUN pip install --no-cache-dir poetry
 
 # Set working directory for the container
 WORKDIR /app
