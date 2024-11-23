@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { FlatList, Pressable, Modal, TextInput, View, Text } from 'react-native';
+import { FlatList, Pressable, Modal, TextInput, View, Text, Alert } from 'react-native';
 import BookPreview from '@/components/BookPreview';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FavoriteButtonIcon from '@/components/FavoriteButtonIcon';
 import { SearchBar } from '@rneui/themed';
 import { useLocalSearchParams } from 'expo-router';
-import { getAllUserBooksByCategory, addUserBook, updateUserBook, getUserBookById, updateMultipleUserBooksToHaveCategoryPassed, addMultipleUserBooksWithCategoryName } from "@/database/databaseOperations";
+import { getAllUserBooksByCategory, addUserBook, updateUserBook, getUserBookById, updateMultipleUserBooksToHaveCategoryPassed, addMultipleUserBooksWithCategoryName, deleteMultipleUserBooksByIds, getAllCategories } from "@/database/databaseOperations";
 import { Book } from "@/types/book";
 import PlusIcon from "@/assets/menu-icons/plus-icon.svg";
 import DeleteIcon from "@/assets/menu-icons/delete-icon.svg";
@@ -35,6 +35,9 @@ const defaultBooks: Book[] = [
 
 const defaultSelectableBooks: SelectableBook[] = defaultBooks.map((currentBook) => ({ book: currentBook, isSelected: false }));
 
+const size = 36;
+
+
 const CategoryPage: React.FC = () => {
     const { category } = useLocalSearchParams();
     console.log("Category:", category);
@@ -42,6 +45,30 @@ const CategoryPage: React.FC = () => {
     const [isAddingOrMovingBookModalVisible, setIsAddingOrMovingBookModalVisible] = useState(false);
     const [books, setBooks] = useState<Book[]>(defaultBooks);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false)
+    const [categories, setCategories] = useState<string[]>([])
+
+    // function to check if any books are selected
+    const areAnyBooksSelected = () => {
+        return selectableBooks.some((book) => book.isSelected);
+    };
+
+    // get all selectable books that are selected
+    const getSelectedSelectableBooks = () => {
+        return selectableBooks.filter((currentSelectableBook) => currentSelectableBook.isSelected);
+    };
+
+    // function to get all selected book ids
+    const getAllSelectedBookIds = () => {
+        return selectableBooks
+            .filter((book) => book.isSelected)
+            .map((book) => book.book.id);
+    };
+
+
+    // get all unselected Selectable book objects
+    const getUnselectedSelectableBooks = () => {
+        return selectableBooks.filter((currentSelectableBook) => !currentSelectableBook.isSelected);
+    };
 
     // will fetch books from database on mount
     useEffect(() => {
@@ -50,7 +77,16 @@ const CategoryPage: React.FC = () => {
                 if (!category) {
                     throw new Error("No category found");
                 }
+                // getting initial books and categories 
                 const initialBooks = await getAllUserBooksByCategory(category as string);
+                const allCategories = await getAllCategories()
+                if (!allCategories) {
+                    throw new Error("No categories in db");
+                }
+                // setting categories 
+                const allCategoriesExceptCurrentCategory = allCategories.filter((currentCategory) => currentCategory.name !== (category as string))
+                setCategories(allCategoriesExceptCurrentCategory.map((currentCategory) => currentCategory.name))
+
                 // check if initialBooks is an array of books
                 if (Array.isArray(initialBooks)) {
                     setSelectableBooks(initialBooks.map((currentBook) => ({ book: currentBook, isSelected: false })))
@@ -108,6 +144,95 @@ const CategoryPage: React.FC = () => {
 
     };
 
+    // handle adding selected books to categories
+    const handleAddSelectedBooksToCategories = async (categories: string[]) => {
+        const selectedBookObjects = getBookObjectsFromSelectableBooksPassed(getSelectedSelectableBooks());
+        let wasAbleToAddBooksToAllCategories = true;
+        console.log("selected book objects: ", selectedBookObjects);
+
+
+
+        // for each category add the selected books
+        for (const category of categories) {
+            const resultOfAddingBooksToCurrentCategory = await addMultipleUserBooksWithCategoryName(selectedBookObjects, category);
+            if (!resultOfAddingBooksToCurrentCategory) {
+                console.error("Failed to add books to current category: ", category);
+                wasAbleToAddBooksToAllCategories = false;
+            } else {
+                console.log("Added books to category: ", category);
+            }
+        }
+
+        if (wasAbleToAddBooksToAllCategories) {
+            console.log("Added selected books to all categories successfully");
+
+
+            //reset local state of selectable books 
+            deselectAllBooks()
+            setIsAddingOrMovingBookModalVisible(false)
+
+        } else {
+            console.error("Failed to add selected books to all categories");
+        }
+
+
+
+    };
+
+    // handle moving selected books to categories 
+    const handleMovingSelectedBooksToCategories = async (categories: string[]) => {
+        const selectedBookObjects = getBookObjectsFromSelectableBooksPassed(getSelectedSelectableBooks());
+        let wasAbleToMoveBooksToAllCategories = true;
+        console.log("selected book objects: ", selectedBookObjects);
+
+
+
+        // for each category add the selected books
+        for (const category of categories) {
+            const resultOfMovingBooksToCurrentCategory = await updateMultipleUserBooksToHaveCategoryPassed(selectedBookObjects, category);
+            if (!resultOfMovingBooksToCurrentCategory) {
+                console.error("Failed to move books to current category: ", category);
+                wasAbleToMoveBooksToAllCategories = false;
+            } else {
+                console.log("Moved books to category: ", category);
+            }
+        }
+
+        if (wasAbleToMoveBooksToAllCategories) {
+            console.log("Moved selected books to all categories successfully");
+
+            // set local state of selectable books to not have the selected book objects as they have been moved from current category
+            const unselectedSelectableBooks = getUnselectedSelectableBooks();
+            console.log("Unselected books: ", unselectedSelectableBooks)
+            setSelectableBooks(getUnselectedSelectableBooks())
+
+
+            //reset local state of selectable books 
+            deselectAllBooks()
+            setIsAddingOrMovingBookModalVisible(false)
+        } else {
+            console.error("Failed to add selected books to all categories");
+        }
+
+    };
+
+    const handleShowAddOrMoveBooksModal = () => {
+        if (categories.length === 0) {
+            Alert.alert("No other categories to move or add books to!")
+
+        } else {
+            setIsAddingOrMovingBookModalVisible(true)
+        }
+    }
+
+
+
+    // get book objects array from selectableBooks array
+    const getBookObjectsFromSelectableBooksPassed = (SelectableBooks: SelectableBook[]) => {
+        return SelectableBooks.map((currentSelectableBook) => currentSelectableBook.book);
+    }
+
+
     const renderBookButton = (currentSelectableBook: SelectableBook) => (
         <Pressable onPress={() => handleFavoritePress(currentSelectableBook.book.id)} className="ml-4">
             <FavoriteButtonIcon isFavorite={currentSelectableBook.book.isFavorite || false} />
@@ -124,6 +249,8 @@ const CategoryPage: React.FC = () => {
                 <BookPreview
                     book={item.book}
                     button={renderBookButton(item)}
+                    toggleSelected={toggleSelectedBook}
+                    selectedBooks={getAllSelectedBookIds()}
                 />
             );
         }
@@ -133,6 +260,42 @@ const CategoryPage: React.FC = () => {
     const updateSearch = (search: string) => {
         setSearch(search);
     };
+
+    const toggleSelectedBook = (bookId: string) => {
+        console.log(`Toggling selected book: ${bookId}`);
+        setSelectableBooks((prevSelectableBooks) =>
+            prevSelectableBooks.map((currentSelectableBook) =>
+                currentSelectableBook.book.id === bookId
+                    ? { ...currentSelectableBook, isSelected: !currentSelectableBook.isSelected } // Toggle selected status
+                    : currentSelectableBook
+            )
+        );
+
+    };
+
+
+    // set all books to be deselected
+    const deselectAllBooks = () => {
+        setSelectableBooks((prevSelectableBooks) =>
+            prevSelectableBooks.map((currentSelectableBook) => ({ ...currentSelectableBook, isSelected: false }))
+        );
+    };
+
+    // delete selected books
+    const deleteSelectedBooks = async () => {
+        const selectedBookIds = getAllSelectedBookIds();
+        const unselectedSelectableBooks = getUnselectedSelectableBooks();
+        const result = await deleteMultipleUserBooksByIds(selectedBookIds);
+        if (result) {
+            console.log("deleted all user books that were selected");
+            setSelectableBooks(unselectedSelectableBooks);
+            setIsDeleteModalVisible(false);
+        } else {
+            console.error("Failed to delete user books that were selected")
+        }
+
+    };
+
 
     const handleAddCustomBook = async () => {
         const newCustomBookDataThatWillBeAdded: Book = {
@@ -178,12 +341,66 @@ const CategoryPage: React.FC = () => {
                 </Pressable>
             </View>
 
+            <View className='flex-1'>
+                <FlatList
+                    data={selectableBooks}
+                    keyExtractor={(item) => item.book.id}
+                    renderItem={renderItem}
+                />
+            </View>
 
-            <FlatList
-                data={selectableBooks}
-                keyExtractor={(item) => item.book.id}
-                renderItem={renderItem}
+
+            {areAnyBooksSelected() && (
+
+                <View className="flex-row justify-around bg-[#161f2b] w-full border-t border-blue-500">
+                    <View className="">
+                        <Pressable className="flex-col items-center" onPress={() => setIsDeleteModalVisible(true)}>
+                            <DeleteIcon height={size} width={size} />
+                            <Text className="text-white text-sm">Delete </Text>
+                        </Pressable>
+                    </View>
+
+                    <View>
+                        <Pressable className="flex-col items-center" onPress={() => handleShowAddOrMoveBooksModal()}>
+                            <AddSquareIcon height={size} width={size} />
+                            <Text className="text-white text-sm">Add</Text>
+                        </Pressable>
+                    </View>
+
+                    <View>
+                        <Pressable className="flex-col items-center" onPress={() => deselectAllBooks()}>
+                            <CancelIcon height={size} width={size} />
+                            <Text className="text-white text-sm">Cancel</Text>
+
+                        </Pressable>
+                    </View>
+
+                </View>
+
+            )}
+
+
+            {/* Delete Books Modal */}
+            <DeleteBooksModal
+                visible={isDeleteModalVisible}
+                onClose={() => setIsDeleteModalVisible(false)}
+                booksToDelete={getBookObjectsFromSelectableBooksPassed(getSelectedSelectableBooks())}
+                onConfirm={deleteSelectedBooks}
             />
+
+            {/* Add Books to Category Modal */}
+            <AddBooksOrMoveBooksToCategoryModal
+                visible={isAddingOrMovingBookModalVisible}
+                onClose={() => setIsAddingOrMovingBookModalVisible(false)}
+                booksToAdd={getBookObjectsFromSelectableBooksPassed(getSelectedSelectableBooks())}
+                categories={categories}
+                onConfirmAddBooks={handleAddSelectedBooksToCategories}
+                onConfirmMoveBooks={handleMovingSelectedBooksToCategories}
+            />
+
+
+
+
 
             {/* Modal for adding custom book */}
             <Modal

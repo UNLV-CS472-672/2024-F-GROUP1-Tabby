@@ -90,6 +90,21 @@ export const addMultipleUserBooksWithCategoryName = async (userBooks: Book[], ca
 
 
 // Delete a user book by id
+export const deleteMultipleUserBooksByIds = async (ids: string[]): Promise<boolean> => {
+    try {
+        await (await db).runAsync(
+            `DELETE FROM userBooks WHERE id IN (${ids.map(() => '?').join(',')})`,
+            ids
+        );
+        console.log("user books deleted successfully by ids");
+        return true;
+    } catch (error) {
+        console.error("Error deleting user books by ids:", error);
+        return false;
+    }
+};
+
+// Delete a user book by id
 export const deleteUserBookById = async (id: string): Promise<boolean> => {
     try {
         await (await db).runAsync(

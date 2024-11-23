@@ -253,7 +253,7 @@ const Recommendations: React.FC = () => {
             setSelectableBooks(unselectedSelectableBooks);
             setIsDeleteModalVisible(false);
         } else {
-            alert("Failed to delete selected recommended books :`(");
+            console.error("Failed to delete recommended books that were selected")
         }
 
     };

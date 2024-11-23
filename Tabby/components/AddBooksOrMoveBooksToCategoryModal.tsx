@@ -27,6 +27,7 @@ const AddBooksOrMoveBooksToCategoryModal: React.FC<AddBooksOrMoveBooksToCategory
     // true means will be adding books false means will be moving books by default will set to adding books
     const [addOrMoveBooks, setAddOrMoveBooks] = useState(true);
 
+
     // Toggle selection of categories
     const toggleCategorySelection = (category: string) => {
         // Clear error message if there is one
