@@ -24,5 +24,8 @@ RUN poetry install --no-interaction --only main
 # Copy your app code
 COPY ./ /app
 
+# Enter the virtual environment
+RUN poetry shell
+
 # Set the command to run your application
-CMD gunicorn -b :$PORT tabby_server:app
+CMD [gunicorn -b :$PORT tabby_server:app]
