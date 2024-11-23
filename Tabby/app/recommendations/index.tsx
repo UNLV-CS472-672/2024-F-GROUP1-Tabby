@@ -177,13 +177,11 @@ const Recommendations: React.FC = () => {
                         // fetch books from the database again and set the books to have the updated uuids
                         const resultWithAddedBooks = await getAllRecommendedBooks();
                         if (Array.isArray(resultWithAddedBooks)) {
-                            setBooks(resultWithAddedBooks);
                             setSelectableBooks(resultWithAddedBooks.map((book) => ({ book, isSelected: false })));
                         }
                     }
                     // setting if initial books is not empty 
                     else {
-                        setBooks(initialBooks);
                         setSelectableBooks(initialBooks.map((book) => ({ book, isSelected: false })));
                     }
 
@@ -223,14 +221,6 @@ const Recommendations: React.FC = () => {
             return;
         }
 
-        // update local book state after updating db
-        setBooks((prevBooks) =>
-            prevBooks.map((book) =>
-                book.id === bookId
-                    ? { ...book, addToLibrary: !book.addToLibrary } // Toggle added to library status
-                    : book
-            )
-        );
         // update local selectable book state after updating db
         setSelectableBooks((prevSelectableBooks) =>
             prevSelectableBooks.map((currentSelectableBook) =>
