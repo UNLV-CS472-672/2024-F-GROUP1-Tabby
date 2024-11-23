@@ -2,6 +2,7 @@
 name = "tabby_server"
 version = "0.1.0"
 description = "Server for the Tabby app."
+package-mode = false
 authors = ["Ederic Oytas <edericoytas@gmail.com>"]
 readme = "README.md"
 

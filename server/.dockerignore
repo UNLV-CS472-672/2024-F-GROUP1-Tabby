@@ -57,6 +57,9 @@ htmlcov/
 nosetests.xml
 coverage.xml
 
+# Ignore all Test file directory
+tests/
+
 # Translations
 *.mo
 *.pot
