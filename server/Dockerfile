@@ -1,6 +1,10 @@
 # Use an official Python image from Docker Hub
 FROM python:3.12-slim
 
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    POETRY_VIRTUALENVS_CREATE=false
+
 # Install system dependencies including OpenCV's required libraries
 RUN apt-get update && apt-get install -y \
     libgl1-mesa-glx \
@@ -24,8 +28,6 @@ RUN poetry install --no-interaction --only main
 # Copy your app code
 COPY ./ /app
 
-# Enter the virtual environment
-RUN poetry shell
-
+EXPOSE 8000
 # Set the command to run your application
-CMD [gunicorn -b :$PORT tabby_server:app]
+CMD ["gunicorn", "-b", ":8000", "tabby_server:app"]
