@@ -10,6 +10,7 @@ import cv2 as cv
 from cv2.typing import MatLike
 import numpy as np
 from tabby_server.services import google_books
+from tabby_server.services import tags
 from ..vision import ocr
 from ..vision import extraction
 
@@ -175,3 +176,90 @@ def _get_result_dict(books: list[google_books.Book]) -> dict:
         "results": book_dicts,
         "resultsCount": results_count,
     }
+
+
+@subapp.route("/recommendations", methods=["GET"])
+def books_recommendations() -> tuple[dict, HTTPStatus]:
+    """Gets a list of recommendations for the given set of books.
+
+    The request must contain parameters for two parallel lists.
+
+    Required args:
+        titles: List with each element being the title of each book, each
+            separated by |---|
+        authors: List with each element being the author(s) of each book, each
+            separated by |---|
+        weights: List of numbers corresponding to how heavily weighed is each
+            book, separated by |---|. Each number is from 0 to 1.
+    """
+
+    # Titles and authors are separated by |---| because they might contain
+    # punctuation like commas, semicolons, etc.
+
+    # Check required args
+    titles_str = request.args.get("titles")
+    if not titles_str:
+        return {
+            "message": "Must specify 'titles' as a non-empty query parameter."
+        }, HTTPStatus.BAD_REQUEST
+    authors_str = request.args.get("authors")
+    if not authors_str:
+        return {
+            "message": "Must specify 'authors' as a non-empty query parameter."
+        }, HTTPStatus.BAD_REQUEST
+    weights_str = request.args.get("weights")
+    if not weights_str:
+        return {
+            "message": "Must specify 'weights' as a non-empty query parameter."
+        }, HTTPStatus.BAD_REQUEST
+
+    # Extract each title and author
+    titles_list = [t.strip() for t in titles_str.split("|---|")]
+    authors_list = [a.strip() for a in authors_str.split("|---|")]
+    if any(t == "" for t in titles_list):
+        return {
+            "message": ("'titles' cannot have an empty element.")
+        }, HTTPStatus.BAD_REQUEST
+    if any(a == "" for a in authors_list):
+        return {
+            "message": ("'authors' cannot have an empty element.")
+        }, HTTPStatus.BAD_REQUEST
+
+    # Extract each weight
+    weights_list = []
+    for i, wstr in enumerate(weights_str.split("|---|")):
+        wstr = wstr.strip()
+        try:
+            w = float(wstr)
+            if not (0.0 <= w <= 1.0):
+                return {
+                    "message": (f"Element {i} at 'weights' is not in [0, 1].")
+                }, HTTPStatus.BAD_REQUEST
+            weights_list.append(w)
+        except ValueError:
+            return {
+                "message": (f"Element {i} at 'weights' is not a number.")
+            }, HTTPStatus.BAD_REQUEST
+
+    # If not equal-length lists, then return error
+    if not (len(titles_list) == len(authors_list) == len(weights_list)):
+        return {
+            "message": "All lists must be equal in length."
+        }, HTTPStatus.BAD_REQUEST
+
+    # Get tags
+    tags_list = tags.get_tags(titles_list, authors_list, weights_list)
+    if not tags_list:  # if empty, return error
+        return {
+            "message": "Unable to get tags from the given books."
+        }, HTTPStatus.BAD_REQUEST
+
+    # Get related books using list of tags
+    books = google_books.request_volumes_get(phrase=", ".join(tags_list))
+
+    # Filter out books without ISBNs
+    books = [b for b in books if b.isbn]
+
+    # Wrap it up in another dictionary and send!
+    result = _get_result_dict(books)
+    return result, HTTPStatus.OK
