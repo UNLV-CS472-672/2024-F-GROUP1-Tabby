@@ -5,8 +5,7 @@
 FROM python:3.12-slim AS build
 
 ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    POETRY_VIRTUALENVS_CREATE=false
+    PYTHONDONTWRITEBYTECODE=1 
 
 # Install system dependencies including OpenCV's required libraries
 RUN apt-get update && apt-get install -y \
@@ -25,8 +24,8 @@ WORKDIR /app
 # Copy the poetry configuration files (pyproject.toml and poetry.lock)
 COPY pyproject.toml poetry.lock* /app/
 
-# Install Python dependencies
-RUN poetry install --no-interaction --only main
+# Install Python dependencies globally
+RUN poetry config virtualenvs.create false && poetry install --no-interaction --only main
 
 # Final build for production app
 FROM python:3.12-slim
