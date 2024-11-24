@@ -57,9 +57,6 @@ htmlcov/
 nosetests.xml
 coverage.xml
 
-# Ignore all Test file directory
-tests/
-
 # Translations
 *.mo
 *.pot
@@ -90,3 +87,11 @@ venv/
 
 # VS Code
 .vscode/
+
+# Ignore all Test file directory
+# and other custom project folders
+tests/
+samples/
+
+# Ignore any example_ folders
+example_*/
