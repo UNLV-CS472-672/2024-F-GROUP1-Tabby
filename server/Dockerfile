@@ -5,9 +5,10 @@
 FROM python:3.12-slim AS build
 
 ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 
+    PYTHONDONTWRITEBYTECODE=1 \
+    POETRY_VIRTUALENVS_CREATE=false
 
-# Install system dependencies including OpenCV's required libraries
+# Install system dependencies needed for OpenCV
 RUN apt-get update && apt-get install -y \
     libgl1-mesa-glx \
     libglib2.0-0 \
@@ -25,12 +26,12 @@ WORKDIR /app
 COPY pyproject.toml poetry.lock* /app/
 
 # Install Python dependencies globally
-RUN poetry config virtualenvs.create false && poetry install --no-interaction --only main
+RUN poetry install --no-interaction --only main
 
 # Final build for production app
 FROM python:3.12-slim
 
-# Install system dependencies including OpenCV's required libraries
+# Install system dependencies needed for OpenCV
 RUN apt-get update && apt-get install -y \
     libgl1-mesa-glx \
     libglib2.0-0 \
@@ -43,6 +44,7 @@ WORKDIR /app
 
 # Copy dependencies from build stage
 COPY --from=build /app /app
+COPY --from=build /root/.cache/pypoetry/ /root/.cache/pypoetry/
 
 # Copy app code to image
 COPY ./ /app
