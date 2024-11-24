@@ -113,6 +113,136 @@ This will run the linter checks, type checker, and unit tests on your local
 machine. This saves time from having Github Actions do the work through the
 workflow.
 
+# Server API Reference
+
+Here is a reference of the server's API. All endpoints return a response of the
+same format.
+
+## Response Format
+
+A success response from the server will result in a `200: OK` status, while
+bad requests result in a `400: BAD REQUEST` status.
+
+The body of both `200` and `400` responses are in JSON.
+
+A successful (`200`) response is in the following format:
+
+```
+{
+  message: string
+  results: [
+    {
+      // All string properties are replaced with "" if not given
+      authors: string         // separated by commas
+      excerpt: string
+      isbn: string            // guaranteed to be provided, ISBN 13
+      page_count: number      // -1 if not given
+      published_date: string  // YYYY-MM-DD
+      publisher: string
+      rating: number          // -1.0 if not given
+      summary: string
+      thumbnail: string
+      title: string
+    }
+  ]
+  resultsCount: string
+}
+```
+
+Here is an example result adapted from a real example:
+
+```json
+{
+    "message": "Found 2 books.",
+    "results": [
+        {
+            "authors": "Harper Lee",
+            "excerpt": "The explosion of racial hate and violence in a...",
+            "genres": "Fiction",
+            "isbn": "9780060194994",
+            "page_count": 350,  // -1 if not given
+            "published_date": "1999-11-03",
+            "publisher": "HarperCollins Christian Publishing",
+            "rating": 4,  // -1 if not given
+            "summary": "The explosion of racial hate and violence in a small Alabama town is viewed by a little girl whose father defends a Black man accused of rape",
+            "thumbnail": "http://books.google.com/books/content?id=ayJpGQeyxgkC&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
+            "title": "To Kill a Mockingbird 40th"
+        },
+        {
+            "authors": "Michael J. Meyer",
+            "excerpt": "In 1960, To Kill a Mockingbird was published t...",
+            "genres": "Literary Criticism",
+            "isbn": "9780810877238",
+            "page_count": 292,
+            "published_date": "2010-10-14",
+            "publisher": "Scarecrow Press",
+            "rating": 3.5,
+            "summary": "In 1960, To Kill a Mockingbird was published to critical acclaim. To commemorate To Kill a Mockingbird's 50th anniversary, Michael J. Meyer has assembled a collection of new essays that celebrate this enduring work of American literature. These essays approach the novel from educational, legal, social, and thematic perspectives. Harper Lee's only novel won the Pulitzer Prize and was transformed into a beloved film starring Gregory Peck as Atticus Finch. An American classic that frequently appears in middle school and high school curriculums, the novel has been subjected to criticism for its subject matter and language. Still relevant and meaningful, To Kill a Mockingbird has nonetheless been under-appreciated by many critics. There are few books that address Lee's novel's contribution to the American canon and still fewer that offer insights that can be used by teachers and by students. These essays suggest that author Harper Lee deserves more credit for skillfully shaping a masterpiece that not only addresses the problems of the 1930s but also helps its readers see the problems and prejudices the world faces today. Intended for high school and undergraduate usage, as well as for teachers planning to use To Kill a Mockingbird in their classrooms, this collection will be a valuable resource for all teachers of American literature.",
+            "thumbnail": "http://books.google.com/books/content?id=RyJtJZPX8jwC&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
+            "title": "Harper Lee's To Kill a Mockingbird"
+        }
+  ],
+  "resultsCount": 2
+}
+```
+
+A failed response (`400`) is in the following format:
+
+```
+{
+    message: string  // message attached to failure
+}
+```
+
+Responses where no results were found are not considered to be failed.
+
+## POST /books/scan_cover
+
+Scans the given image of a single book and returns the possible books it could
+be.
+
+Expects a request with a body that is in *binary*, which represents an image.
+The image can either be JPG or PNG.
+
+## POST /books/scan_shelf
+
+Scans the given image of a bookshelf and returns the books it thinks are in
+the image.
+
+Expects a request with a body that is in *binary*, which represents an image.
+The image can either be JPG or PNG.
+
+## GET /books/search
+
+Searches for a particular book under a set of criteria.
+
+Expects a request with *at least one* of the following parameters:
+
+- `phrase`:    Phrase to search with. Think of this as the Search Bar in Google.
+- `title`:     Title to search for.
+- `author`:    Author to search for.
+- `publisher`: Publisher to search for.
+- `subject`:   Subject to search for.
+- `isbn`:      ISBN to search for.
+
+## GET /books/recommendations
+
+Gets recommendations given a set of books.
+
+Expects a request with the following parameters:
+
+- `titles`: A list of titles, separated by `|---|`.
+- `authors`: A list, with each element being an author or multiple authors
+             separated by commas; each element is separated by `|---|`
+- `weights`: A list of numbers corresponding to how heavily weighed is each
+             book, separated by `|---|`. Each number is from 0 to 1.
+
+All lists are parallel arrays, so the first title corresponds with the
+first author(s) and first weight, the second title corresponds with the second
+author(s) and second weight, and so on.
+
+None of the elements can be blank.
+
 # Koyeb Deployment
 Koyeb is a web hosting service offering CPU and GPU instances. The current project will be using a GPU instance needed because the server will have to perform some intense processing for image and character recognition.
 

@@ -1,2 +1,2 @@
 # phrase is a required argument
-http://127.0.0.1:5000/books/search?phrase=To Kill a Mockingbird
+http://localhost:5000/books/search?phrase=To Kill a Mockingbird
