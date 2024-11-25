@@ -3,7 +3,7 @@ from typing import Any, Callable
 from unittest.mock import Mock
 import numpy as np
 import requests_mock
-from tabby_server.__main__ import app
+from tabby_server import app
 from flask.testing import FlaskClient
 from http import HTTPStatus
 import logging

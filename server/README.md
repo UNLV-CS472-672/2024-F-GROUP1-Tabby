@@ -113,7 +113,6 @@ This will run the linter checks, type checker, and unit tests on your local
 machine. This saves time from having Github Actions do the work through the
 workflow.
 
-
 # Server API Reference
 
 Here is a reference of the server's API. All endpoints return a response of the
@@ -243,3 +242,74 @@ first author(s) and first weight, the second title corresponds with the second
 author(s) and second weight, and so on.
 
 None of the elements can be blank.
+
+# Koyeb Deployment
+Koyeb is a web hosting service offering CPU and GPU instances. The current project will be using a GPU instance needed because the server will have to perform some intense processing for image and character recognition.
+
+![Koyeb Overview page](./../.github/assets/koyeb_overview.png)
+
+## Starting/Pausing the instance
+### Starting
+Starting an instance can be as simply as clicking the resume button after navigating to the app itself.
+
+![Koyeb Resume Button](./../.github/assets/koyeb_resume.png)
+
+Evidently, there has been a push in the repository and Koyeb is informing you to redeploy the instance. Doing this will also start the instance after a successful build and health check.
+
+### Stopping
+To stop the instance, navigate to the settings tab and scroll all the way to the bottom. There you will notice a button to pause or delete the app.
+
+![Koyeb Pause Button](./../.github/assets/koyeb_pause.png)
+
+❗IMPORTANT❗: Stop the instance when not in use because Koyeb charges every second including the build time and the cost adds up.
+
+## Instance settings
+There are a lot of settings that can be changed for the instance with many of them we do not need to worry about so I will describe only the relevant ones.
+
+![Koyeb Settings](./../.github/assets/koyeb_settings.png)
+
+### Service type
+What type of instance do we need? Should it have access to the internet or not.
+
+![Koyeb Service Type](./../.github/assets/koyeb_service_type.png)
+
+### Source
+Where should Koyeb go to find the source code? An option of using github repos or a Docker image file is avalible. Currently, it is using a forked version of the source code which is a "private" directory. We will have to change this to be the correct public repository later. Auto deploy should be avalible for both public and private repsitorys.
+
+![Koyeb Source Directory](./../.github/assets/koyeb_source.png)
+
+### Build
+This section specifies how Koyeb should build the project. 
+* __Build Command__: Will be the first command ran which should build all the dependencies for the project. 
+>__By default__, this build will run `pip -r requirements.txt`, override this to run any other bash commands. NOTE: Overriding and attempting to run `pip ...` would not work because pip is not a recognized command for some reason. 
+
+* __Run Command__: Will be the second command ran and will attempt to run the actual project.
+>__By default__, this will run whatever was provided in the 'Procfile' for the "web:" parameter. Override this to run any other bash command. 
+
+* __Work Directory__: Specifys the location of source directory. Changing this will affect where the build and run command is ran.
+>__By default__, the working directory is simply wherever the git repository is at. Override this to moving into any other nested directory. 
+
+![Koyeb Build](./../.github/assets/koyeb_build.png)
+
+### Environmental Variables
+If the project needs environmental variables, it would have to be set here. Evidently, our project does require some environmental variables in the form of API keys and each of them will have to be listed here.
+
+![Koyeb Environmental Variables](./../.github/assets/koyeb_EV.png)
+
+### Instances
+A few instances are offered with a majority of them being CPU instances. Notable, the free instance only allows for 2000MB of disk storage which apparently exceeds the size of the build for the project. Requiring an upgrade to another CPU instance so that it can be build properly. 
+
+![Koyeb Instances](./../.github/assets/koyeb_instances.png)
+
+### Regions
+Depending on the selected instance, different regions will become avalible. For this particular example, the region which would result in the least latency is Washington D.C so that will be the region we will be using for now. 
+
+![Koyeb Regions](./../.github/assets/koyeb_regions.png)
+
+### Scaling
+Depending on the selected instance, different options will become avalible for scaling; wheither it be fixed or autoscaled. Scaling will help with load balancing and prevent long wait times for the server to respond. 
+Currently, just one instance is sufficient for most tasks. 
+
+![Koyeb Instance Scaling](./../.github/assets/koyeb_instance.png)
+
+❗❗❗Once again, it is important to stop the instance if it is not in use to prevent accruing uneccessary cost. 
