@@ -312,4 +312,4 @@ Currently, just one instance is sufficient for most tasks.
 
 ![Koyeb Instance Scaling](./../.github/assets/koyeb_instance.png)
 
-❗❗❗Once again, it is important to stop the instance if it is not in use to prevent acruding uneccessary cost. 
+❗❗❗Once again, it is important to stop the instance if it is not in use to prevent accruing uneccessary cost. 
