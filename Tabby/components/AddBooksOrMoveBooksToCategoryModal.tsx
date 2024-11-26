@@ -77,8 +77,8 @@ const AddBooksOrMoveBooksToCategoryModal: React.FC<AddBooksOrMoveBooksToCategory
     }
 
     const AddOrMoveSwitch = () => {
-        return (<View className='flex-row mb-3'>
-            <Text className='text-black'>{addOrMoveBooks ? "Add Books" : "Move Books"}</Text>
+        return (<View className='flex-row mb-3 items-center'>
+            <Text className='text-black font-bold text-lg'>{addOrMoveBooks ? "Add Books:" : "Move Books:"}</Text>
             <Switch
                 value={addOrMoveBooks}
                 onValueChange={(value) => setAddOrMoveBooks(value)}
@@ -100,7 +100,7 @@ const AddBooksOrMoveBooksToCategoryModal: React.FC<AddBooksOrMoveBooksToCategory
                     {/* only render switch if possible to move books*/}
                     {isPossibleToMoveBooks && (AddOrMoveSwitch())}
 
-                    <Text className="text-lg text-black font-bold mb-4">
+                    <Text className="text-lg text-black font-semibold mb-4">
                         {isPossibleToMoveBooks ? (addOrMoveMessage()) : "Select one or more categories to add the selected books to:"}
                     </Text>
                 </View>
@@ -126,7 +126,7 @@ const AddBooksOrMoveBooksToCategoryModal: React.FC<AddBooksOrMoveBooksToCategory
 
                 {/* Display the list of books to be added */}
                 <Text className="font-semibold text-gray-800 mt-5 mb-2">
-                    Books to be added:
+                    {(addOrMoveBooks ? "Books to add:" : "Books to move:")}
                 </Text>
                 <FlatList
                     className="max-h-52"

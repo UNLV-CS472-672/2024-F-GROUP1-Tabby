@@ -26,13 +26,13 @@ const DeleteModal: React.FC<DeleteModalProps> = ({ visible, onClose, onConfirm }
                             <View className="flex-row justify-around">
                                 <Pressable
                                     onPress={onConfirm}
-                                    className="bg-red-500 p-2 rounded-md"
+                                    className="bg-red-500 px-4 py-2 rounded-md"
                                 >
                                     <Text className="text-center text-white">Delete</Text>
                                 </Pressable>
                                 <Pressable
                                     onPress={onClose}
-                                    className="bg-gray-300 p-2 rounded-md"
+                                    className="bg-gray-300 px-4 py-2 rounded-md"
                                 >
                                     <Text className="text-center text-black">Cancel</Text>
                                 </Pressable>
