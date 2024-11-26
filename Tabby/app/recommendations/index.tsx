@@ -44,7 +44,6 @@ const defaultBooks: Book[] = [
         publisher: "F. Scott Fitzgerald",
         publishedDate: "October 15, 1925",
         addToLibrary: false,
-        rating: 1,
     },
     {
         id: "2",
@@ -61,7 +60,7 @@ const defaultBooks: Book[] = [
         publishedDate: "October 15, 1949",
         image: "https://m.media-amazon.com/images/I/7180qjGSgDL._SL1360_.jpg",
         addToLibrary: false,
-        rating: 1,
+        rating: 0,
     },
 
     {
@@ -81,7 +80,7 @@ const defaultBooks: Book[] = [
         publisher: "F. Scott Fitzgerald",
         publishedDate: "October 15, 1925",
         addToLibrary: false,
-        rating: 1,
+        rating: 0,
     },
     {
         id: "4",
@@ -118,7 +117,7 @@ const defaultBooks: Book[] = [
         publisher: "F. Scott Fitzgerald",
         publishedDate: "October 15, 1925",
         addToLibrary: false,
-        rating: 1,
+        rating: 3,
     },
     {
         id: "6",
@@ -135,7 +134,7 @@ const defaultBooks: Book[] = [
         publishedDate: "October 15, 1949",
         image: "https://m.media-amazon.com/images/I/7180qjGSgDL._SL1360_.jpg",
         addToLibrary: false,
-        rating: 1,
+        rating: 5,
     },
 ];
 

@@ -245,7 +245,7 @@ const BookPage = () => {
                     </View>
 
                     <View className="pl-5 pt-5 flex justify-center">
-                        <Text className="text-lg text-white"> My Notes</Text>
+                        <Text className="text-lg text-white"> Notes</Text>
 
                         <ScrollView className="max-h-40 pl-1">
                             <Text className="text-sm text-white max-w-sm text-start">

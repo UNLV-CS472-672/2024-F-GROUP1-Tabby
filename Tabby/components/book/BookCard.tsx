@@ -26,7 +26,7 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
                     <Text className="text-lg font-bold text-white">{book.title}</Text>
                     <Text className="text-md text-white font-semibold italic"> By {book.author}</Text>
                     <Text className="mt-3 text-lg text-white">Rating</Text>
-                    <StarsRating rating={book.rating || 1} />
+                    <StarsRating rating={book.rating || 0} />
                 </View>
 
             </View>

@@ -67,7 +67,6 @@ const CategoryPage: React.FC = () => {
         isAddingOrMovingBookModalVisible,
         setIsAddingOrMovingBookModalVisible,
     ] = useState(false);
-    const [books, setBooks] = useState<Book[]>(defaultBooks);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [categories, setCategories] = useState<string[]>([]);
 
@@ -137,7 +136,7 @@ const CategoryPage: React.FC = () => {
         };
 
         fetchingBooksFromCategory();
-    }, []);
+    }, [category]);
 
     const [search, setSearch] = useState("");
     const [modalVisible, setModalVisible] = useState(false);
@@ -157,10 +156,8 @@ const CategoryPage: React.FC = () => {
             console.error("Failed to get user book");
             return;
         }
-        console.log("**page** User book: ", userBook), "**page**";
         // update user book
         const updatedUserBook = { ...userBook, isFavorite: !userBook.isFavorite };
-        console.log("**page** Updated user book: ", updatedUserBook), "**page**";
 
         const resultOfUpdatingUserBook = await updateUserBook(updatedUserBook);
         if (!resultOfUpdatingUserBook) {
