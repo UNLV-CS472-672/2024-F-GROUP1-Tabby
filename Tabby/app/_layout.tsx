@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 import { Slot } from 'expo-router';
 import { usePathname } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -7,6 +7,7 @@ import { SQLiteProvider } from 'expo-sqlite';
 import FooterNavBar from '@/components/FooterNavBar';
 import { styled } from 'nativewind';
 import { NativeWindStyleSheet } from "nativewind";
+import LoadingSpinner from '@/components/LoadingSpinner';
 import { migrateDbIfNeeded } from '@/database/migration';
 
 // Configure nativewind for web compatibility
@@ -22,9 +23,7 @@ const ContentContainer = styled(View, 'flex-grow');
 // Fallback component displayed while database initializes
 function Fallback() {
     return (
-        <View className='flex-1 justify-center items-center'>
-            <Text className='text-white'>Loading...</Text>
-        </View>
+        <LoadingSpinner />
     );
 }
 

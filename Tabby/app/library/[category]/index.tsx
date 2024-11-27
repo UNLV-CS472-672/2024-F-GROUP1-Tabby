@@ -6,6 +6,8 @@ import {
     View,
     Text,
     Alert,
+    TextInput,
+    Modal,
 } from "react-native";
 import BookPreview from "@/components/BookPreview";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -30,21 +32,49 @@ import CancelIcon from "@/assets/menu-icons/cancel-icon.svg";
 import DeleteBooksModal from "@/components/DeleteBooksModal";
 import AddBooksOrMoveBooksToCategoryModal from "@/components/AddBooksOrMoveBooksToCategoryModal";
 
-import AddCustomBookModal from "@/components/AddCustomBookModal";
 
 type SelectableBook = {
     book: Book;
     isSelected: boolean;
 };
 
-type CustomBook = {
+interface NewCustomBook {
     title: string;
     author: string;
     summary: string;
     excerpt: string;
+    pageCount: number | null;
     notes: string;
-    pageCount: number | null; // Updated type
+}
+
+type FieldData = {
+    key: string;
+    placeholder: string;
+    field: keyof NewCustomBook; // Ensures this matches the fields in NewCustomBook
+    isMultiline: boolean;
+    validation: (val: string | number | null) => boolean;
 };
+
+const data: FieldData[] = [
+    { key: "Add Title", placeholder: "title", field: "title", isMultiline: false, validation: (val) => typeof val === "string" && val.trim() !== "" },
+    { key: "Add Author", placeholder: "author", field: "author", isMultiline: false, validation: (val) => typeof val === "string" && val.trim() !== "" },
+    { key: "Add Summary", placeholder: "summary", field: "summary", isMultiline: true, validation: (val) => typeof val === "string" && val.trim() !== "" },
+    { key: "Add Excerpt", placeholder: "excerpt", field: "excerpt", isMultiline: true, validation: (val) => typeof val === "string" && val.trim() !== "" },
+    {
+        key: "Add Page Count", placeholder: "Page Count", field: "pageCount", isMultiline: false, validation: (val) => {
+            console.log("val for page count: ", val);
+            const numValue = Number(val);
+            // First, check if val is a number and not null
+            if (typeof numValue === "number" && !isNaN(numValue) && Number.isInteger(numValue)) {
+                console.log("val is a number");
+                return numValue > 0;  // Check if it's a positive number
+            }
+            console.log("val is not a number");
+            return false; // Return false if it's not a valid number
+        },
+    },
+    { key: "notes", placeholder: "Notes", field: "notes", isMultiline: true, validation: (val) => true } // Optional field, no validation required
+];
 
 
 const defaultBooks: Book[] = [
@@ -79,6 +109,55 @@ const CategoryPage: React.FC = () => {
     ] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [categories, setCategories] = useState<string[]>([]);
+
+    /* New custom book state for */
+    const [newCustomBook, setNewCustomBook] = useState<NewCustomBook>({
+        title: '',
+        author: '',
+        summary: '',
+        excerpt: '',
+        pageCount: null,
+        notes: ''
+    });
+
+    const [touchedInputFieldsForCustomBook, setTouchedInputFieldsForCustomBook] = useState<Record<string, boolean>>({}); // Track touched fields
+    const [errorsForCustomBookInputFields, setErrorsForCustomBookInputFields] = useState<any>({});
+    const handleInputChange = (field: keyof NewCustomBook, value: string) => {
+        setNewCustomBook((prevState) => ({ ...prevState, [field]: value }));
+        setTouchedInputFieldsForCustomBook((prevState) => ({ ...prevState, [field]: true })); // Mark field as touched
+    };
+
+    const validateInputFieldsForCustomBook = () => {
+        const newErrors = data.reduce((acc, item) => {
+            if (touchedInputFieldsForCustomBook[item.field]) { // Only validate if the field has been touched
+                const isValid = item.validation(newCustomBook[item.field]);
+                if (!isValid) {
+                    acc[item.field] = `${item.key} is required or invalid.`;
+                }
+            }
+            return acc;
+        }, {} as Record<string, string>);
+
+        console.log("new errors: ", newErrors);
+        console.log("new errors: ", newErrors);
+
+
+        setErrorsForCustomBookInputFields(newErrors);
+        return Object.keys(newErrors).length === 0; // Return true if no errors
+    };
+
+    // Confirm Button Press
+    const handleConfirmForAddingCustomBook = async () => {
+        if (validateInputFieldsForCustomBook()) {
+            // Proceed with adding the custom book
+            await handleAddCustomBook();
+        } else {
+            console.log("Validation failed");
+            Alert.alert("Validation failed");
+
+        }
+    };
+
 
     // function to check if any books are selected
     const areAnyBooksSelected = () => {
@@ -150,14 +229,6 @@ const CategoryPage: React.FC = () => {
 
     const [search, setSearch] = useState("");
     const [addCustomBookModalVisible, setAddCustomBookModalVisible] = useState(false);
-    const [newCustomBook, setNewCustomBook] = useState<CustomBook>({
-        title: "",
-        author: "",
-        summary: "",
-        excerpt: "",
-        notes: "",
-        pageCount: null,
-    });
 
     const handleFavoritePress = async (bookId: string) => {
         // get user book by id
@@ -365,8 +436,9 @@ const CategoryPage: React.FC = () => {
     };
 
     const handleAddCustomBook = async () => {
+        console.log("New custom book (submitted):", newCustomBook);
         const newCustomBookDataThatWillBeAdded: Book = {
-            id: (selectableBooks.length + 1).toString(),
+            id: (selectableBooks.length + 1).toString() + newCustomBook.title,
             title: newCustomBook.title,
             author: newCustomBook.author,
             summary: newCustomBook.summary,
@@ -385,22 +457,21 @@ const CategoryPage: React.FC = () => {
         );
         if (!resultOfAddingCustomBook) {
             console.error("Failed to add custom book");
-            return;
+            Alert.alert("Failed to add custom book");
+            return false;
         }
         // add new book to books has to be done after adding to database as the book object that is returned from database has the proper uuid
         setSelectableBooks([
             ...selectableBooks,
             { book: resultOfAddingCustomBook, isSelected: false },
         ]);
+        console.log("Added custom book to local state:", resultOfAddingCustomBook);
+        // resetting custom book if added 
+        setNewCustomBook({ title: '', author: '', summary: '', excerpt: '', pageCount: null, notes: '' });
+        Alert.alert("Custom book added successfully!");
         // reset new custom book state
-        setNewCustomBook({
-            title: "",
-            author: "",
-            summary: "",
-            excerpt: "",
-            notes: "",
-            pageCount: 0,
-        });
+        setAddCustomBookModalVisible(false);
+        return true;
     };
 
     return (
@@ -489,8 +560,65 @@ const CategoryPage: React.FC = () => {
                 onConfirmMoveBooks={handleMovingSelectedBooksToCategories}
             />
 
+            {/* Add Custom Book Modal */}
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={addCustomBookModalVisible}
+                onRequestClose={() => setAddCustomBookModalVisible(false)}
+            >
+                {/* close modal on background tap */}
+                <Pressable className="flex-1" onPress={() => setAddCustomBookModalVisible(false)}></Pressable>
+                <View className="flex-1 justify-center items-center">
+                    <View className="w-4/5 p-6 bg-white rounded-lg">
+                        <FlatList
+                            data={data}
+                            renderItem={({ item }) => (
+                                <View className="mb-4">
+                                    <Text className="text-lg font-medium mb-2">{item.key}</Text>
 
-            <AddCustomBookModal modalVisible={addCustomBookModalVisible} setModalVisible={setAddCustomBookModalVisible} newCustomBook={newCustomBook} setNewCustomBook={setNewCustomBook} handleAddCustomBook={handleAddCustomBook} />
+                                    <TextInput
+                                        placeholder={item.placeholder}
+                                        value={String(newCustomBook[item.field] ?? "")}  // Ensures it's a string
+                                        onChangeText={(text) => handleInputChange(item.field, text)}
+                                        className="border-b border-gray-300 p-2"
+                                        multiline={item.isMultiline}
+                                        numberOfLines={item.isMultiline ? 4 : 1}
+                                    />
+
+                                    {/* Show error only if the field is touched and invalid */}
+                                    {touchedInputFieldsForCustomBook[item.field] && errorsForCustomBookInputFields[item.field] && (
+                                        <Text className="text-red-500 text-xs">{errorsForCustomBookInputFields[item.field]}</Text>
+                                    )}
+                                </View>
+                            )}
+                            keyExtractor={(item) => item.key}
+                            className="max-h-52"
+                        />
+                        <View className="mt-4">
+                            <Pressable
+                                className="bg-blue-500 rounded p-2 mb-4"
+                                onPress={handleConfirmForAddingCustomBook}
+                            >
+                                <Text className="text-white text-center">Confirm</Text>
+                            </Pressable>
+                            <Pressable
+                                className="bg-red-500 rounded p-2"
+                                onPress={() => setAddCustomBookModalVisible(false)}
+                            >
+                                <Text className="text-white text-center">Cancel</Text>
+                            </Pressable>
+                        </View>
+                    </View>
+                </View>
+                {/* close modal on background tap */}
+                <Pressable className="flex-1" onPress={() => setAddCustomBookModalVisible(false)}></Pressable>
+            </Modal>
+
+
+
+
+
         </SafeAreaView>
     );
 };
