@@ -10,6 +10,9 @@ import AddButtonIcon from "@/components/AddButtonIcon";
 import DeleteIcon from "@/assets/menu-icons/delete-icon.svg";
 import DeleteBookModal from "@/components/book/DeleteBookModal";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import UpdateBookNotesModal from "@/components/book/UpdateBookNotesModal";
+import EditIcon from "@/assets/book/edit-pen-icon.svg"
+
 
 import {
     getRecommendedBookById,
@@ -38,6 +41,8 @@ const BookPage = () => {
     });
     const [categories, setCategories] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isUpdateBookNotesModalVisible, setIsUpdateNotesModalVisible] = useState(false);
+
 
     // Extract both category and book slugs
     const { book } = useLocalSearchParams();
@@ -130,6 +135,26 @@ const BookPage = () => {
         router.push("/recommendations");
     };
 
+    const handleUpdateNotes = async (newNotes: string) => {
+        // Update local state
+        const updatedBook = { ...currentBook, notes: newNotes };
+        setCurrentBook(updatedBook);
+
+        // Update the database
+        const result = await updateRecommendedBook(updatedBook);
+        if (!result) {
+            console.error("Failed to update notes in the database");
+        }
+    };
+
+    const handleShowingDeleteMenu = () => {
+        // user clicked button twice so do not show
+        if (isDeleteModalVisible) {
+            return;
+        }
+        setIsDeleteModalVisible(true);
+    };
+
     const handleShowingAddOrMoveMenu = () => {
         // user clicked button twice so do not show
         if (isAddOrMoveBookModalVisible) {
@@ -142,6 +167,15 @@ const BookPage = () => {
         }
     };
 
+    const handleShowUpdateNotesModal = () => {
+        if (isUpdateBookNotesModalVisible) {
+            return;
+        }
+        setIsUpdateNotesModalVisible(true);
+    }
+
+
+
     const BookPage = () => {
         return (
             <>
@@ -149,7 +183,7 @@ const BookPage = () => {
                     <View className="flex-row justify-end items-center">
                         <Pressable
                             className="p-1 mr-2"
-                            onPress={() => setIsDeleteModalVisible(!isDeleteModalVisible)}
+                            onPress={() => handleShowingDeleteMenu()}
                         >
                             <DeleteIcon width={40} height={40} />
                         </Pressable>
@@ -193,7 +227,23 @@ const BookPage = () => {
                     </View>
 
                     <View className="pl-5 pt-5 flex justify-center">
-                        <Text className="text-lg text-white"> Notes</Text>
+                        <View className="flex-row items-center">
+                            <Text className="text-white text-xl ml-1 mr-2">Notes</Text>
+                            <Pressable className="p-1" onPress={() => handleShowUpdateNotesModal()}>
+                                <EditIcon height={25} width={25} />
+                            </Pressable>
+
+
+                            {/* Update Notes Modal */}
+                            {isUpdateBookNotesModalVisible && (<UpdateBookNotesModal
+                                visible={isUpdateBookNotesModalVisible}
+                                notes={currentBook.notes || ""}
+                                onClose={() => setIsUpdateNotesModalVisible(false)}
+                                onUpdateNotes={handleUpdateNotes}
+                            />)}
+
+                        </View>
+
 
                         <ScrollView className="max-h-40 pl-1">
                             <Text className="text-sm text-white max-w-sm text-start">

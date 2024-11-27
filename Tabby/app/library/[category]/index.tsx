@@ -149,7 +149,7 @@ const CategoryPage: React.FC = () => {
     }, [category]);
 
     const [search, setSearch] = useState("");
-    const [modalVisible, setModalVisible] = useState(false);
+    const [addCustomBookModalVisible, setAddCustomBookModalVisible] = useState(false);
     const [newCustomBook, setNewCustomBook] = useState<CustomBook>({
         title: "",
         author: "",
@@ -396,7 +396,7 @@ const CategoryPage: React.FC = () => {
             pageCount: 0,
         });
         // closing modal
-        setModalVisible(false);
+        setAddCustomBookModalVisible(false);
     };
 
     return (
@@ -412,11 +412,14 @@ const CategoryPage: React.FC = () => {
 
                 <Pressable
                     className="p-2 mx-auto"
-                    onPress={() => setModalVisible(true)}
+                    onPress={() => setAddCustomBookModalVisible(true)}
                 >
                     {<PlusIcon height={38} width={38} />}
                 </Pressable>
             </View>
+
+            <Text className="text-white text-xl font-bold text-left px-4 pt-4">{category}</Text>
+
 
             <View className="flex-1">
                 <FlatList
@@ -483,7 +486,7 @@ const CategoryPage: React.FC = () => {
             />
 
 
-            <AddCustomBookModal modalVisible={modalVisible} setModalVisible={setModalVisible} newCustomBook={newCustomBook} setNewCustomBook={setNewCustomBook} handleAddCustomBook={handleAddCustomBook} />
+            <AddCustomBookModal modalVisible={addCustomBookModalVisible} setModalVisible={setAddCustomBookModalVisible} newCustomBook={newCustomBook} setNewCustomBook={setNewCustomBook} handleAddCustomBook={handleAddCustomBook} />
         </SafeAreaView>
     );
 };
