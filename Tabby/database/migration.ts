@@ -1,8 +1,8 @@
-import * as SQLite from 'expo-sqlite';
+import * as SQLite from "expo-sqlite";
 
 // Function to initialize the database schema
 export async function migrateDbIfNeeded() {
-  const db = SQLite.openDatabaseAsync('bookCollection.db');
+  const db = SQLite.openDatabaseAsync("bookCollection.db");
 
   await (await db).execAsync(`
         PRAGMA journal_mode = WAL;
@@ -56,10 +56,10 @@ export async function migrateDbIfNeeded() {
   console.log("Database initialized or migrated with new schema");
 }
 
-// function to drop all tables and create the tables again 
-// use this if you have changed the tables and a device has an older version of the tables 
+// function to drop all tables and create the tables again
+// use this if you have changed the tables and a device has an older version of the tables
 export async function dropAllTablesAndMigrate() {
-  const db = SQLite.openDatabaseAsync('bookCollection.db');
+  const db = SQLite.openDatabaseAsync("bookCollection.db");
 
   await (await db).execAsync(`
   PRAGMA journal_mode = WAL;
