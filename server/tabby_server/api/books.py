@@ -184,6 +184,12 @@ def _get_result_dict(books: list[google_books.Book]) -> dict:
 
 @subapp.route("/scan_shelf", methods=["POST"])
 def books_scan_shelf() -> tuple[dict, HTTPStatus]:
+    """Scans a shelf. This gives a list of books that could be in the given
+    image.
+
+    The body of the request should be binary data (JPG or PNG) reprsenting
+    the image.
+    """
 
     # Load image
     logging.info("scanning image")
