@@ -3,8 +3,6 @@ import { useState, useEffect } from "react";
 import {
     FlatList,
     Pressable,
-    Modal,
-    TextInput,
     View,
     Text,
     Alert,
@@ -32,10 +30,22 @@ import CancelIcon from "@/assets/menu-icons/cancel-icon.svg";
 import DeleteBooksModal from "@/components/DeleteBooksModal";
 import AddBooksOrMoveBooksToCategoryModal from "@/components/AddBooksOrMoveBooksToCategoryModal";
 
+import AddCustomBookModal from "@/components/AddCustomBookModal";
+
 type SelectableBook = {
     book: Book;
     isSelected: boolean;
 };
+
+type CustomBook = {
+    title: string;
+    author: string;
+    summary: string;
+    excerpt: string;
+    notes: string;
+    pageCount: number | null; // Updated type
+};
+
 
 const defaultBooks: Book[] = [
     {
@@ -140,13 +150,13 @@ const CategoryPage: React.FC = () => {
 
     const [search, setSearch] = useState("");
     const [modalVisible, setModalVisible] = useState(false);
-    const [newCustomBook, setNewCustomBook] = useState({
+    const [newCustomBook, setNewCustomBook] = useState<CustomBook>({
         title: "",
         author: "",
         summary: "",
         excerpt: "",
         notes: "",
-        pageCount: 0,
+        pageCount: null,
     });
 
     const handleFavoritePress = async (bookId: string) => {
@@ -356,8 +366,8 @@ const CategoryPage: React.FC = () => {
             summary: newCustomBook.summary,
             excerpt: newCustomBook.excerpt,
             image: "",
-            rating: 1,
-            pageCount: newCustomBook.pageCount,
+            rating: 0,
+            pageCount: newCustomBook.pageCount || 0,
             notes: newCustomBook.notes,
             genres: "",
             category: category as string,
@@ -472,93 +482,8 @@ const CategoryPage: React.FC = () => {
                 onConfirmMoveBooks={handleMovingSelectedBooksToCategories}
             />
 
-            {/* Modal for adding custom book */}
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={modalVisible}
-                onRequestClose={() => setModalVisible(false)}
-            >
-                <View className="flex-1 justify-center items-center bg-black/50">
-                    <View className="w-4/5 p-6 bg-white rounded-lg">
-                        <Text className="text-lg font-medium mb-2">Add Title</Text>
-                        <TextInput
-                            placeholder="Title"
-                            value={newCustomBook.title}
-                            onChangeText={(text) =>
-                                setNewCustomBook({ ...newCustomBook, title: text })
-                            }
-                            className="border-b border-gray-300 mb-4"
-                        />
 
-                        <Text className="text-lg font-medium mb-2">Add Author</Text>
-                        <TextInput
-                            placeholder="Author"
-                            value={newCustomBook.author}
-                            onChangeText={(text) =>
-                                setNewCustomBook({ ...newCustomBook, author: text })
-                            }
-                            className="border-b border-gray-300 mb-4"
-                        />
-
-                        <Text className="text-lg font-medium mb-2">Add Summary</Text>
-                        <TextInput
-                            placeholder="Summary"
-                            value={newCustomBook.summary}
-                            onChangeText={(text) =>
-                                setNewCustomBook({ ...newCustomBook, summary: text })
-                            }
-                            className="border-b border-gray-300 mb-4"
-                        />
-
-                        <Text className="text-lg font-medium mb-2"> Add Excerpt</Text>
-                        <TextInput
-                            placeholder="Excerpt"
-                            value={newCustomBook.excerpt}
-                            onChangeText={(text) =>
-                                setNewCustomBook({ ...newCustomBook, excerpt: text })
-                            }
-                            className="border-b border-gray-300 mb-4"
-                        />
-
-                        <Text className="text-lg font-medium mb-2"> Add Notes</Text>
-                        <TextInput
-                            placeholder="Notes"
-                            value={newCustomBook.notes}
-                            onChangeText={(text) =>
-                                setNewCustomBook({ ...newCustomBook, notes: text })
-                            }
-                            className="border-b border-gray-300 mb-4"
-                        />
-
-                        <Text className="text-lg font-medium mb-2">Add Page Count</Text>
-                        <TextInput
-                            placeholder="Page Count"
-                            onChangeText={(text) =>
-                                setNewCustomBook({
-                                    ...newCustomBook,
-                                    pageCount: parseInt(text),
-                                })
-                            }
-                            keyboardType="numeric"
-                            className="border-b border-gray-300 mb-4"
-                        />
-
-                        <Pressable
-                            className="mt-4 bg-blue-500 rounded p-2"
-                            onPress={handleAddCustomBook}
-                        >
-                            <Text className="text-white text-center">Confirm</Text>
-                        </Pressable>
-                        <Pressable
-                            className="mt-4 bg-red-500 rounded p-2"
-                            onPress={() => setModalVisible(false)}
-                        >
-                            <Text className="text-white text-center">Cancel</Text>
-                        </Pressable>
-                    </View>
-                </View>
-            </Modal>
+            <AddCustomBookModal modalVisible={modalVisible} setModalVisible={setModalVisible} newCustomBook={newCustomBook} setNewCustomBook={setNewCustomBook} handleAddCustomBook={handleAddCustomBook} />
         </SafeAreaView>
     );
 };

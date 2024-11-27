@@ -117,6 +117,7 @@ const RenameModal: React.FC<RenameModalProps> = ({
                     onChangeText={handleChangeText}
                     placeholder="Enter new category name"
                     className="border p-2 mb-4"
+                    autoFocus={true}
                 />
                 {errorMessage && (
                     <Text className="text-red-500 mb-2">{errorMessage}</Text>
