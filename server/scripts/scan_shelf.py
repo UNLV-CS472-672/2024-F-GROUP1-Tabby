@@ -1,11 +1,7 @@
 import logging
-import pathlib
 from pprint import pprint
-import sys
 import cyclopts as cy
-from PIL import Image
 import cv2 as cv
-import numpy as np
 
 from tabby_server.api.books import scan_shelf
 

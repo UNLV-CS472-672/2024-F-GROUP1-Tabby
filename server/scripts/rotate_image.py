@@ -1,11 +1,6 @@
-import logging
-import sys
 from typing import Literal
 import cv2 as cv
 import cyclopts as cy
-from pprint import pprint
-
-from tabby_server.vision.ocr import rotate_image
 
 
 app = cy.App()

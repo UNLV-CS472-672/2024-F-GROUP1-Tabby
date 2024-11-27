@@ -1,12 +1,9 @@
-from pprint import pprint
 import cyclopts as cy
-from PIL import Image
 import cv2 as cv
 import numpy as np
 import torch
 
 from tabby_server.vision import image_labelling
-from tabby_server.api.books import scan_shelf
 
 
 app = cy.App()
@@ -20,13 +17,14 @@ def main(
 
     Args:
         image_path: Path to an image of a shelf.
-        show_each: If given, shows each book individually before showing the entire picture.
+        show_each: If given, shows each book individually before showing the
+            entire picture.
     """
 
     image = cv.imread(str(image_path))
     h, w, _ = image.shape
 
-    print(f"{image.shape = }")
+    print(f"{image.shape=}")
 
     image_processed = cv.resize(image, (640, 640))
     image_processed = image_processed / 255.0
@@ -65,7 +63,7 @@ def main(
 
         if show_each:
             subimage = image[y1:y2, x1:x2, :]
-            print(f"{subimage.shape = }")
+            print(f"{subimage.shape=}")
             if np.all(subimage.shape):  # if no dimension is 0, display it
                 cv.imshow("Subimage", subimage)
                 cv.waitKey()

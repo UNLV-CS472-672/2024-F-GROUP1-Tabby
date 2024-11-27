@@ -2,7 +2,6 @@ from dataclasses import asdict
 from functools import cache
 from io import BytesIO
 import logging
-from pprint import pprint
 from PIL import Image
 import PIL
 from flask import Blueprint, request
@@ -189,13 +188,13 @@ def books_scan_shelf() -> tuple[dict, HTTPStatus]:
     # Load image
     logging.info("scanning image")
     try:
-        img = Image.open(BytesIO(request.data))
+        img_file = Image.open(BytesIO(request.data))
     except PIL.UnidentifiedImageError:
         return {
             "message": "Couldn't read an image from the given body."
         }, HTTPStatus.BAD_REQUEST
 
-    img = img.convert("RGB")
+    img = img_file.convert("RGB")
     # ai-gen start (ChatGPT-4o, 2)
     img_mat = np.array(img)
     img_mat = cv.cvtColor(img_mat, cv.COLOR_RGB2BGR)
@@ -228,8 +227,8 @@ def scan_shelf(image: MatLike) -> list[list[google_books.Book]]:
     Args:
         image: Image to scan.
     Returns:
-        List of lists of book information scanned. Each sublist corresponds to a subimage. Empty
-        if there is a failure at any part.
+        List of lists of book information scanned. Each sublist corresponds to
+        a subimage. Empty if there is a failure at any part.
     """
 
     w, h, _ = image.shape
