@@ -51,14 +51,7 @@ class TextRecognizer:
     def find_text(self, image: np.ndarray) -> list[RecognizedText]:
         """Finds text from the given image and returns the result."""
 
-        image, scale_factor = scale_image(image, max_area=MAX_AREA)
         results = self._find_text_one_way(image)
-        for result in results:
-            for corner in result.corners:
-                # print(f"{corner.shape = }")
-                corner[0] /= scale_factor
-                corner[1] /= scale_factor
-
         return results
 
         # h, w, _ = image.shape
