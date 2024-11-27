@@ -52,28 +52,17 @@ type FieldData = {
     placeholder: string;
     field: keyof NewCustomBook; // Ensures this matches the fields in NewCustomBook
     isMultiline: boolean;
-    validation: (val: string | number | null) => boolean;
 };
 
 const data: FieldData[] = [
-    { key: "Add Title", placeholder: "title", field: "title", isMultiline: false, validation: (val) => typeof val === "string" && val.trim() !== "" },
-    { key: "Add Author", placeholder: "author", field: "author", isMultiline: false, validation: (val) => typeof val === "string" && val.trim() !== "" },
-    { key: "Add Summary", placeholder: "summary", field: "summary", isMultiline: true, validation: (val) => typeof val === "string" && val.trim() !== "" },
-    { key: "Add Excerpt", placeholder: "excerpt", field: "excerpt", isMultiline: true, validation: (val) => typeof val === "string" && val.trim() !== "" },
+    { key: "Add Title", placeholder: "title", field: "title", isMultiline: false, },
+    { key: "Add Author", placeholder: "author", field: "author", isMultiline: false },
+    { key: "Add Summary", placeholder: "summary", field: "summary", isMultiline: true },
+    { key: "Add Excerpt", placeholder: "excerpt", field: "excerpt", isMultiline: true },
     {
-        key: "Add Page Count", placeholder: "Page Count", field: "pageCount", isMultiline: false, validation: (val) => {
-            console.log("val for page count: ", val);
-            const numValue = Number(val);
-            // First, check if val is a number and not null
-            if (typeof numValue === "number" && !isNaN(numValue) && Number.isInteger(numValue)) {
-                console.log("val is a number");
-                return numValue > 0;  // Check if it's a positive number
-            }
-            console.log("val is not a number");
-            return false; // Return false if it's not a valid number
-        },
+        key: "Add Page Count", placeholder: "Page Count", field: "pageCount", isMultiline: false,
     },
-    { key: "notes", placeholder: "Notes", field: "notes", isMultiline: true, validation: (val) => true } // Optional field, no validation required
+    { key: "notes", placeholder: "Notes", field: "notes", isMultiline: true } // Optional field, no validation required
 ];
 
 
@@ -121,41 +110,18 @@ const CategoryPage: React.FC = () => {
     });
 
     const [touchedInputFieldsForCustomBook, setTouchedInputFieldsForCustomBook] = useState<Record<string, boolean>>({}); // Track touched fields
-    const [errorsForCustomBookInputFields, setErrorsForCustomBookInputFields] = useState<any>({});
     const handleInputChange = (field: keyof NewCustomBook, value: string) => {
         setNewCustomBook((prevState) => ({ ...prevState, [field]: value }));
         setTouchedInputFieldsForCustomBook((prevState) => ({ ...prevState, [field]: true })); // Mark field as touched
     };
 
-    const validateInputFieldsForCustomBook = () => {
-        const newErrors = data.reduce((acc, item) => {
-            if (touchedInputFieldsForCustomBook[item.field]) { // Only validate if the field has been touched
-                const isValid = item.validation(newCustomBook[item.field]);
-                if (!isValid) {
-                    acc[item.field] = `${item.key} is required or invalid.`;
-                }
-            }
-            return acc;
-        }, {} as Record<string, string>);
 
-        console.log("new errors: ", newErrors);
-        console.log("new errors: ", newErrors);
-
-
-        setErrorsForCustomBookInputFields(newErrors);
-        return Object.keys(newErrors).length === 0; // Return true if no errors
-    };
 
     // Confirm Button Press
     const handleConfirmForAddingCustomBook = async () => {
-        if (validateInputFieldsForCustomBook()) {
-            // Proceed with adding the custom book
-            await handleAddCustomBook();
-        } else {
-            console.log("Validation failed");
-            Alert.alert("Validation failed");
-
-        }
+        console.log("New custom book (submitted):", newCustomBook);
+        console.log("Touched fields:", touchedInputFieldsForCustomBook);
+        await handleAddCustomBook();
     };
 
 
@@ -585,11 +551,6 @@ const CategoryPage: React.FC = () => {
                                         multiline={item.isMultiline}
                                         numberOfLines={item.isMultiline ? 4 : 1}
                                     />
-
-                                    {/* Show error only if the field is touched and invalid */}
-                                    {touchedInputFieldsForCustomBook[item.field] && errorsForCustomBookInputFields[item.field] && (
-                                        <Text className="text-red-500 text-xs">{errorsForCustomBookInputFields[item.field]}</Text>
-                                    )}
                                 </View>
                             )}
                             keyExtractor={(item) => item.key}
