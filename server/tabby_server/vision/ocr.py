@@ -109,9 +109,17 @@ class TextRecognizer:
 
 # Not used yet but will be used in a future pull
 def scale_image(image: np.ndarray, max_area: int) -> tuple[np.ndarray, float]:
-    """Scales the given image if it's too large."""
+    """Scales the given image if it's too large.
+
+    Args:
+        image: Image to rescale.
+        max_area: Maximum area the resulting image can have.
+    Returns:
+        Rescaled image if it's too large, otherwise the original image.
+    """
     height, width, _ = image.shape
     area = height * width
+    side_ratio = 1.0
     if area > max_area:  # If too large, scale it down
         area_ratio = max_area / area
         side_ratio = np.sqrt(area_ratio)

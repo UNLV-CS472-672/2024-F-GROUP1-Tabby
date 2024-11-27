@@ -32,7 +32,7 @@ def main(
     cv.imshow("Display", image)
     cv.waitKey()
 
-    image = ocr.scale_image(image, max_area)
+    image, k = ocr.scale_image(image, max_area)
     print("--RESCALE--")
 
     h, w, _ = image.shape
