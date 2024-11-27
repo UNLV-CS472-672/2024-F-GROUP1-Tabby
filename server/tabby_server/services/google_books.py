@@ -84,7 +84,7 @@ def get_google_books_query(
         parts.append(f"subject:{subject}")
     if isbn:
         parts.append(f"isbn:{isbn}")
-    return "+".join(parts)
+    return " ".join(parts)
 
 
 def volume_info_to_book(volume_info: dict[str, Any]) -> Book:
@@ -169,6 +169,7 @@ def request_volumes_get(
         subject=subject,
         isbn=isbn,
     )
+    logging.info(f"Query: {query!r}")
 
     # Invoke Google Books with the assembled query
     response = requests.get(
