@@ -75,6 +75,9 @@ const AddCustomBookModal: React.FC<AddCustomBookModalProps> = ({
             visible={modalVisible}
             onRequestClose={() => setModalVisible(false)}
         >
+            <Pressable className="flex-1" onPress={() => setModalVisible(false)}>
+
+            </Pressable>
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                 <KeyboardAvoidingView
                     behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -102,6 +105,10 @@ const AddCustomBookModal: React.FC<AddCustomBookModalProps> = ({
                     </View>
                 </KeyboardAvoidingView>
             </TouchableWithoutFeedback>
+
+            <Pressable className="flex-1" onPress={() => setModalVisible(false)}>
+
+            </Pressable>
         </Modal>
     );
 };

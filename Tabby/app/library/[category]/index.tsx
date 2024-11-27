@@ -300,9 +300,15 @@ const CategoryPage: React.FC = () => {
         if (item.book.id === "default") {
             return null;
         }
+
+        const genresAsArray = item.book.genres?.split(",") || [];
+        // search by title, author, genre, isbn, or genre
         if (
             search === "" ||
-            item.book.title.toLowerCase().includes(search.toLowerCase())
+            item.book.title.toLowerCase().includes(search.toLowerCase()) ||
+            item.book.author.toLowerCase().includes(search.toLowerCase()) ||
+            genresAsArray.some((genre) => genre.toLowerCase().includes(search.toLowerCase())) ||
+            item.book.isbn?.toLowerCase() === search
         ) {
             return (
                 <BookPreview
@@ -418,7 +424,7 @@ const CategoryPage: React.FC = () => {
                 </Pressable>
             </View>
 
-            <Text className="text-white text-xl font-bold text-left px-4 pt-4">{category}</Text>
+            <Text className="text-white text-xl font-bold text-left pl-5 pt-4">{category}</Text>
 
 
             <View className="flex-1">

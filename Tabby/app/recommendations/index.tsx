@@ -382,11 +382,14 @@ const Recommendations = () => {
 
     // if the string typed in the search bar is a part of a book title, isbn, or author then render the book
     const renderItem = ({ item }: { item: SelectableBook }) => {
+        const genresAsArray = item.book.genres?.split(",") || [];
+        // search by title, author, genre, isbn, or genre
         if (
             search === "" ||
             item.book.title.toLowerCase().includes(search.toLowerCase()) ||
             item.book.author.toLowerCase().includes(search.toLowerCase()) ||
-            item.book.isbn?.toLowerCase().includes(search)
+            genresAsArray.some((genre) => genre.toLowerCase().includes(search.toLowerCase())) ||
+            item.book.isbn?.toLowerCase() === search
         ) {
             return (
                 <BookPreview
@@ -417,7 +420,7 @@ const Recommendations = () => {
                     />
                 </View>
 
-                {areAnyBooksSelected() && (
+                {areAnyBooksSelected() && !pressedAddBookToLibraryButtonFromBookPreview && (
                     <View className="flex-row justify-around bg-[#161f2b] w-full border-t border-blue-500">
                         <View className="">
                             <Pressable
