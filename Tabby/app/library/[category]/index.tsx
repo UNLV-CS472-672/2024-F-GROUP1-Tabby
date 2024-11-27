@@ -401,8 +401,6 @@ const CategoryPage: React.FC = () => {
             notes: "",
             pageCount: 0,
         });
-        // closing modal
-        setAddCustomBookModalVisible(false);
     };
 
     return (
