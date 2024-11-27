@@ -80,7 +80,7 @@ class TextRecognizer:
         #         corner[1] = w - xp
 
         # return results0 + results90 + results180 + results270
-    
+
     def _find_text_one_way(self, image: np.ndarray) -> list[RecognizedText]:
         """Finds text from the given image and returns the result."""
         ocr_results = self._reader.readtext(image)
@@ -109,6 +109,7 @@ class TextRecognizer:
 #         image = cv.resize(image, (new_height, new_width))
 #     return image
 
+
 # ai-gen start (ChatGPT-4o, 0)
 def rotate_image(image: MatLike, angle: float, scale: float = 1.0) -> MatLike:
     """
@@ -124,16 +125,18 @@ def rotate_image(image: MatLike, angle: float, scale: float = 1.0) -> MatLike:
     """
     if image is None:
         raise ValueError("Input image is invalid or None.")
-    
+
     # Define the center of rotation
     (h, w) = image.shape[:2]
     center = (w // 2, h // 2)
-    
+
     # Get the rotation matrix
     M = cv2.getRotationMatrix2D(center, angle, scale)
-    
+
     # Perform the rotation
     rotated_image = cv2.warpAffine(image, M, (w, h))
-    
+
     return rotated_image
+
+
 # ai-gen end

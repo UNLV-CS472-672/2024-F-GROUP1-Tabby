@@ -16,7 +16,7 @@ The functions here are merely tests and should not actually be used.
 
 
 def create_app_instance(name: str = "Tabby_Server"):
-    return (Flask(name))
+    return Flask(name)
 
 
 app = create_app_instance()

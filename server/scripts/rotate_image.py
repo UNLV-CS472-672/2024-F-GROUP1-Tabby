@@ -32,7 +32,7 @@ def main(
         image = cv.rotate(image, cv.ROTATE_90_CLOCKWISE)
 
     # cv.namedWindow('Display', cv.WINDOW_NORMAL)
-    cv.imshow('Display', image)
+    cv.imshow("Display", image)
     cv.waitKey()
 
 
