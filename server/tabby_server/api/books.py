@@ -12,6 +12,7 @@ from cv2.typing import MatLike
 import numpy as np
 import torch
 from tabby_server.services import google_books
+from tabby_server.services import tags
 from ..vision import ocr
 from ..vision import extraction
 from ..vision import image_labelling
@@ -27,8 +28,8 @@ def books_scan_cover():
     """Receives an image and returns a list of possible books that the image
     could represent.
 
-    Expected fields in JSON:
-    - `"image"`: Base64 data representing the image.
+    The body of the request should be binary data (JPG or PNG) reprsenting
+    the image.
     """
 
     logging.info("scanning image")
@@ -50,10 +51,10 @@ def books_scan_cover():
     img_mat = cv.cvtColor(img_mat, cv.COLOR_RGB2BGR)
     # ai-gen end
 
-    logging.info("got to scan cover")
+    logging.info("scanning cover")
 
     books = scan_cover(img_mat)
-    logging.info("after scan cover")
+    logging.info("filtering book results")
 
     # Filter out books without ISBNs
     books = [b for b in books if b.isbn]
@@ -63,11 +64,11 @@ def books_scan_cover():
     return result, HTTPStatus.OK
 
 
-def scan_cover(image: MatLike) -> list[google_books.Book]:
+def scan_cover(image_matrix: MatLike) -> list[google_books.Book]:
     """Takes in an image of a cover and returns a list of results.
 
     Args:
-        image: Image to scan.
+        image_matrix: Image to scan.
     Returns:
         List of book information scanned. Empty if there is a failure at any
         part.
@@ -75,7 +76,7 @@ def scan_cover(image: MatLike) -> list[google_books.Book]:
 
     # Find text
     text_recognizer = get_text_recognizer()
-    recognized_texts = text_recognizer.find_text(image)
+    recognized_texts = text_recognizer.find_text(image_matrix)
 
     # Extract Title and Author
     extraction_result = extraction.extract_from_recognized_texts(
@@ -109,16 +110,16 @@ def get_text_recognizer() -> ocr.TextRecognizer:
 def books_search() -> tuple[dict, HTTPStatus]:
     """Receives a query for a search and returns a list of books.
 
-    Required args:
-        phrase: Phrase to search with. Think of this as the Search Bar in
-            Google.
+    The request must contain at least ONE of the parameters.
 
-    Optional args:
+    Parameters:
         title:     Title to search for.
         author:    Author to search for.
         publisher: Publisher to search for.
         subject:   Subject to search for.
         isbn:      ISBN to search for.
+        phrase: Phrase to search with. Think of this as the Search Bar in
+            Google.
 
     Responds with a JSON object with guaranteed three fields:
         message: Message for the result.
@@ -126,19 +127,19 @@ def books_search() -> tuple[dict, HTTPStatus]:
         resultsCount: Number of results in 'result'.
     """
 
-    # Check required arg
-    phrase = request.args.get("phrase")
-    if not phrase:
-        return {
-            "message": "Must specify 'phrase' as a non-empty query parameter."
-        }, HTTPStatus.BAD_REQUEST
-
     # Extract optional args
+    phrase = request.args.get("phrase", "")
     title = request.args.get("title", "")
     author = request.args.get("author", "")
     publisher = request.args.get("publisher", "")
     subject = request.args.get("subject", "")
     isbn = request.args.get("isbn", "")
+
+    if not any([phrase, title, author, publisher, subject, isbn]):
+        return {
+            "message": "Request must contain at least one of the parameters, "
+            "and that parameter must be non-empty."
+        }, HTTPStatus.BAD_REQUEST
 
     # Make the request
     books = google_books.request_volumes_get(
@@ -159,6 +160,14 @@ def books_search() -> tuple[dict, HTTPStatus]:
 
 
 def _get_result_dict(books: list[google_books.Book]) -> dict:
+    """Creates a result dictionary for a set of books.
+
+    Returns:
+        Dictionary for a single book, containing three attributes:
+            'message': Describes the status of the response.
+            'results': List of books
+            'resultsCount': How many results there are
+    """
     results_count = len(books)
     if results_count <= 0:
         return {
@@ -174,7 +183,7 @@ def _get_result_dict(books: list[google_books.Book]) -> dict:
     }
 
 
-@subapp.route('/scan_shelf', methods=['POST'])
+@subapp.route("/scan_shelf", methods=["POST"])
 def books_scan_shelf() -> tuple[dict, HTTPStatus]:
 
     # Load image
@@ -186,7 +195,7 @@ def books_scan_shelf() -> tuple[dict, HTTPStatus]:
             "message": "Couldn't read an image from the given body."
         }, HTTPStatus.BAD_REQUEST
 
-    img = img.convert('RGB')
+    img = img.convert("RGB")
     # ai-gen start (ChatGPT-4o, 2)
     img_mat = np.array(img)
     img_mat = cv.cvtColor(img_mat, cv.COLOR_RGB2BGR)
@@ -194,7 +203,7 @@ def books_scan_shelf() -> tuple[dict, HTTPStatus]:
 
     # scan shelf
     scanned_shelf = scan_shelf(img_mat)
-    
+
     # filter out any books without ISBNs
     # and limit each sublist to a maximum number of books
     new_shelf = []
@@ -209,10 +218,10 @@ def books_scan_shelf() -> tuple[dict, HTTPStatus]:
     for books in new_shelf:
         result = _get_result_dict(books)
         results.append(result)
-    
+
     return {
-        'message': f'Scanned {len(results)} results',
-        'results': results
+        "message": f"Scanned {len(results)} results",
+        "results": results,
     }, HTTPStatus.OK
 
 
@@ -230,7 +239,9 @@ def scan_shelf(image: MatLike) -> list[list[google_books.Book]]:
 
     image_processed = cv.resize(image, (640, 640))
     image_processed = image_processed / 255.0
-    image_tensor = torch.from_numpy(image_processed).float().permute(2, 0, 1).unsqueeze(0)
+    image_tensor = (
+        torch.from_numpy(image_processed).float().permute(2, 0, 1).unsqueeze(0)
+    )
 
     # Get subimages
     subimages = []
@@ -238,11 +249,11 @@ def scan_shelf(image: MatLike) -> list[list[google_books.Book]]:
     for sr in segmentation_results:
 
         # scale results to the original image
-        x1 = int(sr['box']['x1'] / 640.0 * w)
-        x2 = int(sr['box']['x2'] / 640.0 * w)
-        y1 = int(sr['box']['y1'] / 640.0 * h)
-        y2 = int(sr['box']['y2'] / 640.0 * h)
-        
+        x1 = int(sr["box"]["x1"] / 640.0 * w)
+        x2 = int(sr["box"]["x2"] / 640.0 * w)
+        y1 = int(sr["box"]["y1"] / 640.0 * h)
+        y2 = int(sr["box"]["y2"] / 640.0 * h)
+
         # ensure coords are in range
         x1 = min(max(x1, 0), w - 1)
         x2 = min(max(x2, 0), w - 1)
@@ -264,3 +275,90 @@ def scan_shelf(image: MatLike) -> list[list[google_books.Book]]:
         shelf.append(books)
 
     return shelf
+
+
+@subapp.route("/recommendations", methods=["GET"])
+def books_recommendations() -> tuple[dict, HTTPStatus]:
+    """Gets a list of recommendations for the given set of books.
+
+    The request must contain parameters for two parallel lists.
+
+    Required args:
+        titles: List with each element being the title of each book, each
+            separated by |---|
+        authors: List with each element being the author(s) of each book, each
+            separated by |---|
+        weights: List of numbers corresponding to how heavily weighed is each
+            book, separated by |---|. Each number is from 0 to 1.
+    """
+
+    # Titles and authors are separated by |---| because they might contain
+    # punctuation like commas, semicolons, etc.
+
+    # Check required args
+    titles_str = request.args.get("titles")
+    if not titles_str:
+        return {
+            "message": "Must specify 'titles' as a non-empty query parameter."
+        }, HTTPStatus.BAD_REQUEST
+    authors_str = request.args.get("authors")
+    if not authors_str:
+        return {
+            "message": "Must specify 'authors' as a non-empty query parameter."
+        }, HTTPStatus.BAD_REQUEST
+    weights_str = request.args.get("weights")
+    if not weights_str:
+        return {
+            "message": "Must specify 'weights' as a non-empty query parameter."
+        }, HTTPStatus.BAD_REQUEST
+
+    # Extract each title and author
+    titles_list = [t.strip() for t in titles_str.split("|---|")]
+    authors_list = [a.strip() for a in authors_str.split("|---|")]
+    if any(t == "" for t in titles_list):
+        return {
+            "message": ("'titles' cannot have an empty element.")
+        }, HTTPStatus.BAD_REQUEST
+    if any(a == "" for a in authors_list):
+        return {
+            "message": ("'authors' cannot have an empty element.")
+        }, HTTPStatus.BAD_REQUEST
+
+    # Extract each weight
+    weights_list = []
+    for i, wstr in enumerate(weights_str.split("|---|")):
+        wstr = wstr.strip()
+        try:
+            w = float(wstr)
+            if not (0.0 <= w <= 1.0):
+                return {
+                    "message": (f"Element {i} at 'weights' is not in [0, 1].")
+                }, HTTPStatus.BAD_REQUEST
+            weights_list.append(w)
+        except ValueError:
+            return {
+                "message": (f"Element {i} at 'weights' is not a number.")
+            }, HTTPStatus.BAD_REQUEST
+
+    # If not equal-length lists, then return error
+    if not (len(titles_list) == len(authors_list) == len(weights_list)):
+        return {
+            "message": "All lists must be equal in length."
+        }, HTTPStatus.BAD_REQUEST
+
+    # Get tags
+    tags_list = tags.get_tags(titles_list, authors_list, weights_list)
+    if not tags_list:  # if empty, return error
+        return {
+            "message": "Unable to get tags from the given books."
+        }, HTTPStatus.BAD_REQUEST
+
+    # Get related books using list of tags
+    books = google_books.request_volumes_get(phrase=", ".join(tags_list))
+
+    # Filter out books without ISBNs
+    books = [b for b in books if b.isbn]
+
+    # Wrap it up in another dictionary and send!
+    result = _get_result_dict(books)
+    return result, HTTPStatus.OK

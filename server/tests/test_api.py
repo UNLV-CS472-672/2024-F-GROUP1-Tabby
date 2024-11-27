@@ -1,8 +1,9 @@
 from io import BytesIO
+from typing import Any, Callable
 from unittest.mock import Mock
 import numpy as np
 import requests_mock
-from tabby_server.__main__ import app
+from tabby_server import app
 from flask.testing import FlaskClient
 from http import HTTPStatus
 import logging
@@ -55,8 +56,28 @@ def mock_extract(request):
     return set_value
 
 
+@pytest.fixture(scope="function")
+def mock_chat_completion() -> Callable[[Any], None]:
+    """Fixture to mock the result of a chat completion."""
+
+    import openai.resources.chat
+
+    result = None
+
+    def mock_create(self, **kwargs) -> Any:
+        return result
+
+    openai.resources.chat.Completions.create = mock_create  # type: ignore
+
+    def set_result(new_result: Any) -> None:
+        nonlocal result
+        result = new_result
+
+    return set_result
+
+
 @pytest.mark.usefixtures("client")
-class TestAPIEndPoint:
+class TestAPIEndpoint:
     def test_first_funct(self, client, mock_extract):
         # Test Test
         result = client.get("/members")
@@ -333,3 +354,301 @@ class TestAPIEndPoint:
         # This should always return true.
         assert result.status_code == HTTPStatus.OK
         assert result.json is not None and "shelf_1" in result.json
+
+    def test_recommendations(
+        self, client: FlaskClient, mock_chat_completion: Callable[[Any], None]
+    ) -> None:
+        """Tests the /books/recommendations endpoint."""
+
+        url = "/books/recommendations"
+
+        # Test empty -> fail
+        response = client.get(url)
+        logging.info(response.json)
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json is not None and "message" in response.json
+
+        # Test one missing arg -> fail
+        response = client.get(
+            url,
+            query_string={
+                # "titles": "To Kill a Mockingbird",
+                "authors": "Harper Lee",
+                "weights": "0.5",
+            },
+        )
+        logging.info(response.json)
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json is not None and "message" in response.json
+
+        response = client.get(
+            url,
+            query_string={
+                "titles": "To Kill a Mockingbird",
+                # "authors": "Harper Lee",
+                "weights": "0.5",
+            },
+        )
+        logging.info(response.json)
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json is not None and "message" in response.json
+
+        response = client.get(
+            url,
+            query_string={
+                "titles": "To Kill a Mockingbird",
+                "authors": "Harper Lee",
+                # "weights": "0.5",
+            },
+        )
+        logging.info(response.json)
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json is not None and "message" in response.json
+
+        # Test all blank -> fail
+        response = client.get(
+            url,
+            query_string={
+                "titles": "",
+                "authors": "",
+                "weights": "",
+            },
+        )
+        logging.info(response.json)
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json is not None and "message" in response.json
+
+        # Test float conversion
+        response = client.get(
+            url,
+            query_string={
+                "titles": "T |---| U",
+                "authors": "A |---| B |---| C",
+                "weights": "0.5 |---| aa |---| 0.5",
+            },
+        )
+        logging.info(response.json)
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json is not None and "message" in response.json
+
+        # Test in-range floats
+        response = client.get(
+            url,
+            query_string={
+                "titles": "T |---| U",
+                "authors": "A |---| B |---| C",
+                "weights": "0.5 |---| -1.0 |---| 0.5",
+            },
+        )
+        logging.info(response.json)
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json is not None and "message" in response.json
+
+        response = client.get(
+            url,
+            query_string={
+                "titles": "T |---| U",
+                "authors": "A |---| B |---| C",
+                "weights": "0.5 |---| 1.1 |---| 0.5",
+            },
+        )
+        logging.info(response.json)
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json is not None and "message" in response.json
+
+        # Test different sizes -> fail
+        # 2 vs. 3 vs. 3
+        response = client.get(
+            url,
+            query_string={
+                "titles": "T |---| U",
+                "authors": "A |---| B |---| C",
+                "weights": "0.5 |---| 1.0 |---| 0.5",
+            },
+        )
+        logging.info(response.json)
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json is not None and "message" in response.json
+
+        # 3 vs. 2 vs. 3
+        response = client.get(
+            url,
+            query_string={
+                "titles": "T |---| U |---| V",
+                "authors": "A |---| B",
+                "weights": "0.5 |---| 1.0 |---| 0.5",
+            },
+        )
+        logging.info(response.json)
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json is not None and "message" in response.json
+
+        # Test blank elements -> fail
+        response = client.get(
+            url,
+            query_string={
+                "titles": "T |---|   |---| V",
+                "authors": "A |---| B |---| C",
+                "weights": "0.5 |---| 0.6 |---| 0.7",
+            },
+        )
+        logging.info(response.json)
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json is not None and "message" in response.json
+
+        response = client.get(
+            url,
+            query_string={
+                "titles": "T |---| U |---| V",
+                "authors": "A |---|   |---| C",
+                "weights": "0.5 |---| 0.6 |---| 0.7",
+            },
+        )
+        logging.info(response.json)
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json is not None and "message" in response.json
+
+        response = client.get(
+            url,
+            query_string={
+                "titles": "T |---| U |---| V",
+                "authors": "A |---| B |---| C",
+                "weights": "0.5 |---|  |---| 0.7",
+            },
+        )
+        logging.info(response.json)
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json is not None and "message" in response.json
+
+        response = client.get(
+            url,
+            query_string={
+                "titles": "T |---| U |---|",
+                "authors": "A |---| B |---| C",
+                "weights": "0.5 |---| 0.6 |---| 0.7",
+            },
+        )
+        logging.info(response.json)
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json is not None and "message" in response.json
+
+        mock_completion = Mock()
+        mock_chat_completion(mock_completion)
+
+        # Make good query string
+        query_string_good = {
+            "titles": "T |---| U |---| V",
+            "authors": "A |---| B |---| C",
+            "weights": "0.5 |---| 0.6 |---| 0.7",
+        }
+
+        # Test no choices from ChatGPT -> fail
+        mock_completion.choices = []
+        response = client.get(url, query_string=query_string_good)
+        logging.info(response.json)
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json is not None and "message" in response.json
+
+        # Test no message content -> fail
+        mock_completion.choices.append(Mock())
+        mock_completion.choices[0].message = Mock()
+        mock_completion.choices[0].message.content = None
+        response = client.get(url, query_string=query_string_good)
+        logging.info(response.json)
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json is not None and "message" in response.json
+
+        # Mock completion should return success
+        expected_tags = [f"tag{i}" for i in range(1, 11)]
+        successful_output = "\n".join(expected_tags)
+        mock_completion.choices[0].message.content = successful_output
+
+        # Start mocking requests
+        with requests_mock.Mocker() as m:
+
+            google_books_url = "https://www.googleapis.com/books/v1/volumes"
+
+            # Test bad call from Google Books -> success but empty
+            m.get(google_books_url, status_code=500)
+            response = client.get(url, query_string=query_string_good)
+            logging.info(response.json)
+            assert response.status_code == HTTPStatus.OK
+            assert response.json is not None
+            assert "message" in response.json
+            assert "results" in response.json
+            assert "resultsCount" in response.json
+            results = response.json["results"]
+            assert results == []
+            assert response.json["resultsCount"] == 0
+
+            # Fix response from Google books
+            # The result should be 2 books (one doesn't have ISBN 13)
+            items = [
+                {
+                    "volumeInfo": {
+                        "title": "APPLES",
+                        "industryIdentifiers": [
+                            {"identifier": "1234243532", "type": "ISBN_13"},
+                            {"identifier": "456", "type": "bad"},
+                        ],
+                    }
+                },
+                {
+                    "volumeInfo": {
+                        "title": "BANANAS",
+                        "industryIdentifiers": [
+                            {"identifier": "123", "type": "bad"},
+                            {"identifier": "456", "type": "bad"},
+                        ],
+                    }
+                },
+                {
+                    "volumeInfo": {
+                        "title": "CHERRIES",
+                        "industryIdentifiers": [
+                            {"identifier": "1243567", "type": "ISBN_13"},
+                            {"identifier": "456", "type": "bad"},
+                        ],
+                    }
+                },
+            ]
+            m.get(
+                google_books_url,
+                json={"items": items, "totalItems": len(items)},
+            )
+
+            # Test good call with 3 elements -> success
+            response = client.get(url, query_string=query_string_good)
+            logging.info(response.json)
+            assert response.status_code == HTTPStatus.OK
+            assert response.json is not None
+            assert "message" in response.json
+            assert "results" in response.json
+            assert "resultsCount" in response.json
+            results = response.json["results"]
+            assert results[0]["title"] == "APPLES"
+            assert results[1]["title"] == "CHERRIES"
+
+            # Test good call with 5 elements -> success
+            response = client.get(
+                url,
+                query_string={
+                    "titles": "T |---| U |---| V |---|W|---|E",
+                    "authors": "A |---| B |---| C |---|D|---|E",
+                    "weights": "0.1 |---| 0.2 |---| 0.3 |---|0.4|---|0.5",
+                },
+            )
+            logging.info(response.json)
+            assert response.status_code == HTTPStatus.OK
+
+            # Test good call with 1 element -> success
+            response = client.get(
+                url,
+                query_string={
+                    "titles": "T|---asdfi.g,lp E",  # no separator -> 1 element
+                    "authors": "A,jasdf|--- E",
+                    "weights": "0.5",
+                },
+            )
+            logging.info(response.json)
+            assert response.status_code == HTTPStatus.OK

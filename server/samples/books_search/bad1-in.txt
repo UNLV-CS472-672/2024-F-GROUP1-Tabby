@@ -1,2 +1,0 @@
-# bad, no phrase -> results in 400 status
-http://127.0.0.1:5000/books/search?author=George Orwell

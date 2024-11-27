@@ -1,3 +1,2 @@
-# phrase is required, but if you want to search by another field like
-# author, just give it a single space
-http://127.0.0.1:5000/books/search?phrase= &author=George Orwell
+# just the author
+http://localhost:5000/books/search?author=George Orwell
