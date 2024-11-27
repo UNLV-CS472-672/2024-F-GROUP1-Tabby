@@ -1,3 +1,4 @@
+import time
 from typing import Annotated
 import cv2 as cv
 import cyclopts as cy
@@ -30,7 +31,11 @@ def main(
     thickness = int(max(3, 0.005 * max(height, width)))
 
     recognizer = TextRecognizer()
+
+    start = time.time()
     results = recognizer.find_text(image)
+    duration = time.time() - start
+
     texts = [r.text for r in results]
 
     if strict:
@@ -49,6 +54,9 @@ def main(
     for result in results:
         a, _, b, _ = result.corners
         cv.rectangle(display, a, b, color=(0, 255, 0), thickness=thickness)
+
+    print(f"Duration: {duration:6.2f}s")
+
     print("Displaying image with bounding boxes... press any key to close.")
 
     cv.namedWindow("Display", cv.WINDOW_GUI_NORMAL)

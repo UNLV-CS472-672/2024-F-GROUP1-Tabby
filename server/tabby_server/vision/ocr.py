@@ -3,6 +3,9 @@ import cv2
 import numpy as np
 from cv2.typing import MatLike
 
+MAX_AREA = 400_000
+"""Maximum area an image is allowed to have before using OCR on it."""
+
 
 @dataclass(kw_only=True)
 class RecognizedText:
@@ -48,7 +51,15 @@ class TextRecognizer:
     def find_text(self, image: np.ndarray) -> list[RecognizedText]:
         """Finds text from the given image and returns the result."""
 
-        return self._find_text_one_way(image)
+        image, scale_factor = scale_image(image, max_area=MAX_AREA)
+        results = self._find_text_one_way(image)
+        for result in results:
+            for corner in result.corners:
+                # print(f"{corner.shape = }")
+                corner[0] /= scale_factor
+                corner[1] /= scale_factor
+
+        return results
 
         # h, w, _ = image.shape
 
@@ -97,17 +108,17 @@ class TextRecognizer:
 
 
 # Not used yet but will be used in a future pull
-# def scale_image(image: np.ndarray, max_area: int) -> np.ndarray:
-#     """Scales the given image if it's too large."""
-#     height, width, _ = image.shape
-#     area = height * width
-#     if area > max_area:
-#         area_ratio = max_area / area
-#         side_ratio = np.sqrt(area_ratio)
-#         new_height = int(side_ratio * height)
-#         new_width = int(side_ratio * width)
-#         image = cv.resize(image, (new_height, new_width))
-#     return image
+def scale_image(image: np.ndarray, max_area: int) -> tuple[np.ndarray, float]:
+    """Scales the given image if it's too large."""
+    height, width, _ = image.shape
+    area = height * width
+    if area > max_area:  # If too large, scale it down
+        area_ratio = max_area / area
+        side_ratio = np.sqrt(area_ratio)
+        new_height = int(side_ratio * height)
+        new_width = int(side_ratio * width)
+        image = cv2.resize(image, (new_height, new_width))
+    return image, float(side_ratio)
 
 
 # ai-gen start (ChatGPT-4o, 0)
