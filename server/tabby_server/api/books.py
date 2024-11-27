@@ -213,16 +213,13 @@ def books_scan_shelf() -> tuple[dict, HTTPStatus]:
         if len(books) >= 1:  # if not empty, append it
             new_shelf.append(books)
 
-    # Convert into JSON
+    # Select first book in each row
     results = []
     for books in new_shelf:
-        result = _get_result_dict(books)
-        results.append(result)
+        if len(books) >= 1:
+            results.append(books[0])
 
-    return {
-        "message": f"Scanned {len(results)} results",
-        "results": results,
-    }, HTTPStatus.OK
+    return _get_result_dict(results), HTTPStatus.OK
 
 
 def scan_shelf(image: MatLike) -> list[list[google_books.Book]]:

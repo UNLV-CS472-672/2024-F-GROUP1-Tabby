@@ -8,7 +8,7 @@ from flask.testing import FlaskClient
 from http import HTTPStatus
 import logging
 import pytest
-from tabby_server.vision import extraction, ocr
+from tabby_server.vision import extraction, image_labelling, ocr
 from werkzeug.datastructures import FileStorage
 
 
@@ -35,6 +35,25 @@ def mock_recognizer(request):
         ocr.TextRecognizer.find_text = original_function
 
     request.addfinalizer(teardown)
+
+
+@pytest.fixture(scope="function")
+def mock_find_books(request):
+
+    original_function = image_labelling.find_books
+
+    image_labelling.find_books = Mock()
+    image_labelling.find_books.return_value = None
+
+    def set_value(value):
+        image_labelling.find_books.return_value = value
+
+    def teardown():
+        image_labelling.find_books = original_function
+
+    request.addfinalizer(teardown)
+
+    return set_value
 
 
 @pytest.fixture(scope="function")
@@ -226,6 +245,196 @@ class TestAPIEndpoint:
             response = client.post(
                 "/books/scan_cover", data=BytesIO(image_bytes)
             )
+
+            logging.info(response.json)
+            assert response.status_code == HTTPStatus.OK
+            assert response.json is not None
+            assert "message" in response.json
+            assert "results" in response.json
+            assert "resultsCount" in response.json
+            assert (
+                response.json["resultsCount"]
+                == len(response.json["results"])
+                == 2
+            )
+            results = response.json["results"]
+            assert results[0]["title"] == "APPLES"
+            assert results[1]["title"] == "CHERRIES"
+
+    @pytest.mark.usefixtures("mock_recognizer")
+    def test_scan_shelf(
+        self, client: FlaskClient, mock_extract, mock_find_books
+    ):
+        """Tests endpoint /books/scan_shelf"""
+
+        url = "books/scan_shelf"
+
+        # Blank
+        response = client.post(url)
+        logging.info(response.json)
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json is not None and "message" in response.json
+
+        # JSON is not acceptable
+        response = client.post(url, json={})
+        logging.info(response.json)
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json is not None and "message" in response.json
+
+        # Try with a bad text file
+
+        # ai-gen start (ChatGPT-4o, 2)
+        data = BytesIO(b"dummy file content")
+        data.seek(0)
+        file = FileStorage(
+            data, filename="testfile.txt", content_type="text/plain"
+        )
+        response = client.post(url, data={"file": file})
+        # ai-gen end
+
+        logging.info(response.json)
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json is not None and "message" in response.json
+
+        image_bytes: bytes
+        with open("tests/img/cpp.jpg", "rb") as f:
+            image_bytes = f.read()
+
+        # Test that no results are given when find_books() gives nothing
+        mock_find_books([])
+        response = client.post(url, data=BytesIO(image_bytes))
+        logging.info(response.json)
+        assert response.status_code == HTTPStatus.OK
+        assert response.json is not None
+        assert "message" in response.json
+        assert "results" in response.json
+        assert "resultsCount" in response.json
+        assert (
+            response.json["resultsCount"] == len(response.json["results"]) == 0
+        )
+
+        # Test that it returns nothing when it extracts no authors
+        find_books_result: list[dict[str, Any]] = [
+            {
+                "box": {"x1": 0.0, "x2": 1.0, "y1": 0.0, "y2": 1.0},
+                "class": 0,
+                "confidence": 0.9,
+                "name": "book",
+                "segments": {"x": [0.0, 0.0], "y": [1.0, 1.0]},
+            },
+            {
+                "box": {"x1": 1.0, "x2": 2.0, "y1": 1.0, "y2": 2.0},
+                "class": 0,
+                "confidence": 0.8,
+                "name": "book",
+                "segments": {"x": [1.0, 1.0], "y": [2.0, 2.0]},
+            },
+        ]
+        mock_find_books(find_books_result)
+        mock_extract(None)
+        response = client.post(url, data=BytesIO(image_bytes))
+        logging.info(response.json)
+        assert response.status_code == HTTPStatus.OK
+        assert response.json is not None and "message" in response.json
+        assert "message" in response.json
+        assert "results" in response.json
+        assert "resultsCount" in response.json
+        assert (
+            response.json["resultsCount"] == len(response.json["results"]) == 0
+        )
+
+        # Test with Google Books fail
+        case1_result = extraction.ExtractionResult(
+            options=[
+                extraction.ExtractionOption(
+                    title="KICKING AWAY THE LADDER: DEVELOPMENT STRATEGY IN HISTORICAL PERSPECTIVE",  # noqa: E501
+                    author="HA-JOON CHANG",
+                ),
+                extraction.ExtractionOption(
+                    title="KICKING AWAY THE LADDER",
+                    author="HA-JOON CHANG",
+                ),
+                extraction.ExtractionOption(
+                    title="DEVELOPMENT STRATEGY IN HISTORICAL PERSPECTIVE",
+                    author="HA-JOON CHANG",
+                ),
+                extraction.ExtractionOption(
+                    title="KICKING AWAY THE LADDER: IN HISTORICAL PERSPECTIVE",
+                    author="HA-JOON CHANG",
+                ),
+                extraction.ExtractionOption(
+                    title="KICKING AWAY THE LADDER: DEVELOPMENT STRATEGY",
+                    author="HA-JOON CHANG",
+                ),
+            ],
+        )
+        mock_extract(case1_result)
+        with requests_mock.Mocker() as m:
+            google_books_url = "https://www.googleapis.com/books/v1/volumes"
+            m.get(google_books_url, status_code=500)
+
+            response = client.post(url, data=BytesIO(image_bytes))
+
+            logging.info(response.json)
+            assert response.status_code == HTTPStatus.OK
+            assert response.json is not None and "message" in response.json
+            assert "message" in response.json
+            assert "results" in response.json
+            assert "resultsCount" in response.json
+            assert (
+                response.json["resultsCount"]
+                == len(response.json["results"])
+                == 0
+            )
+
+        # Test success
+        with requests_mock.Mocker() as m:
+            google_books_url = "https://www.googleapis.com/books/v1/volumes"
+
+            # 2 responses from Google Books
+            items1 = [
+                {
+                    "volumeInfo": {
+                        "title": "APPLES",
+                        "industryIdentifiers": [
+                            {"identifier": "1234243532", "type": "ISBN_13"},
+                            {"identifier": "456", "type": "bad"},
+                        ],
+                    }
+                },
+                {
+                    "volumeInfo": {
+                        "title": "BANANAS",
+                        "industryIdentifiers": [
+                            {"identifier": "123", "type": "bad"},
+                            {"identifier": "456", "type": "bad"},
+                        ],
+                    }
+                },
+            ]
+            items2 = [
+                {
+                    "volumeInfo": {
+                        "title": "CHERRIES",
+                        "industryIdentifiers": [
+                            {"identifier": "1243567", "type": "ISBN_13"},
+                            {"identifier": "456", "type": "bad"},
+                        ],
+                    }
+                },
+            ]
+
+            responses: list[dict] = [
+                {"items": items1, "totalItems": len(items1)},
+                {"items": items2, "totalItems": len(items2)},
+            ]
+            responses_iter = iter(responses)
+
+            m.get(
+                google_books_url,
+                json=lambda r, c: next(responses_iter),  # return next response
+            )
+            response = client.post(url, data=BytesIO(image_bytes))
 
             logging.info(response.json)
             assert response.status_code == HTTPStatus.OK
