@@ -43,7 +43,14 @@ def main(
     logging.basicConfig(stream=f, level=logging.INFO)
 
     # Make request and get results
-    result = google_books.request_volumes_get(phrase=phrase)
+    result = google_books.request_volumes_get(
+        phrase=phrase,
+        title=title,
+        author=author,
+        publisher=publisher,
+        subject=subject,
+        isbn=isbn,
+    )
     pprint(result)
 
 

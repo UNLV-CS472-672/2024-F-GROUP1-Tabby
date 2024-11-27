@@ -9,11 +9,15 @@ from http import HTTPStatus
 import cv2 as cv
 from cv2.typing import MatLike
 import numpy as np
+import torch
 from tabby_server.services import google_books
 from tabby_server.services import tags
 from ..vision import ocr
 from ..vision import extraction
+from ..vision import image_labelling
 
+_SCAN_SHELF_MAX_RESULTS_PER_BOOK = 5
+"""Maximum results for each book when scanning shelf"""
 
 subapp = Blueprint(name="books", import_name=__name__)
 
@@ -176,6 +180,103 @@ def _get_result_dict(books: list[google_books.Book]) -> dict:
         "results": book_dicts,
         "resultsCount": results_count,
     }
+
+
+@subapp.route("/scan_shelf", methods=["POST"])
+def books_scan_shelf() -> tuple[dict, HTTPStatus]:
+    """Scans a shelf. This gives a list of books that could be in the given
+    image.
+
+    The body of the request should be binary data (JPG or PNG) reprsenting
+    the image.
+    """
+
+    # Load image
+    logging.info("scanning image")
+    try:
+        img_file = Image.open(BytesIO(request.data))
+    except PIL.UnidentifiedImageError:
+        return {
+            "message": "Couldn't read an image from the given body."
+        }, HTTPStatus.BAD_REQUEST
+
+    img = img_file.convert("RGB")
+    # ai-gen start (ChatGPT-4o, 2)
+    img_mat = np.array(img)
+    img_mat = cv.cvtColor(img_mat, cv.COLOR_RGB2BGR)
+    # ai-gen end
+
+    # scan shelf
+    scanned_shelf = scan_shelf(img_mat)
+
+    # filter out any books without ISBNs
+    # and limit each sublist to a maximum number of books
+    new_shelf = []
+    for books in scanned_shelf:
+        books = [b for b in books if b.isbn]
+        books = books[:_SCAN_SHELF_MAX_RESULTS_PER_BOOK]
+        if len(books) >= 1:  # if not empty, append it
+            new_shelf.append(books)
+
+    # Select first book in each row
+    results = []
+    for books in new_shelf:
+        if len(books) >= 1:
+            results.append(books[0])
+
+    return _get_result_dict(results), HTTPStatus.OK
+
+
+def scan_shelf(image: MatLike) -> list[list[google_books.Book]]:
+    """Takes in an image of a shelf and returns a list of list of results.
+
+    Args:
+        image: Image to scan.
+    Returns:
+        List of lists of book information scanned. Each sublist corresponds to
+        a subimage. Empty if there is a failure at any part.
+    """
+
+    w, h, _ = image.shape
+
+    image_processed = cv.resize(image, (640, 640))
+    image_processed = image_processed / 255.0
+    image_tensor = (
+        torch.from_numpy(image_processed).float().permute(2, 0, 1).unsqueeze(0)
+    )
+
+    # Get subimages
+    subimages = []
+    segmentation_results = image_labelling.find_books(image_tensor)
+    for sr in segmentation_results:
+
+        # scale results to the original image
+        x1 = int(sr["box"]["x1"] / 640.0 * w)
+        x2 = int(sr["box"]["x2"] / 640.0 * w)
+        y1 = int(sr["box"]["y1"] / 640.0 * h)
+        y2 = int(sr["box"]["y2"] / 640.0 * h)
+
+        # ensure coords are in range
+        x1 = min(max(x1, 0), w - 1)
+        x2 = min(max(x2, 0), w - 1)
+        y1 = min(max(y1, 0), h - 1)
+        y2 = min(max(y2, 0), h - 1)
+
+        # ensure x1 < x2 and y1 < y2
+        x1, x2 = min(x1, x2), max(x1, x2)
+        y1, y2 = min(y1, y2), max(y1, y2)
+
+        subimage = image[y1:y2, x1:x2, :]
+        if np.all(subimage.shape):  # if none of the dimensions are 0, add it
+            subimages.append(subimage)
+
+    # Scan each subimage
+    shelf = []
+    for subimage in subimages:
+        books = scan_cover(subimage)
+        shelf.append(books)
+
+    return shelf
 
 
 @subapp.route("/recommendations", methods=["GET"])

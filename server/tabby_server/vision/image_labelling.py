@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+from typing import Any
 from ultralytics import YOLO
 import torch
 import json
@@ -46,7 +47,7 @@ with temp_dir("tabby_server/vision/"):
     model = YOLO("shelf_yolo.pt")
 
 
-def find_books(tensor_image=None) -> list[dict[str, list]]:
+def find_books(tensor_image=None) -> list[dict[str, Any]]:
     """
     When called, it will be given a tensor image matrix. It will verify that it
     is compatible with the yolo model before working.

@@ -6,7 +6,7 @@ PORT = os.getenv("PORT", "8000")
 
 
 if __name__ == "__main__":
-    app.run(debug=False, host='0.0.0.0', port=int(PORT))
+    app.run(debug=False, host="0.0.0.0", port=int(PORT))
 
 # Run by using
 # python3 server.py

@@ -27,15 +27,15 @@ def test_get_google_books_query():
     # Double args
     assert (
         get_google_books_query(phrase="state", intitle="state")
-        == "state+intitle:state"
+        == "state intitle:state"
     )
     assert (
         get_google_books_query(inauthor="state", inpublisher="state")
-        == "inauthor:state+inpublisher:state"
+        == "inauthor:state inpublisher:state"
     )
     assert (
         get_google_books_query(subject="state", isbn="state")
-        == "subject:state+isbn:state"
+        == "subject:state isbn:state"
     )
 
     # Triple args
@@ -43,13 +43,13 @@ def test_get_google_books_query():
         get_google_books_query(
             phrase="state", intitle="state", inauthor="state"
         )
-        == "state+intitle:state+inauthor:state"
+        == "state intitle:state inauthor:state"
     )
     assert (
         get_google_books_query(
             inpublisher="state", subject="state", isbn="state"
         )
-        == "inpublisher:state+subject:state+isbn:state"
+        == "inpublisher:state subject:state isbn:state"
     )
     assert get_google_books_query(
         phrase="state",
@@ -59,8 +59,40 @@ def test_get_google_books_query():
         subject="state",
         isbn="state",
     ) == (
-        "state+intitle:state+inauthor:state+inpublisher:state+subject:state"
-        "+isbn:state"
+        "state intitle:state inauthor:state inpublisher:state subject:state"
+        " isbn:state"
+    )
+
+    # Test sanitation
+    assert (
+        get_google_books_query(phrase="to kill a mockingbird inauthor:Spiel")
+        == "to kill a mockingbird inauthor : Spiel"
+    )
+    assert (
+        get_google_books_query(
+            phrase="to kill a mockingbird inauthor:Spiel inauthor:Spiel"
+        )
+        == "to kill a mockingbird inauthor : Spiel inauthor : Spiel"
+    )
+    assert (
+        get_google_books_query(
+            phrase="to kill a mockingbird intitle:Title inauthor:Author "
+            "inpublisher:inpublisher subject:subject isbn:isbn"
+        )
+        == "to kill a mockingbird intitle : Title inauthor : Author "
+        "inpublisher : inpublisher subject : subject isbn : isbn"
+    )
+    assert (
+        get_google_books_query(
+            phrase="to kill a mockingbird intitle:Title inauthor: Author"
+        )
+        == "to kill a mockingbird intitle : Title inauthor :  Author"
+    )
+    assert (  # doesn't work, colon isn't directly after
+        get_google_books_query(
+            phrase="to kill a mockingbird intitle:Title inauthor :Author"
+        )
+        == "to kill a mockingbird intitle : Title inauthor :Author"
     )
 
 
