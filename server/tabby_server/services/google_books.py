@@ -68,9 +68,9 @@ def get_google_books_query(
 
     Returns:
         Fully assembled and formatted Google Books API search query. Each part
-        is separated by '+'.
+        is separated by ' '.
     """
-    # Append parts if they exist, then join together with '+'.
+    # Append parts if they exist, then join together with ' '.
     parts = []
     if phrase:
         parts.append(phrase)
