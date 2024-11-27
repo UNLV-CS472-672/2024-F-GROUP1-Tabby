@@ -1,10 +1,13 @@
+from collections.abc import Generator
+from contextlib import contextmanager
 from dataclasses import asdict
 from functools import cache
 from io import BytesIO
 import logging
+import time
 from PIL import Image
 import PIL
-from flask import Blueprint, request
+from flask import Blueprint, request, current_app
 from http import HTTPStatus
 import cv2 as cv
 from cv2.typing import MatLike
@@ -21,6 +24,25 @@ _SCAN_SHELF_MAX_RESULTS_PER_BOOK = 5
 
 subapp = Blueprint(name="books", import_name=__name__)
 
+G = "\u001b[32m"
+B = "\u001b[34m"
+RESET = "\033[0m"
+
+
+@contextmanager
+def logging_duration(
+    logger: logging.Logger, message: str
+) -> Generator[None, None, None]:
+    """Context manager in which the total time the code took is logged at
+    exit."""
+    start = time.time()
+    logger.info(f"{G}START       {message}{RESET}")
+    try:
+        yield
+    finally:
+        duration = time.time() - start
+        logger.info(f"{B}END {duration:6.2f}s {message}{RESET}")
+
 
 @subapp.route("/scan_cover", methods=["POST"])
 def books_scan_cover():
@@ -31,29 +53,25 @@ def books_scan_cover():
     the image.
     """
 
-    logging.info("scanning image")
+    current_app.logger.info(f"{G}START       /scan_shelf{RESET}")
 
     # Try scan image
-    try:
-        img = Image.open(BytesIO(request.data))
-    except PIL.UnidentifiedImageError:
-        return {
-            "message": "Couldn't read an image from the given body."
-        }, HTTPStatus.BAD_REQUEST
-
-    img = img.convert("RGB")
-
-    logging.info("creating matrix")
+    with logging_duration(current_app.logger, "Read image"):
+        try:
+            img = Image.open(BytesIO(request.data))
+        except PIL.UnidentifiedImageError:
+            return {
+                "message": "Couldn't read an image from the given body."
+            }, HTTPStatus.BAD_REQUEST
+        img = img.convert("RGB")
 
     # ai-gen start (ChatGPT-4o, 2)
     img_mat = np.array(img)
     img_mat = cv.cvtColor(img_mat, cv.COLOR_RGB2BGR)
     # ai-gen end
 
-    logging.info("scanning cover")
-
+    # Scan cover
     books = scan_cover(img_mat)
-    logging.info("filtering book results")
 
     # Filter out books without ISBNs
     books = [b for b in books if b.isbn]
@@ -74,21 +92,28 @@ def scan_cover(image_matrix: MatLike) -> list[google_books.Book]:
     """
 
     # Find text
-    text_recognizer = get_text_recognizer()
-    recognized_texts = text_recognizer.find_text(image_matrix)
+    with logging_duration(current_app.logger, "Recognize text using OCR"):
+        text_recognizer = get_text_recognizer()
+        recognized_texts = text_recognizer.find_text(image_matrix)
 
     # Extract Title and Author
-    extraction_result = extraction.extract_from_recognized_texts(
-        recognized_texts
-    )
+    with logging_duration(
+        current_app.logger, "Extract title and author using ChatGPT"
+    ):
+        extraction_result = extraction.extract_from_recognized_texts(
+            recognized_texts
+        )
     if extraction_result is None:
         return []
 
     # Make the request to Google Books
-    top_option = extraction_result.options[0]
-    books = google_books.request_volumes_get(
-        phrase=top_option.title, author=top_option.author
-    )
+    with logging_duration(
+        current_app.logger, "Request info from Google Books"
+    ):
+        top_option = extraction_result.options[0]
+        books = google_books.request_volumes_get(
+            phrase=top_option.title, author=top_option.author
+        )
 
     return books
 
@@ -125,6 +150,7 @@ def books_search() -> tuple[dict, HTTPStatus]:
         results: Array of books found.
         resultsCount: Number of results in 'result'.
     """
+    current_app.logger.info(f"{G}START       /search{RESET}")
 
     # Extract optional args
     phrase = request.args.get("phrase", "")
@@ -141,14 +167,17 @@ def books_search() -> tuple[dict, HTTPStatus]:
         }, HTTPStatus.BAD_REQUEST
 
     # Make the request
-    books = google_books.request_volumes_get(
-        phrase=phrase,
-        title=title,
-        author=author,
-        publisher=publisher,
-        subject=subject,
-        isbn=isbn,
-    )
+    with logging_duration(
+        current_app.logger, "Request info from Google Books"
+    ):
+        books = google_books.request_volumes_get(
+            phrase=phrase,
+            title=title,
+            author=author,
+            publisher=publisher,
+            subject=subject,
+            isbn=isbn,
+        )
 
     # Filter out books without ISBNs
     books = [b for b in books if b.isbn]
@@ -190,15 +219,16 @@ def books_scan_shelf() -> tuple[dict, HTTPStatus]:
     The body of the request should be binary data (JPG or PNG) reprsenting
     the image.
     """
+    current_app.logger.info(f"{G}START       /scan_shelf{RESET}")
 
     # Load image
-    logging.info("scanning image")
-    try:
-        img_file = Image.open(BytesIO(request.data))
-    except PIL.UnidentifiedImageError:
-        return {
-            "message": "Couldn't read an image from the given body."
-        }, HTTPStatus.BAD_REQUEST
+    with logging_duration(current_app.logger, "Read image"):
+        try:
+            img_file = Image.open(BytesIO(request.data))
+        except PIL.UnidentifiedImageError:
+            return {
+                "message": "Couldn't read an image from the given body."
+            }, HTTPStatus.BAD_REQUEST
 
     img = img_file.convert("RGB")
     # ai-gen start (ChatGPT-4o, 2)
@@ -247,7 +277,8 @@ def scan_shelf(image: MatLike) -> list[list[google_books.Book]]:
 
     # Get subimages
     subimages = []
-    segmentation_results = image_labelling.find_books(image_tensor)
+    with logging_duration(current_app.logger, "Find books on shelf"):
+        segmentation_results = image_labelling.find_books(image_tensor)
     for sr in segmentation_results:
 
         # scale results to the original image
@@ -271,10 +302,11 @@ def scan_shelf(image: MatLike) -> list[list[google_books.Book]]:
             subimages.append(subimage)
 
     # Scan each subimage
-    shelf = []
-    for subimage in subimages:
-        books = scan_cover(subimage)
-        shelf.append(books)
+    with logging_duration(current_app.logger, "Use OCR on each image."):
+        shelf = []
+        for subimage in subimages:
+            books = scan_cover(subimage)
+            shelf.append(books)
 
     return shelf
 
@@ -293,6 +325,7 @@ def books_recommendations() -> tuple[dict, HTTPStatus]:
         weights: List of numbers corresponding to how heavily weighed is each
             book, separated by |---|. Each number is from 0 to 1.
     """
+    current_app.logger.info(f"{G}START       /recommendations{RESET}")
 
     # Titles and authors are separated by |---| because they might contain
     # punctuation like commas, semicolons, etc.
@@ -349,14 +382,16 @@ def books_recommendations() -> tuple[dict, HTTPStatus]:
         }, HTTPStatus.BAD_REQUEST
 
     # Get tags
-    tags_list = tags.get_tags(titles_list, authors_list, weights_list)
-    if not tags_list:  # if empty, return error
-        return {
-            "message": "Unable to get tags from the given books."
-        }, HTTPStatus.BAD_REQUEST
+    with logging_duration(current_app.logger, "Get tags from ChatGPT"):
+        tags_list = tags.get_tags(titles_list, authors_list, weights_list)
+        if not tags_list:  # if empty, return error
+            return {
+                "message": "Unable to get tags from the given books."
+            }, HTTPStatus.BAD_REQUEST
 
     # Get related books using list of tags
-    books = google_books.request_volumes_get(phrase=", ".join(tags_list))
+    with logging_duration(current_app.logger, "Request from Google Books"):
+        books = google_books.request_volumes_get(phrase=", ".join(tags_list))
 
     # Filter out books without ISBNs
     books = [b for b in books if b.isbn]
