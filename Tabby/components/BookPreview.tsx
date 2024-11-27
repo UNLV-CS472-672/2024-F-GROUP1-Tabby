@@ -22,6 +22,10 @@ const BookPreview: React.FC<BookPreviewProps> = ({
     const { category } = useLocalSearchParams();
 
     const isSelected = selectedBooks.includes(book.id);
+    const defaultBookImage = require('@/assets/book/default-book-cover.jpg');
+
+    // State to handle image source
+    const [imageSource, setImageSource] = useState(book.image ? { uri: book.image } : defaultBookImage);
 
     const handleBookPress = () => {
         // If any books are selected, toggle the current book's selection
@@ -45,9 +49,12 @@ const BookPreview: React.FC<BookPreviewProps> = ({
         }
     };
 
-    // Use default image if `book.image` is not set or is invalid
-    const imageSource = book.image ? { uri: book.image } : require('@/assets/book/default-book-cover.jpg');
     const buttonStyles = isSelected ? "bg-blue-500 opacity-80" : "";
+
+    // Handle image load error by setting a default image
+    const handleImageError = () => {
+        setImageSource(defaultBookImage);
+    };
 
     return (
         <Pressable
@@ -60,6 +67,7 @@ const BookPreview: React.FC<BookPreviewProps> = ({
                 className="w-28 h-40 mr-4"
                 resizeMode="cover"
                 alt="book cover"
+                onError={handleImageError} // Trigger error handling on image load failure
             />
             <View className="flex-1">
                 <Text className="text-lg font-bold text-white">{book.title}</Text>
