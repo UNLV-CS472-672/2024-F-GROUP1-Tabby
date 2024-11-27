@@ -63,6 +63,38 @@ def test_get_google_books_query():
         " isbn:state"
     )
 
+    # Test sanitation
+    assert (
+        get_google_books_query(phrase="to kill a mockingbird inauthor:Spiel")
+        == "to kill a mockingbird inauthor : Spiel"
+    )
+    assert (
+        get_google_books_query(
+            phrase="to kill a mockingbird inauthor:Spiel inauthor:Spiel"
+        )
+        == "to kill a mockingbird inauthor : Spiel inauthor : Spiel"
+    )
+    assert (
+        get_google_books_query(
+            phrase="to kill a mockingbird intitle:Title inauthor:Author "
+            "inpublisher:inpublisher subject:subject isbn:isbn"
+        )
+        == "to kill a mockingbird intitle : Title inauthor : Author "
+        "inpublisher : inpublisher subject : subject isbn : isbn"
+    )
+    assert (
+        get_google_books_query(
+            phrase="to kill a mockingbird intitle:Title inauthor: Author"
+        )
+        == "to kill a mockingbird intitle : Title inauthor :  Author"
+    )
+    assert (  # doesn't work, colon isn't directly after
+        get_google_books_query(
+            phrase="to kill a mockingbird intitle:Title inauthor :Author"
+        )
+        == "to kill a mockingbird intitle : Title inauthor :Author"
+    )
+
 
 def test_volume_info_to_book():
     """Tests volume_info_to_book()."""

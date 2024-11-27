@@ -45,6 +45,39 @@ class BooksInvalid:
     message: str
 
 
+_keywords_to_sanitize: frozenset[str] = frozenset(
+    ["intitle", "inauthor", "inpublisher", "subject", "isbn"]
+)
+
+
+def _sanitize_query_field(field_value: str) -> str:
+    """Sanitizes a Google Book query field to make it safe for searching.
+
+    For example, suppose 'phrase' gets the value:
+
+        kingdoms to which people are subject:a full analysis
+
+    It might use 'subject:a full analysis' as a separate field. To solve this,
+    we simply add a space inbetween:
+
+        kingdoms to which people are subject : a full analysis
+
+    Args:
+        field_value: String to sanitize.
+    Returns:
+        Sanitized string.
+    """
+    # find each keyword
+    for keyword in _keywords_to_sanitize:
+        indicator = f"{keyword}:"
+        parts = field_value.split(indicator)
+        if len(parts) >= 2:
+            # found an indicator, sanitize by adding a space inbetween
+            sep = f"{keyword} : "
+            field_value = sep.join(parts)
+    return field_value
+
+
 def get_google_books_query(
     phrase: str = "",
     intitle: str = "",
@@ -70,6 +103,15 @@ def get_google_books_query(
         Fully assembled and formatted Google Books API search query. Each part
         is separated by ' '.
     """
+
+    # Sanitize fields to make sure they don't contain other fields
+    phrase = _sanitize_query_field(phrase)
+    intitle = _sanitize_query_field(intitle)
+    inauthor = _sanitize_query_field(inauthor)
+    inpublisher = _sanitize_query_field(inpublisher)
+    subject = _sanitize_query_field(subject)
+    isbn = _sanitize_query_field(isbn)
+
     # Append parts if they exist, then join together with ' '.
     parts = []
     if phrase:
