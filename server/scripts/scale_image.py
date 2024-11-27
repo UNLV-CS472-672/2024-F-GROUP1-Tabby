@@ -1,4 +1,3 @@
-from typing import Annotated
 import cyclopts as cy
 import cv2 as cv
 from tabby_server.vision import ocr
