@@ -9,8 +9,16 @@ import { Category } from "@/types/category";
 import { SearchBar } from "@rneui/themed";
 import { useEffect } from "react";
 import SelectedMenu from "@/components/categories/SelectedMenu";
-import { getAllCategories, addCategory, deleteCategory, updateCategory, getAllUserBooksByCategory, updateMultipleUserBooksToHaveCategoryPassed, deleteAllUserBooksByCategory } from "@/database/databaseOperations";
-import PlusIcon from "@/assets/menu-icons/plus-icon.svg";
+import {
+  getAllCategories,
+  addCategory,
+  deleteCategory,
+  updateCategory,
+  getAllUserBooksByCategory,
+  updateMultipleUserBooksToHaveCategoryPassed,
+  deleteAllUserBooksByCategory,
+} from "@/database/databaseOperations";
+import PlusIcon from "@/components/AddButtonIcon";
 
 const Categories = () => {
   const router = useRouter();
@@ -22,10 +30,10 @@ const Categories = () => {
   const [search, setSearch] = useState("");
   const defaultNewCategoryName = "New Category";
   const NewCategoryNameRef = useRef(defaultNewCategoryName);
-  // if there are no categories in db add default category 
+  // if there are no categories in db add default category
   const defaultCategoryName = "Books";
 
-  // only on mount fetch categories from db to initialize categories 
+  // only on mount fetch categories from db to initialize categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -35,18 +43,22 @@ const Categories = () => {
         }
         // if initialCategories is null or undefined then add default category to db and set categories to have default category
         else {
-          const defaultCategory = { name: defaultCategoryName, isPinned: true, isSelected: false, position: 0 };
-          const resultOnAddingDefaultCategory = await addCategory(defaultCategory);
+          const defaultCategory = {
+            name: defaultCategoryName,
+            isPinned: true,
+            isSelected: false,
+            position: 0,
+          };
+          const resultOnAddingDefaultCategory = await addCategory(
+            defaultCategory
+          );
           if (!resultOnAddingDefaultCategory) {
             console.log("Error adding default category");
             return;
           }
           console.log("Default category added successfully");
           setCategories(sortCategories([defaultCategory]));
-
-
         }
-
       } catch (error) {
         console.error("Failed to load categories:", error);
       }
@@ -63,29 +75,37 @@ const Categories = () => {
   };
 
   const handleCategoryPress = (category: Category) => {
-    // if any category is selected, toggle the selection for the clicked category instead of navigating to category page 
+    // if any category is selected, toggle the selection for the clicked category instead of navigating to category page
     if (areAnyCategoriesSelected()) {
       const updatedCategories = categories.map((currentCategory) => {
         if (currentCategory.name === category.name) {
-          return { ...currentCategory, isSelected: !currentCategory.isSelected };
+          return {
+            ...currentCategory,
+            isSelected: !currentCategory.isSelected,
+          };
         }
         return currentCategory;
       });
       setCategories(updatedCategories);
       return;
     }
-    // otherwise go to category page 
+    // otherwise go to category page
     router.push(`/library/${category.name}`);
   };
 
   const handlePinPress = async (categoryName: string) => {
     // getting category with name
-    const categoryToBeModified = categories.find((category) => category.name === categoryName);
+    const categoryToBeModified = categories.find(
+      (category) => category.name === categoryName
+    );
     if (!categoryToBeModified) {
       return;
     }
     // update category to be pinned in db
-    await updateCategory(categoryName, { ...categoryToBeModified, isPinned: !categoryToBeModified.isPinned });
+    await updateCategory(categoryName, {
+      ...categoryToBeModified,
+      isPinned: !categoryToBeModified.isPinned,
+    });
     const updatedCategories = categories.map((category) =>
       category.name === categoryName
         ? { ...category, isPinned: !category.isPinned }
@@ -116,14 +136,28 @@ const Categories = () => {
       await Promise.all(
         selectedCategories.map(async (category) => {
           const resultOfDeletingCategory = await deleteCategory(category.name); // Assuming deleteCategory takes category name as parameter
-          { (resultOfDeletingCategory) ? (console.log("Category deleted successfully")) : (console.log("Error deleting category")) }
-          const resultOfDeletingUserBooksWithCategoryName = await deleteAllUserBooksByCategory(category.name);
-          { (resultOfDeletingUserBooksWithCategoryName) ? (console.log("User books deleted successfully with category name")) : (console.log("Error deleting user books with category name")) }
+          {
+            resultOfDeletingCategory
+              ? console.log("Category deleted successfully")
+              : console.log("Error deleting category");
+          }
+          const resultOfDeletingUserBooksWithCategoryName = await deleteAllUserBooksByCategory(
+            category.name
+          );
+          {
+            resultOfDeletingUserBooksWithCategoryName
+              ? console.log(
+                  "User books deleted successfully with category name"
+                )
+              : console.log("Error deleting user books with category name");
+          }
         })
       );
 
       // Update state after deletions are complete
-      const remainingCategories = categories.filter((category) => !category.isSelected);
+      const remainingCategories = categories.filter(
+        (category) => !category.isSelected
+      );
       setCategories(sortCategories(remainingCategories));
       setIsDeleteModalVisible(false);
       return "Categories deleted successfully";
@@ -158,7 +192,11 @@ const Categories = () => {
           }
 
           // Update the selected category's name and deselect it
-          updatedCategories[index] = { ...category, name: newUniqueName, isSelected: false };
+          updatedCategories[index] = {
+            ...category,
+            name: newUniqueName,
+            isSelected: false,
+          };
           const currentUpdatedCategory = updatedCategories[index];
 
           // Perform async database operation
@@ -167,17 +205,29 @@ const Categories = () => {
             console.log("Adding new category:", currentUpdatedCategory);
             await addCategory(currentUpdatedCategory); // Add new category
           }
-          // renaming a category 
+          // renaming a category
           else {
             await updateCategory(category.name, currentUpdatedCategory); // Update existing category
-            // get all user books with old category name 
-            const userBooksWithOldCategory = await getAllUserBooksByCategory(oldName);
+            // get all user books with old category name
+            const userBooksWithOldCategory = await getAllUserBooksByCategory(
+              oldName
+            );
             // update all user books with new category name only if there are user books with old category name
             if (userBooksWithOldCategory) {
-              const result = await updateMultipleUserBooksToHaveCategoryPassed(userBooksWithOldCategory, newUniqueName);
-              { result ? (console.log("User books updated successfully with new category name")) : (console.log("Error updating user books with new category name")) }
+              const result = await updateMultipleUserBooksToHaveCategoryPassed(
+                userBooksWithOldCategory,
+                newUniqueName
+              );
+              {
+                result
+                  ? console.log(
+                      "User books updated successfully with new category name"
+                    )
+                  : console.log(
+                      "Error updating user books with new category name"
+                    );
+              }
             }
-
           }
         }
       }
@@ -190,18 +240,24 @@ const Categories = () => {
     }
   };
 
-
   const handleAddCategory = () => {
     if (isAddingCategory) return;
     setIsAddingCategory(true);
     let uniqueName = defaultNewCategoryName;
     let counter = 1;
-    while (categories.some((currentCategory) => currentCategory.name === uniqueName)) {
+    while (
+      categories.some((currentCategory) => currentCategory.name === uniqueName)
+    ) {
       uniqueName = `${defaultNewCategoryName} (${counter})`;
       counter++;
     }
     NewCategoryNameRef.current = uniqueName;
-    const newCategory = { name: uniqueName, isPinned: false, isSelected: true, position: 0 };
+    const newCategory = {
+      name: uniqueName,
+      isPinned: false,
+      isSelected: true,
+      position: 0,
+    };
 
     setCategories(sortCategories([...categories, newCategory]));
     setIsRenameModalVisible(true);
@@ -246,22 +302,39 @@ const Categories = () => {
 
   const renderItem = ({ item, index }: { item: Category; index: number }) => {
     // do not render new category that is about to be added as it has a temp name and should not be shown until it is actually added
-    if ((search === "" || item.name.toLowerCase().includes(search.toLowerCase())) && (NewCategoryNameRef.current !== item.name)) {
+    if (
+      (search === "" ||
+        item.name.toLowerCase().includes(search.toLowerCase())) &&
+      NewCategoryNameRef.current !== item.name
+    ) {
       return (
         <View>
           <Pressable
             onPress={() => handleCategoryPress(item)}
             onLongPress={() => handleLongPress(item.name)}
             className={`flex-row items-center justify-between py-4 px-6 
-              ${item.isSelected ? "bg-blue-500 opacity-80" : index % 2 === 0 ? "bg-black" : "bg-gray-300"}`}          >
+              ${
+                item.isSelected
+                  ? "bg-blue-500 opacity-80"
+                  : index % 2 === 0
+                  ? "bg-black"
+                  : "bg-gray-300"
+              }`}
+          >
             <View className="items-center flex-1">
               <Text
-                className={`text-xl font-semibold ${index % 2 === 0 ? "text-white" : "text-black"}`}
+                className={`text-xl font-semibold ${
+                  index % 2 === 0 ? "text-white" : "text-black"
+                }`}
               >
                 {item.name}
               </Text>
             </View>
-            <Pressable className="p-1" disabled={areAnyCategoriesSelected()} onPress={() => handlePinPress(item.name)}>
+            <Pressable
+              className="p-1"
+              disabled={areAnyCategoriesSelected()}
+              onPress={() => handlePinPress(item.name)}
+            >
               <PinnedIcon isPinned={item.isPinned} />
             </Pressable>
           </Pressable>
@@ -273,44 +346,42 @@ const Categories = () => {
 
   return (
     <>
-
-
       <SafeAreaView className="flex-1">
-
-
-
         {/* Top row for add category icon and search bar */}
-
 
         {/* only show search bar if no categories are selected */}
 
-        <View className="flex-row items-center justify-between" >
+        <View className="flex-row items-center justify-between">
           <View className="w-[85%] mx-auto">
-            <SearchBar placeholder="Search by category name..." onChangeText={updateSearch} value={search} />
+            <SearchBar
+              placeholder="Search by category name..."
+              onChangeText={updateSearch}
+              value={search}
+            />
           </View>
 
           <Pressable className="p-2 mx-auto" onPress={handleAddCategory}>
-
-            {(!areAnyCategoriesSelected()) && (<PlusIcon height={38} width={38} />)}
-
-
+            {!areAnyCategoriesSelected() && <PlusIcon isAdded={false} />}
           </Pressable>
         </View>
 
-
-
         {/* Content area to allow FlatList and menu to stack correctly */}
         <View className="flex-1">
-          <FlatList data={categories} keyExtractor={(item) => item.name} renderItem={renderItem} />
+          <FlatList
+            data={categories}
+            keyExtractor={(item) => item.name}
+            renderItem={renderItem}
+          />
         </View>
 
         {/* Bottom menu: shown when categories are selected */}
-        {(areAnyCategoriesSelected() && !isAddingCategory) && (
-
-
-          <SelectedMenu openDeleteModal={() => setIsDeleteModalVisible(true)} openRenameModal={() => setIsRenameModalVisible(true)} openCancelModal={() => deselectAllCategories()} />
+        {areAnyCategoriesSelected() && !isAddingCategory && (
+          <SelectedMenu
+            openDeleteModal={() => setIsDeleteModalVisible(true)}
+            openRenameModal={() => setIsRenameModalVisible(true)}
+            openCancelModal={() => deselectAllCategories()}
+          />
         )}
-
       </SafeAreaView>
 
       {/* Rename Modal */}
@@ -334,7 +405,6 @@ const Categories = () => {
         />
       )}
     </>
-
   );
 };
 
