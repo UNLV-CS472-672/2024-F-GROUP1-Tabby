@@ -19,6 +19,7 @@ import CancelIcon from "@/assets/menu-icons/cancel-icon.svg";
 import DeleteBooksModal from "@/components/DeleteBooksModal";
 import AddBooksOrMoveBooksToCategoryModal from "@/components/AddBooksOrMoveBooksToCategoryModal";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import axios from "axios";
 
 type SelectableBook = {
     book: Book;
@@ -131,6 +132,49 @@ const defaultSelectableBooks: SelectableBook[] = defaultBooks.map(
 );
 
 const size = 36;
+
+const baseAPIUrlRender = "https://group1-tabby.onrender.com/";
+const baseAPIUrlKoyeb = "https://just-ulrike-tabby-app-9d270e1b.koyeb.app/"
+
+
+// will make a call to the server to get recommended books using book array passed
+const getRecommendedBooksFromServerBasedOnBooksPassed = async (booksToUseForRecommendations: Book[]) => {
+    const baseUrl = baseAPIUrlKoyeb;
+
+}
+
+// will make a call to the server to get books based on what is in the search bar  will use query param to search by isbn or phrase
+const getBooksFromServerBasedOnSearch = async (search: string) => {
+    const baseUrl = baseAPIUrlKoyeb; // Ensure baseAPIUrlKoyeb is properly defined
+    const isbnRegex = /^\d{13}$/; // Regular expression for ISBN-13
+
+    try {
+        // Determine whether to search by ISBN or phrase
+        const queryParam = isbnRegex.test(search)
+            ? `isbn=${search}`
+            : `phrase=${encodeURIComponent(search)}`;
+
+        // Make the API call
+        const response = await axios.get(`${baseUrl}/search?${queryParam}`);
+
+        if (response.status === 200) {
+            const { message, results, resultsCount } = response.data;
+
+            console.log("Search Results:", { message, results, resultsCount });
+
+            // Return the results or handle as needed
+            return results;
+        } else {
+            console.error("Unexpected status code:", response.status);
+            return [];
+        }
+    } catch (error) {
+        console.error("Error fetching books from server:", error);
+        return [];
+    }
+};
+
+
 const Recommendations = () => {
     // State to keep track of books and their selected status
     const [selectableBooks, setSelectableBooks] = useState<SelectableBook[]>(
