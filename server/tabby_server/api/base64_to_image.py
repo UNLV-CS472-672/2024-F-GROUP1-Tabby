@@ -29,7 +29,7 @@ def decode_image(string64: str) -> np.ndarray:
         actually a base 64 string
     """
     # First decode the base64 into byte data
-    imgdata = base64.decodebytes(bytes(string64, 'utf-8'))
+    imgdata = base64.decodebytes(bytes(string64, "utf-8"))
 
     # Process the byte data into BGR (Blue, Gree, Red) where
     # blue occupies the most significant bit and red occupies the LSB
@@ -39,4 +39,4 @@ def decode_image(string64: str) -> np.ndarray:
     # Just read as is
     opencv_img = cv2.cvtColor(np.array(img), cv2.IMREAD_COLOR)
 
-    return opencv_img      # Function, END
+    return opencv_img  # Function, END

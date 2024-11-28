@@ -2,6 +2,7 @@
 name = "tabby_server"
 version = "0.1.0"
 description = "Server for the Tabby app."
+package-mode = false
 authors = ["Ederic Oytas <edericoytas@gmail.com>"]
 readme = "README.md"
 
@@ -17,8 +18,9 @@ poethepoet = "^0.29.0"
 ultralytics = "^8.3.26"
 opencv-python = "^4.10.0.84"
 opencv-python-headless = "^4.10.0.84"
-pillow = "^11.0.0"
 openai = "^1.54.1"
+pillow = "^11.0.0"
+gunicorn = "^23.0.0"
 
 
 [tool.poetry.group.dev.dependencies]

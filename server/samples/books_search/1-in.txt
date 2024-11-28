@@ -1,0 +1,2 @@
+# phrase is a required argument
+http://localhost:5000/books/search?phrase=To Kill a Mockingbird
