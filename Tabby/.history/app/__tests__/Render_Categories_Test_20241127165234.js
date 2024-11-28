@@ -4,13 +4,11 @@ import { getAllCategories } from "@/database/databaseOperations";
 import CategoriesPage from "@/app/library"; // Adjust this import path to your CategoriesPage component
 
 // Mocking expo-font to prevent errors in tests
-jest.mock("expo-font", () => {
-  return {
-    isLoaded: jest.fn(),
-    forEach: jest.fn(),
-    loadAsync: jest.fn(),
-  };
-});
+jest.mock("expo-font", () => ({
+  ...jest.requireActual("expo-font"),
+  isLoaded: jest.fn().mockReturnValue(true),
+  loadAsync: jest.fn(),
+}));
 
 // Mock all database operation functions
 jest.mock("@/database/databaseOperations", () => ({

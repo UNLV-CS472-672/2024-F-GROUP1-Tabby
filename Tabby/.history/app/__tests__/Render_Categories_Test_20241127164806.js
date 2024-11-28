@@ -1,16 +1,8 @@
 import React from "react";
 import { render, screen } from "@testing-library/react-native";
+// Importing mock functions directly
 import { getAllCategories } from "@/database/databaseOperations";
 import CategoriesPage from "@/app/library"; // Adjust this import path to your CategoriesPage component
-
-// Mocking expo-font to prevent errors in tests
-jest.mock("expo-font", () => {
-  return {
-    isLoaded: jest.fn(),
-    forEach: jest.fn(),
-    loadAsync: jest.fn(),
-  };
-});
 
 // Mock all database operation functions
 jest.mock("@/database/databaseOperations", () => ({
@@ -44,6 +36,10 @@ beforeEach(() => {
 });
 
 describe("Categories Page", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it("should render the CategoriesPage component", async () => {
     render(<CategoriesPage />);
 
