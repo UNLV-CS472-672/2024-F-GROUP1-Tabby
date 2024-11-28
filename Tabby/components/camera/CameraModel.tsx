@@ -137,7 +137,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
     // uploads image to scan_cover endpoint
     const uploadImage = async (imageUri: string) => {
         try {
-            console.log("testing koyeb image");
+            console.log("Sending koyeb image");
 
             // convert image to blob raw data
             const res = await fetch(imageUri);
@@ -164,15 +164,21 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
                 }
                 if (result.results[1]) {
                     const book2 = jsonToBook(result.results[1]);
-                    returnedBooks.push(book2);
+                    if (returnedBooks.findIndex(c => c.isbn === book2.isbn)) {
+                        returnedBooks.push(book2);
+                    }
                 }
                 if (result.results[2]) {
                     const book3 = jsonToBook(result.results[2]);
-                    returnedBooks.push(book3);
+                    if (returnedBooks.findIndex(c => c.isbn === book3.isbn)) {
+                        returnedBooks.push(book3);
+                    }
                 }
                 if (result.results[3]) {
                     const book4 = jsonToBook(result.results[3]);
-                    returnedBooks.push(book4);
+                    if (returnedBooks.findIndex(c => c.isbn === book4.isbn)) {
+                        returnedBooks.push(book4);
+                    }
                 }
             } else {
                 console.error("error uploading image: ", response.status);
@@ -186,9 +192,11 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
     };
 
     // returns a Book object from json given by google books
+    // TODO: change id to be the uuid from db and add other fields
     const jsonToBook = (bookjson: apiReturn) => {
         const returnBook: Book = {
-            id: bookjson.isbn,
+            id: `tempid${Math.floor(Math.random() * 1000)}`,
+            isbn: bookjson.isbn,
             title: bookjson.title,
             author: bookjson.authors,
             excerpt: bookjson.excerpt,
