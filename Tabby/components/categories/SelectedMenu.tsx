@@ -1,8 +1,8 @@
 import { View, Pressable, Text } from "react-native";
 import React from "react";
-import DeleteIcon from "@/assets/categories/delete-icon.svg";
-import RenameIcon from "@/assets/categories/rename-icon.svg";
-import CancelIcon from "@/assets/categories/cancel-icon.svg";
+import DeleteIcon from "@/assets/menu-icons/delete-icon.svg";
+import RenameIcon from "@/assets/menu-icons/rename-icon.svg";
+import CancelIcon from "@/assets/menu-icons/cancel-icon.svg";
 
 interface SelectedMenuProps {
   openDeleteModal: () => void;
@@ -17,7 +17,7 @@ const SelectedMenu: React.FC<SelectedMenuProps> = ({ openDeleteModal, openRename
 
 
 
-    <View className="flex-row justify-around bg-[#161f2b] w-full border-t border-blue-500">
+    <View className="flex-row justify-around bg-[#161f2b] w-full border-t border-blue-900">
       <View className="">
         <Pressable className="flex-col items-center" onPress={openDeleteModal}>
           <DeleteIcon height={size} width={size} />

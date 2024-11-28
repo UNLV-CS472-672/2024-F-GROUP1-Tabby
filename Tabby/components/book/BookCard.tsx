@@ -1,5 +1,6 @@
 import React from 'react';
 import { Text, View, Image, ScrollView } from 'react-native';
+import { useState } from 'react';
 import { Book } from "@/types/book";
 
 import StarsRating from '@/components/book/StarsRating';
@@ -11,20 +12,31 @@ type BookCardProps = {
 
 const BookCard: React.FC<BookCardProps> = ({ book }) => {
 
+    const defaultBookImage = require('@/assets/book/default-book-cover.jpg');
+    // Use default image if `book.image` is not set or is invalid
+    const [imageSource, setImageSource] = useState(book.image ? { uri: book.image } : defaultBookImage);
+
+    // Handle image load error by setting a default image
+    const handleImageError = () => {
+        setImageSource(defaultBookImage);
+    };
+
     return (
         <View className="pl-7 pt-7">
             <View className="flex-row">
                 <Image
-                    source={{ uri: book.image }}
-                    className="w-28 h-40"
+                    source={imageSource}
+                    className="w-36 h-52"
+                    onError={handleImageError} // Trigger error handling on image load failure
                 />
 
                 <View className="flex-col pl-4">
                     <Text className="text-lg font-bold text-white">{book.title}</Text>
-                    <Text className="text-md text-white font-semibold italic">{book.author}</Text>
+                    <Text className="text-md text-white font-semibold italic"> By {book.author}</Text>
                     <Text className="mt-3 text-lg text-white">Rating</Text>
-                    <StarsRating rating={book.rating || 3} />
+                    <StarsRating rating={book.rating || 0} />
                 </View>
+
             </View>
 
             <View className="pt-2">

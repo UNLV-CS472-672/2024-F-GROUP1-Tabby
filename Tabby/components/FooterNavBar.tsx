@@ -1,14 +1,14 @@
 import { View, Pressable, Text } from "react-native";
 import { Link, usePathname } from "expo-router";
 import React, { useState } from "react";
-import SelectedLibrary from "@/assets/navbar-images/selectedLibrary";
-import NotSelectedLibrary from "@/assets/navbar-images/notSelectedLibrary";
-import SelectedExplore from "@/assets/navbar-images/selectedExplore";
-import NotSelectedExplore from "@/assets/navbar-images/notSelectedExplore";
-import SelectedFavorite from "@/assets/navbar-images/selectedFavorite";
-import NotSelectedFavorite from "@/assets/navbar-images/notSelectedFavorite";
-import Settings from "@/assets/navbar-images/settings";
-import CameraIcon from "@/assets/navbar-images/camera";
+import SelectedLibrary from "@/components/navbar/selectedLibrary";
+import NotSelectedLibrary from "@/components/navbar/notSelectedLibrary";
+import SelectedExplore from "@/components/navbar/selectedExplore";
+import NotSelectedExplore from "@/components/navbar/notSelectedExplore";
+import SelectedFavorite from "@/components/navbar/selectedFavorite";
+import NotSelectedFavorite from "@/components/navbar/notSelectedFavorite";
+import Settings from "@/components/navbar/settings";
+import CameraIcon from "@/components/navbar/camera";
 import CameraModal from "@/components/camera/CameraModel";
 
 const FooterNavBar = () => {

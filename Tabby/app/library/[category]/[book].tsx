@@ -1,182 +1,319 @@
-import { View, Pressable } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context';
-import React from 'react'
-import { useLocalSearchParams } from 'expo-router';
-import BookCard from '@/components/book/BookCard';
-import ScrollableGenres from '@/components/book/ScrollableGenres';
-import Reviews from '@/components/book/Reviews';
+import { View, Pressable, Text, ScrollView, Alert } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useLocalSearchParams } from "expo-router";
+import BookCard from "@/components/book/BookCard";
+import ScrollableHorizontalList from "@/components/book/ScrollableHorizontalList";
 import { Book } from "@/types/book";
-import { Review } from "@/types/review";
-import { useState } from 'react';
-import FavoriteButtonIcon from '@/components/FavoriteButtonIcon';
-import MenuIcon from '@/components/book/MenuIcon';
-import DropdownMenu from '@/components/book/DropDownMenu';
-import DeleteIcon from "@/assets/categories/delete-icon.svg";
-import DeleteBookModal from '@/components/book/DeleteBookModal';
-import { http_callback } from '@/types/api_request';
-import { catchErrorTyped } from '@/types/error_handle';
+import { useEffect, useState } from "react";
+import FavoriteButtonIcon from "@/components/FavoriteButtonIcon";
+import MenuIcon from "@/components/book/MenuIcon";
+import AddOrMoveSingleBookModal from "@/components/book/AddOrMoveSingleBookModal";
+import DeleteIcon from "@/assets/menu-icons/delete-icon.svg";
+import DeleteBookModal from "@/components/book/DeleteBookModal";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import UpdateBookNotesModal from "@/components/book/UpdateBookNotesModal";
+import EditIcon from "@/assets/book/edit-pen-icon.svg"
+
+import {
+    getUserBookById,
+    deleteUserBookById,
+    updateUserBook,
+    getAllCategories,
+    addUserBook,
+} from "@/database/databaseOperations";
+import { useRouter } from "expo-router";
 
 const BookPage = () => {
-    const [favorite, setFavorite] = useState(false);
-    const [isMoveMenuVisible, setIsMoveMenuVisible] = useState(false);
+    const router = useRouter();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-    // test data for reviews to see how reviews would look
-    const ReviewsArray: Review[] = [
-        {
-            name: 'John Doe',
-            rating: 4,
-            reviewSummary: 'This book is great! I highly recommend it! It is a must read. The way Harper Lee portrays complex social issues through the innocent eyes of a child is both powerful and poignant. The characters are memorable, and the themes of empathy and justice are incredibly relevant today.'
-        },
-        {
-            name: 'Jane Doe',
-            rating: 3,
-            reviewSummary: 'This book is okay. While it tackles important themes of racism and moral growth, I found some parts to be slow and less engaging. The narrative perspective is unique, but I struggled to connect with all the characters. It has its merits, but it didn’t fully resonate with me.'
-        },
-        {
-            name: 'Emily Smith',
-            rating: 5,
-            reviewSummary: 'A timeless classic that everyone should read! Harper Lee’s story beautifully captures the struggles of childhood and moral integrity. Scout’s perspective on justice and empathy is both touching and thought-provoking. The relationships in the book, especially between Scout and Atticus, offer profound insights into human nature and compassion.'
-        },
-        {
-            name: 'Michael Johnson',
-            rating: 2,
-            reviewSummary: 'Not as impactful as I expected. I appreciated the themes, but the pacing felt uneven, particularly in the second half. I struggled to connect with the characters emotionally. While it’s a notable work in literature, I found the execution lacking in depth, which left me wanting more.'
-        },
-        {
-            name: 'John York',
-            rating: 4,
-            reviewSummary: 'This book is great! I highly recommend it! It is a must read. The way Harper Lee portrays complex social issues through the innocent eyes of a child is both powerful and poignant. The characters are memorable, and the themes of empathy and justice are incredibly relevant today.'
-        },
-        {
-            name: 'Jane Boe',
-            rating: 3,
-            reviewSummary: 'This book is okay. While it tackles important themes of racism and moral growth, I found some parts to be slow and less engaging. The narrative perspective is unique, but I struggled to connect with all the characters. It has its merits, but it didn’t fully resonate with me.'
-        },
-        {
-            name: 'Emily Mith',
-            rating: 5,
-            reviewSummary: 'A timeless classic that everyone should read! Harper Lee’s story beautifully captures the struggles of childhood and moral integrity. Scout’s perspective on justice and empathy is both touching and thought-provoking. The relationships in the book, especially between Scout and Atticus, offer profound insights into human nature and compassion.'
-        },
-        {
-            name: 'Michael John',
-            rating: 2,
-            reviewSummary: 'Not as impactful as I expected. I appreciated the themes, but the pacing felt uneven, particularly in the second half. I struggled to connect with the characters emotionally. While it’s a notable work in literature, I found the execution lacking in depth, which left me wanting more.'
-        }
-    ];
-
-    // test book data to see how the book page will look with all its components
-    const BookObj: Book = {
-        id: '2',
-        title: 'To Kill a Mockingbird',
-        author: 'Harper Lee',
-        excerpt: 'A novel about racial injustice and racial segregation.',
-        summary: 'Set in the racially segregated South of the 1930s, To Kill a Mockingbird follows young Scout Finch as she observes her father, Atticus, defend Tom Robinson, a Black man falsely accused of rape. Through Scout’s eyes, the story explores racism, justice, empathy, and moral courage in a deeply divided community.',
-        image: 'https://m.media-amazon.com/images/I/81aY1lxk+9L._AC_UF1000,1000_QL80_.jpg',
-        isFavorite: favorite,
-        addToLibrary: false,
-        reviews: ReviewsArray,
-        genres: ['Fiction', 'Dystopian'],
-        rating: 4
-    }
-
-    const categories = ["Fiction", "Non-Fiction", "Mystery", "Sci-Fi", "Dystopian"];
-
-    const handleMoveToCategory = async (category: string) => {
-        console.log(`Moving book to category: ${category}`);
-
-        // DEBUG: Currently invalid due to this being local host.
-        // Will have to use a public address so that it can be used in android studios
-        const [error, value] = await catchErrorTyped(http_callback({
-                domain: process.env.EXPO_PUBLIC_API_URL || "",
-                route: "members",
-                method: "GET",
-                type: "application/json"
-            })
-        );
-
-        if (error) {
-            console.log("Error Found ", error.message);
-        } else {
-            console.log(value);
-        }
-    };
-
-    const handleDeleteBook = () => {
-        setIsDeleteModalVisible(false);
-        console.log(`Deleting ${book} from ${category}`);
-    };
+    const [
+        isAddOrMoveBookModalVisible,
+        setIsAddOrMoveBookModalVisible,
+    ] = useState(false);
+    const [currentBook, setCurrentBook] = useState<Book>({
+        id: "default",
+        title: "",
+        author: "",
+        excerpt: "",
+        summary: "",
+        image: "",
+    });
+    const [categories, setCategories] = useState<string[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [isUpdateBookNotesModalVisible, setIsUpdateNotesModalVisible] = useState(false);
 
     // Extract both category and book slugs
     const { category, book } = useLocalSearchParams();
 
     console.log(book, "is from", category);
 
+    // get book data from database
+    useEffect(() => {
+        const fetchBookDataAndCategories = async () => {
+            try {
+                const bookResponse = await getUserBookById(book as string);
+                const categoriesResponse = await getAllCategories();
+
+                console.log(bookResponse);
+                console.log(categoriesResponse);
+                // set current book if not empty
+                if (bookResponse) {
+                    setCurrentBook(bookResponse);
+                }
+                // set categories if not empty
+                if (categoriesResponse) {
+                    setCategories(
+                        categoriesResponse
+                            .map((currentCategory) =>
+                                currentCategory.name !== (category as string)
+                                    ? currentCategory.name
+                                    : ""
+                            )
+                            .filter((category) => category !== "")
+                    );
+                }
+            } catch (error) {
+                console.error("Error fetching book data:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchBookDataAndCategories();
+    }, [book, category]);
+
+    const genresAsArray = currentBook.genres?.split(",") || [];
+    const otherData = [
+        `Pages ${currentBook?.pageCount || "Unknown"}`,
+        `Published by ${currentBook?.publisher || "Unknown"}`,
+        `First Published ${currentBook?.publishedDate || "Unknown"}`,
+    ];
+
+    const handleAddBookToSelectedCategories = async (
+        selectedCategories: string[]
+    ) => {
+        console.log(`Moving book to this category: ${selectedCategories}`);
+
+        let wasAbleToAddBookToAllCategories = true;
+        for (const currentCategory of selectedCategories) {
+            const bookToBeAddedToCategory = {
+                ...currentBook,
+                category: currentCategory,
+            };
+            const result = await addUserBook(bookToBeAddedToCategory);
+            if (!result) {
+                wasAbleToAddBookToAllCategories = false;
+                console.error(`Failed to add book to ${currentCategory}`);
+            }
+        }
+
+        if (!wasAbleToAddBookToAllCategories) {
+            Alert.alert("Error occurred while adding books to category");
+            return false;
+        }
+
+        // closing modal
+        setIsAddOrMoveBookModalVisible(false);
+        return true;
+    };
+
+    const handleMoveBookToSelectedCategories = async (
+        selectedCategories: string[]
+    ) => {
+        // add books to categories and will also close modal
+        const resultOfAddingBook = await handleAddBookToSelectedCategories(
+            selectedCategories
+        );
+        // could not add book to categories so do not delete book
+        if (!resultOfAddingBook) {
+            Alert.alert(
+                "Could not add book to selected categories, so will not delete book!"
+            );
+            return;
+        }
+
+        // was able to add boos so delete the book
+        const deleteResult = await deleteUserBookById(currentBook.id);
+        if (!deleteResult) {
+            console.error("Error occurred while deleting book");
+            Alert.alert(
+                `Book was added to categories. But error occurred while deleting book`
+            );
+        }
+
+        Alert.alert("Moved books to categories. Will be moving to Library page.");
+        router.push("/library");
+    };
+
+    const handleFavoritePress = async () => {
+        const updatedBook = { ...currentBook, isFavorite: !currentBook.isFavorite };
+        const result = await updateUserBook(updatedBook);
+        if (!result) {
+            console.error("Failed to update user book");
+            return;
+        }
+        setCurrentBook(updatedBook);
+    };
+
+    const handleDeleteBook = async () => {
+        setIsDeleteModalVisible(false);
+        console.log(`Deleting ${book} from ${category}`);
+        // deleting book from db
+        deleteUserBookById(book as string);
+        router.push(`/library/${category}`);
+    };
+
+    const handleUpdateNotes = async (newNotes: string) => {
+        // Update local state
+        const updatedBook = { ...currentBook, notes: newNotes };
+        setCurrentBook(updatedBook);
+
+        // Update the database
+        const result = await updateUserBook(updatedBook);
+        if (!result) {
+            console.error("Failed to update notes in the database");
+        }
+    };
+
+    const handleShowingAddOrMoveMenu = () => {
+        // user clicked button twice so do not show
+        if (isAddOrMoveBookModalVisible) {
+            return;
+        }
+        if (categories.length !== 0) {
+            setIsAddOrMoveBookModalVisible(true);
+        } else {
+            Alert.alert("No other categories to move or add books to!");
+        }
+    };
+
+    const handleShowingDeleteMenu = () => {
+        // person pressed delete button multiple times
+        if (isDeleteModalVisible) {
+            return;
+        }
+
+        setIsDeleteModalVisible(true);
+    };
+
+    const handleShowUpdateNotesModal = () => {
+        if (isUpdateBookNotesModalVisible) {
+            return
+        }
+        setIsUpdateNotesModalVisible(true)
+    }
+
+    // main book page
+    const BookPage = () => {
+
+        return (
+            <>
+                <SafeAreaView className="flex-1">
+                    <View className="flex-row justify-end items-center">
+
+                        <Text className="flex-1 text-white text-2xl font-semibold ml-8 mt-2">
+                            {category}
+                        </Text>
+
+
+
+                        <Pressable
+                            className="p-1 mr-2"
+                            onPress={() => handleShowingDeleteMenu()}
+                        >
+                            <DeleteIcon width={40} height={40} />
+                        </Pressable>
+
+                        {/* Delete Modal */}
+
+                        <DeleteBookModal
+                            visible={isDeleteModalVisible}
+                            onClose={() => setIsDeleteModalVisible(false)}
+                            onConfirm={handleDeleteBook}
+                        />
+
+                        <Pressable
+                            onPress={() => handleFavoritePress()}
+                            className=" p-1 mr-2"
+                        >
+                            <FavoriteButtonIcon
+                                isFavorite={currentBook.isFavorite || false}
+                                StrokeColor="white"
+                            />
+                        </Pressable>
+
+                        {/* modal for adding or moving current book*/}
+                        <Pressable
+                            onPress={() => handleShowingAddOrMoveMenu()}
+                            className="p-1 mr-2"
+                        >
+                            <MenuIcon isSelected={isAddOrMoveBookModalVisible} />
+                        </Pressable>
+                        <AddOrMoveSingleBookModal
+                            visible={isAddOrMoveBookModalVisible}
+                            onClose={() => setIsAddOrMoveBookModalVisible(false)}
+                            bookToAdd={currentBook}
+                            categories={categories}
+                            onConfirmAddBook={handleAddBookToSelectedCategories}
+                            onConfirmMoveBook={handleMoveBookToSelectedCategories}
+                        />
+                    </View>
+
+                    <View>
+                        <BookCard book={currentBook} />
+                    </View>
+
+                    {genresAsArray.length > 0 && (
+                        <View className="pl-1 pt-5">
+                            <ScrollableHorizontalList listOfStrings={genresAsArray} />
+                        </View>
+                    )}
+
+                    <View className="pl-1 pt-5">
+                        <ScrollableHorizontalList listOfStrings={otherData} />
+                    </View>
+
+                    <View className="pl-5 pt-5 flex justify-center">
+                        <View className="flex-row items-center">
+                            <Text className="text-white text-xl ml-1 mr-2">Notes</Text>
+                            <Pressable className="p-1" onPress={() => handleShowUpdateNotesModal()}>
+                                <EditIcon height={25} width={25} />
+                            </Pressable>
+
+
+                            {/* Update Notes Modal */}
+                            {isUpdateBookNotesModalVisible && (
+                                <UpdateBookNotesModal
+                                    visible={isUpdateBookNotesModalVisible}
+                                    notes={currentBook.notes || ""}
+                                    onClose={() => setIsUpdateNotesModalVisible(false)}
+                                    onUpdateNotes={handleUpdateNotes}
+                                />
+                            )}
+
+                        </View>
+
+                        <ScrollView className="max-h-40 pl-1">
+                            <Text className="text-sm text-white max-w-sm text-start">
+                                {currentBook.notes}
+                            </Text>
+                        </ScrollView>
+                    </View>
+                </SafeAreaView>
+            </>
+        );
+    }
+
+    // will render main component if not loading
     return (
-        <>
-            <SafeAreaView>
+        loading ? (
+            <LoadingSpinner />
+        ) : (
+            BookPage()
+        )
 
-                <View className='flex-row justify-end items-center'>
+    );
 
-                    <Pressable className="p-1 mr-2" onPress={() => setIsDeleteModalVisible(!isDeleteModalVisible)} >
-                        <DeleteIcon width={40} height={40} />
-                    </Pressable>
+};
 
-                    {/* Delete Modal */}
-
-                    <DeleteBookModal
-                        visible={isDeleteModalVisible}
-                        onClose={() => setIsDeleteModalVisible(false)}
-                        onConfirm={handleDeleteBook}
-                    />
-
-
-
-                    <Pressable onPress={() => setFavorite(!favorite)} className=" p-1 mr-2">
-                        <FavoriteButtonIcon isFavorite={favorite} StrokeColor='white' />
-                    </Pressable>
-
-                    <Pressable onPress={() => setIsMoveMenuVisible(!isMoveMenuVisible)} className="p-1 mr-2" >
-
-                        <MenuIcon isSelected={isMoveMenuVisible} />
-                    </Pressable>
-                    {/* Custom DropdownMenu */}
-                    <DropdownMenu
-                        visible={isMoveMenuVisible}
-                        items={categories}
-                        onSelect={handleMoveToCategory}
-                        onClose={() => setIsMoveMenuVisible(false)}
-                        heading={"Move To Category"}
-                    />
-                </View>
-
-
-
-                <View>
-                    <BookCard book={BookObj} />
-                </View>
-
-                <View className="pl-1 pt-5">
-                    <ScrollableGenres genres={['Fiction', 'Non-Fiction', 'Mystery', 'Sci-Fi', 'Dystopian']} />
-                </View>
-
-                <View className="pl-2 pt-5">
-                    <Reviews reviews={BookObj.reviews || [{
-                        name: 'John Doe',
-                        rating: 4,
-                        reviewSummary: 'This book is great!'
-                    }]} />
-                </View>
-
-
-
-
-            </SafeAreaView>
-
-
-        </>
-
-
-    )
-}
-
-export default BookPage
+export default BookPage;

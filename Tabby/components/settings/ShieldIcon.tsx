@@ -6,7 +6,7 @@ type ShieldIconProps = {
     height?: number;
 };
 
-const ShieldIcon: React.FC<ShieldIconProps> = ({width = 55, height = 55}) => {
+const ShieldIcon: React.FC<ShieldIconProps> = ({ width = 55, height = 55 }) => {
     return (
         <Svg
             width={width}
