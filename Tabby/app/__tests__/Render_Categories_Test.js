@@ -21,13 +21,30 @@ jest.mock("@/database/databaseOperations", () => ({
   getAllUserBooksByCategory: jest.fn(),
   updateMultipleUserBooksToHaveCategoryPassed: jest.fn(),
   deleteAllUserBooksByCategory: jest.fn(),
+  getAllRecommendedBooks: jest.fn(),
+  addRecommendedBook: jest.fn(),
+  deleteMultipleRecommendedBooksByIds: jest.fn(),
+  addMultipleUserBooksWithCategoryName: jest.fn(),
+  updateMultipleRecommendedBooksToBeAddedToLibrary: jest.fn(),
+
 }));
+
+jest.mock("expo-router", () => {
+  const { Pressable } = require("react-native");
+  return {
+    useRouter: jest.fn(),
+    useLocalSearchParams: () => ({ category: "default-category" }),
+  };
+});
+
+jest.mock("@/assets/menu-icons/plus-icon.svg", () => "MockPlusIcon");
+
 
 jest.mock("@expo/vector-icons", () => {
   return {
     Ionicons: "Ionicons",
     MaterialIcons: "MaterialIcons",
-    // Mock other icon components here as needed
+    Icon: "Icon",
   };
 });
 

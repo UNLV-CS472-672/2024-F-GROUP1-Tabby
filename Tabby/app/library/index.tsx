@@ -18,7 +18,7 @@ import {
   updateMultipleUserBooksToHaveCategoryPassed,
   deleteAllUserBooksByCategory,
 } from "@/database/databaseOperations";
-import PlusIcon from "@/components/AddButtonIcon";
+import PlusIcon from "@/assets/menu-icons/plus-icon.svg";
 
 const Categories = () => {
   const router = useRouter();
@@ -147,8 +147,8 @@ const Categories = () => {
           {
             resultOfDeletingUserBooksWithCategoryName
               ? console.log(
-                  "User books deleted successfully with category name"
-                )
+                "User books deleted successfully with category name"
+              )
               : console.log("Error deleting user books with category name");
           }
         })
@@ -221,11 +221,11 @@ const Categories = () => {
               {
                 result
                   ? console.log(
-                      "User books updated successfully with new category name"
-                    )
+                    "User books updated successfully with new category name"
+                  )
                   : console.log(
-                      "Error updating user books with new category name"
-                    );
+                    "Error updating user books with new category name"
+                  );
               }
             }
           }
@@ -313,19 +313,17 @@ const Categories = () => {
             onPress={() => handleCategoryPress(item)}
             onLongPress={() => handleLongPress(item.name)}
             className={`flex-row items-center justify-between py-4 px-6 
-              ${
-                item.isSelected
-                  ? "bg-blue-500 opacity-80"
-                  : index % 2 === 0
+              ${item.isSelected
+                ? "bg-blue-500 opacity-80"
+                : index % 2 === 0
                   ? "bg-black"
                   : "bg-gray-300"
               }`}
           >
             <View className="items-center flex-1">
               <Text
-                className={`text-xl font-semibold ${
-                  index % 2 === 0 ? "text-white" : "text-black"
-                }`}
+                className={`text-xl font-semibold ${index % 2 === 0 ? "text-white" : "text-black"
+                  }`}
               >
                 {item.name}
               </Text>
@@ -361,7 +359,7 @@ const Categories = () => {
           </View>
 
           <Pressable className="p-2 mx-auto" onPress={handleAddCategory}>
-            {!areAnyCategoriesSelected() && <PlusIcon isAdded={false} />}
+            {!areAnyCategoriesSelected() && <PlusIcon height={38} width={38} />}
           </Pressable>
         </View>
 
