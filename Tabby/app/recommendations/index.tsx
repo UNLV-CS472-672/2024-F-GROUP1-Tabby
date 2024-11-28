@@ -11,6 +11,8 @@ import {
     deleteMultipleRecommendedBooksByIds,
     addMultipleUserBooksWithCategoryName,
     updateMultipleRecommendedBooksToBeAddedToLibrary,
+    getAllNonCustomFavoriteUserBooks,
+    getAllNonCustomUserBooks
 } from "@/database/databaseOperations";
 import { Book } from "@/types/book";
 import DeleteIcon from "@/assets/menu-icons/delete-icon.svg";
@@ -138,10 +140,54 @@ const baseAPIUrlKoyeb = "https://just-ulrike-tabby-app-9d270e1b.koyeb.app/"
 
 
 // will make a call to the server to get recommended books using book array passed
-const getRecommendedBooksFromServerBasedOnBooksPassed = async (booksToUseForRecommendations: Book[]) => {
-    const baseUrl = baseAPIUrlKoyeb;
+const getRecommendedBooksFromServerBasedOnBooksPassed = async (
+    booksToUseForRecommendations: Book[]
+) => {
+    const baseUrl = baseAPIUrlKoyeb; // Ensure baseAPIUrlKoyeb is properly defined
 
-}
+    // Extract the required data from the books array
+    const titles = booksToUseForRecommendations
+        .map((book) => book.title)
+        .join("|---|");
+
+    const authors = booksToUseForRecommendations
+        .map((book) => book.author)
+        .join("|---|");
+
+    const weights = booksToUseForRecommendations
+        .map((book) => (book.isFavorite ? 1 : 0.5))
+        .join("|---|");
+
+    // Ensure all required parameters are present
+    if (!titles || !authors || !weights) {
+        console.error("Missing required parameters for recommendations.");
+        return [];
+    }
+
+    try {
+        // Construct the query parameters
+        const queryParams = new URLSearchParams({
+            titles,
+            authors,
+            weights,
+        });
+
+        // Make the GET request to the recommendations endpoint
+        const response = await axios.get(`${baseUrl}/recommendations?${queryParams}`);
+
+        // Check the response and return the results
+        if (response.status === 200) {
+            const { results } = response.data;
+            return results || [];
+        } else {
+            console.error("Unexpected response status:", response.status);
+            return [];
+        }
+    } catch (error) {
+        console.error("Error fetching recommendations:", error);
+        return [];
+    }
+};
 
 // will make a call to the server to get books based on what is in the search bar  will use query param to search by isbn or phrase
 const getBooksFromServerBasedOnSearch = async (search: string) => {
