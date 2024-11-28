@@ -22,7 +22,10 @@ jest.mock("@/database/databaseOperations", () => ({
   deleteAllUserBooksByCategory: jest.fn(),
 }));
 
-jest.mock("@/assets/menu-icons/plus-icon.svg", () => "PlusIcon");
+jest.mock("@/assets/menu-icons/plus-icon.svg", () => ({
+  __esModule: true,
+  default: () => <svg data-testid="mock-plus-icon" />,
+}));
 
 // Mock implementations for the tests
 beforeEach(() => {
