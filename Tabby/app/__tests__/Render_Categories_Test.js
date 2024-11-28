@@ -30,7 +30,6 @@ jest.mock("@/database/databaseOperations", () => ({
 }));
 
 jest.mock("expo-router", () => {
-  const { Pressable } = require("react-native");
   return {
     useRouter: jest.fn(),
     useLocalSearchParams: () => ({ category: "default-category" }),

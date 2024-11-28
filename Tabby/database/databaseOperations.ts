@@ -56,7 +56,7 @@ export const addUserBook = async (book: Book): Promise<Book | null> => {
 export const addMultipleUserBooksWithCategoryName = async (
   userBooks: Book[],
   category: string
-): Promise<Boolean> => {
+): Promise<boolean> => {
   try {
     for (const book of userBooks) {
       const updatedCategory = category;
@@ -164,6 +164,7 @@ export const updateUserBook = async (book: Book): Promise<boolean> => {
         book.id,
       ]
     );
+    console.log(result)
     const getUpdatedResult = await getUserBookById(book.id);
     console.log("---User book updated successfully:", getUpdatedResult, "---");
     return getUpdatedResult ? true : false;
@@ -186,6 +187,8 @@ export const updateMultipleUserBooksToHaveCategoryPassed = async (
         category,
         book.id,
       ]);
+      console.log(result);
+
     }
     console.log("User books updated successfully");
     return true;
@@ -775,6 +778,7 @@ export const updateMultipleRecommendedBooksToBeAddedToLibrary = async (
       ).runAsync(`UPDATE recommendedBooks SET addToLibrary = 1 WHERE id = ?`, [
         book.id,
       ]);
+      console.log(result);
     }
     console.log("Recommended books updated successfully");
     return true;

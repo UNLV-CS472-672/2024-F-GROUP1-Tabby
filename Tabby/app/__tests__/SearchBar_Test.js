@@ -1,5 +1,5 @@
 import React from "react";
-import { render, fireEvent, act } from "@testing-library/react-native";
+import { render, fireEvent } from "@testing-library/react-native";
 import Favorites from "@/app/favorites";
 import Categories from "@/app/library";
 import CategoryPage from "@/app/library/[category]";

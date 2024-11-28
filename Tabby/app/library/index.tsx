@@ -136,21 +136,17 @@ const Categories = () => {
       await Promise.all(
         selectedCategories.map(async (category) => {
           const resultOfDeletingCategory = await deleteCategory(category.name); // Assuming deleteCategory takes category name as parameter
-          {
-            resultOfDeletingCategory
-              ? console.log("Category deleted successfully")
-              : console.log("Error deleting category");
-          }
+
+          console.log(resultOfDeletingCategory ? "Category deleted successfully" : "Error deleting category");
           const resultOfDeletingUserBooksWithCategoryName = await deleteAllUserBooksByCategory(
             category.name
           );
-          {
-            resultOfDeletingUserBooksWithCategoryName
-              ? console.log(
-                "User books deleted successfully with category name"
-              )
-              : console.log("Error deleting user books with category name");
-          }
+
+          const deletionResult = resultOfDeletingUserBooksWithCategoryName
+            ? "User books deleted successfully with category name"
+            : "Error deleting user books with category name";
+          console.log(deletionResult);
+
         })
       );
 
@@ -218,15 +214,12 @@ const Categories = () => {
                 userBooksWithOldCategory,
                 newUniqueName
               );
-              {
-                result
-                  ? console.log(
-                    "User books updated successfully with new category name"
-                  )
-                  : console.log(
-                    "Error updating user books with new category name"
-                  );
-              }
+
+              const message = result
+                ? "User books updated successfully with new category name"
+                : "Error updating user books with new category name";
+              console.log(message);
+
             }
           }
         }

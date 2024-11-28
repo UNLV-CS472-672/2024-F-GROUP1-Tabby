@@ -31,6 +31,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal }) => {
         setIsProcessing(false);
         if (!result.canceled) {
             const resultBase64 = result.assets[0].base64; // base64 string to send to backend
+            console.log(resultBase64);
             closeModal();
         }
     };
@@ -54,6 +55,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal }) => {
         setIsProcessing(false);
         if (!result.canceled) {
             const resultBase64 = result.assets[0].base64; // base64 string to send to backend
+            console.log(resultBase64);
             closeModal();
         }
     };
