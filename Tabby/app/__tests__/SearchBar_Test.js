@@ -1,101 +1,93 @@
 import React from "react";
-import { render, fireEvent } from "@testing-library/react-native";
+import { render, fireEvent, act } from "@testing-library/react-native";
 import Favorites from "@/app/favorites";
 import Categories from "@/app/library";
 import CategoryPage from "@/app/library/[category]";
 import Recommendations from "@/app/recommendations";
 
-jest.mock("expo-router", () => {
-    const { Pressable } = require("react-native");
-    return {
-        useRouter: jest.fn(),
-        useLocalSearchParams: () => ({ category: "default-category" }),
-    };
-});
-
-// Mock all database operation functions
-jest.mock("@/database/databaseOperations", () => ({
-    getAllCategories: jest.fn(),
-    addCategory: jest.fn(),
-    deleteCategory: jest.fn(),
-    updateCategory: jest.fn(),
-    getAllUserBooksByCategory: jest.fn(),
-    updateMultipleUserBooksToHaveCategoryPassed: jest.fn(),
-    deleteAllUserBooksByCategory: jest.fn(),
-    getAllRecommendedBooks: jest.fn(),
-    addRecommendedBook: jest.fn(),
-    deleteMultipleRecommendedBooksByIds: jest.fn(),
-    addMultipleUserBooksWithCategoryName: jest.fn(),
-    updateMultipleRecommendedBooksToBeAddedToLibrary: jest.fn(),
+// Mock expo-router
+jest.mock("expo-router", () => ({
+    useRouter: jest.fn(),
+    useLocalSearchParams: () => ({ category: "default-category" }),
 }));
 
-// mocks to make expo sdk 52 stop throwing errors
-jest.mock("expo-font", () => {
-    return {
-        isLoaded: jest.fn(),
-        forEach: jest.fn(),
-        loadAsync: jest.fn(),
-    };
-});
+// Mock database operations
+jest.mock("@/database/databaseOperations", () => ({
+    getAllCategories: jest.fn(() => Promise.resolve([{ name: "Fiction", isPinned: false, isSelected: false, position: 0 }])), // Mock with dummy data
+    addCategory: jest.fn(() => Promise.resolve()),
+    deleteCategory: jest.fn(() => Promise.resolve()),
+    updateCategory: jest.fn(() => Promise.resolve()),
+    getAllUserBooksByCategory: jest.fn(() => Promise.resolve([{ id: 1, title: "Book 1", author: "Author 1", isbn: "ISBN 1", category: "Fiction", summary: "Summary 1", excerpt: "Excerpt 1", image: "Image 1", rating: 4 }])),
+    updateMultipleUserBooksToHaveCategoryPassed: jest.fn(() => Promise.resolve()),
+    deleteAllUserBooksByCategory: jest.fn(() => Promise.resolve()),
+    getAllRecommendedBooks: jest.fn(() => Promise.resolve([{ id: 1, title: "Recommended Book 1", author: "Recommended Author 1", isbn: "ISBN 1", summary: "Summary 1", excerpt: "Excerpt 1", image: "Image 1", rating: 4 }])),
+    addRecommendedBook: jest.fn(() => Promise.resolve()),
+    deleteMultipleRecommendedBooksByIds: jest.fn(() => Promise.resolve()),
+    addMultipleUserBooksWithCategoryName: jest.fn(() => Promise.resolve()),
+    updateMultipleRecommendedBooksToBeAddedToLibrary: jest.fn(() => Promise.resolve()),
+}));
 
+// Mock expo-font to prevent errors from Expo SDK 52
+jest.mock("expo-font", () => ({
+    isLoaded: jest.fn(),
+    forEach: jest.fn(),
+    loadAsync: jest.fn(),
+}));
+
+// Mock SVG imports
 jest.mock("@/assets/menu-icons/plus-icon.svg", () => "MockPlusIcon");
 
+// Mock vector icons
+jest.mock("@expo/vector-icons", () => ({
+    Ionicons: "Ionicons",
+    MaterialIcons: "MaterialIcons",
+    Icon: "Icon",
+}));
 
-jest.mock("@expo/vector-icons", () => {
-    return {
-        Ionicons: "Ionicons",
-        MaterialIcons: "MaterialIcons",
-        Icon: "Icon",
-    };
+
+describe("Favorite tab test favorites page", () => {
+    test("Correct search bar input for favorites page", async () => {
+        const favoritesPage = render(<Favorites />);
+
+        const searchBar = await favoritesPage.findByPlaceholderText(
+            "Search by title, ISBN, or author..."
+        );
+
+        fireEvent.changeText(searchBar, "tempText");
+        expect(searchBar.props.value).toBe("tempText");
+    });
 });
 
-
-//tests relating to the search bar
-describe("Favorite tab tests", () => {
-    // make sure that the search bar takes input correctly on each page that it's on
-    test("Correct search bar input", () => {
-        // render favorites page
-        const favoritesPage = render(<Favorites />);
-        // get search bar
-        const searchBar = favoritesPage.getByPlaceholderText(
-            "Search by title, ISBN, or author..."
-        );
-        // change text in search bar
-        fireEvent.changeText(searchBar, "tempText");
-        // make sure search bar has proper value
-        expect(searchBar.props.value).toBe("tempText");
-
-        // render categories page
+// Test suite for search bar functionality
+describe("Favorite tab test everything else", () => {
+    test("Correct search bar input for everything else", async () => {
+        // Render categories page
         const categoriesPage = render(<Categories />);
-        // get search bar
-        const searchBar2 = categoriesPage.getByPlaceholderText(
+        const searchBar2 = await categoriesPage.findByPlaceholderText(
             "Search by category name..."
         );
-        // change text in search bar
         fireEvent.changeText(searchBar2, "tempText2");
-        // make sure search bar has proper value
         expect(searchBar2.props.value).toBe("tempText2");
 
-        // render categories page
-        const categorypagePage = render(<CategoryPage />);
-        // get search bar
-        const searchBar3 = categorypagePage.getByPlaceholderText(
+        // Render category page
+        const categoryPage = render(<CategoryPage />);
+        const searchBar3 = await categoryPage.findByPlaceholderText(
             "Search by title, ISBN, or author..."
         );
-        // change text in search bar
         fireEvent.changeText(searchBar3, "tempText3");
-        // make sure search bar has proper value
         expect(searchBar3.props.value).toBe("tempText3");
 
-        // render categories page
+        // Render recommendations page
         const recommendationsPage = render(<Recommendations />);
-        // get search bar
-        const searchBar4 = recommendationsPage.getByPlaceholderText(
+        const searchBar4 = await recommendationsPage.findByPlaceholderText(
             "Search by title, ISBN, or author..."
         );
-        // change text in search bar
         fireEvent.changeText(searchBar4, "tempText4");
-        // make sure search bar has proper value
         expect(searchBar4.props.value).toBe("tempText4");
     });
 });
+
+
+
+
+
