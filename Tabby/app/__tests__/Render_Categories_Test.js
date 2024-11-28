@@ -22,6 +22,8 @@ jest.mock("@/database/databaseOperations", () => ({
   deleteAllUserBooksByCategory: jest.fn(),
 }));
 
+jest.mock("@/assets/menu-icons/plus-icon.svg", () => "PlusIcon");
+
 // Mock implementations for the tests
 beforeEach(() => {
   jest.clearAllMocks(); // Clear previous mocks
