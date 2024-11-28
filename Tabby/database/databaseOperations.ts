@@ -5,8 +5,8 @@ import { Category } from "@/types/category";
 import "react-native-get-random-values";
 import { v4 as uuidv4 } from "uuid";
 
-// Open the database sync
-const db = SQLite.openDatabaseSync("bookCollection.db");
+// Open the database
+const db = SQLite.openDatabaseAsync("bookCollection.db");
 
 // ! === User Books CRUD Functions ===
 

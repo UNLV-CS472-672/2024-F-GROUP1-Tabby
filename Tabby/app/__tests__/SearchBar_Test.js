@@ -1,26 +1,26 @@
-import React from "react";
-import { render, fireEvent } from "@testing-library/react-native";
-import Favorites from "@/app/favorites";
-import Categories from "@/app/library";
-import CategoryPage from "@/app/library/[category]";
-import Recommendations from "@/app/recommendations";
+// import React from "react";
+// import { render, fireEvent } from "@testing-library/react-native";
+// import Favorites from "@/app/favorites";
+// import Categories from "@/app/library";
+// import CategoryPage from "@/app/library/[category]";
+// import Recommendations from "@/app/recommendations";
 
-jest.mock("expo-router", () => {
-  const { Pressable } = require("react-native");
-  return {
-    useRouter: jest.fn(),
-    useLocalSearchParams: () => ({ category: "default-category" }),
-  };
-});
+// jest.mock("expo-router", () => {
+//   const { Pressable } = require("react-native");
+//   return {
+//     useRouter: jest.fn(),
+//     useLocalSearchParams: () => ({ category: "default-category" }),
+//   };
+// });
 
-// mocks to make expo sdk 52 stop throwing errors
-jest.mock("expo-font", () => {
-  return {
-    isLoaded: jest.fn(),
-    forEach: jest.fn(),
-    loadAsync: jest.fn(),
-  };
-});
+// // mocks to make expo sdk 52 stop throwing errors
+// jest.mock("expo-font", () => {
+//   return {
+//     isLoaded: jest.fn(),
+//     forEach: jest.fn(),
+//     loadAsync: jest.fn(),
+//   };
+// });
 
 // tests relating to the search bar
 // describe("Favorite tab tests", () => {
