@@ -1,8 +1,6 @@
-from typing import cast
 from unittest.mock import Mock
 import cv2 as cv
 
-import easyocr
 import numpy as np
 from tabby_server.vision.ocr import TextRecognizer, scale_image
 

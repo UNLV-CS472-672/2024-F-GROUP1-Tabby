@@ -3,7 +3,6 @@ from typing import Literal
 import cv2
 import easyocr
 import numpy as np
-from cv2.typing import MatLike
 
 MAX_AREA = 400_000
 """Maximum area an image is allowed to have before using OCR on it."""
@@ -69,15 +68,15 @@ class TextRecognizer:
         h, w, _ = image.shape
 
         if angle == 0:
-            f_m1 = lambda xp, yp: (xp, yp)
+            f_m1 = lambda xp, yp: (xp, yp)  # noqa: E731
         elif angle == 90:
-            f_m1 = lambda xp, yp: (yp, h - xp)
+            f_m1 = lambda xp, yp: (yp, h - xp)  # noqa: E731
             image = cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
         elif angle == 180:
-            f_m1 = lambda xp, yp: (w - xp, h - yp)
+            f_m1 = lambda xp, yp: (w - xp, h - yp)  # noqa: E731
             image = cv2.rotate(image, cv2.ROTATE_180)
         else:  # 270
-            f_m1 = lambda xp, yp: (w - yp, xp)
+            f_m1 = lambda xp, yp: (w - yp, xp)  # noqa: E731
             image = cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
         results = self._find_text_one_way(image)

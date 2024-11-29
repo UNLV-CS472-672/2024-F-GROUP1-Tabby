@@ -2,7 +2,6 @@ import logging
 import sys
 import cv2 as cv
 import cyclopts as cy
-from pprint import pprint
 
 from tabby_server.api.books import scan_cover
 
