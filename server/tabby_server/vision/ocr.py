@@ -49,7 +49,13 @@ class TextRecognizer:
         )
 
     def find_text(self, image: np.ndarray) -> list[RecognizedText]:
-        """Finds text from the given image and returns the result."""
+        """Finds text from the given image and returns the result.
+
+        Args:
+            image: Image to process.
+        Returns:
+            List of text recognized from the image.
+        """
 
         results = self._find_text_one_way(image)
         return results
@@ -86,7 +92,14 @@ class TextRecognizer:
         # return results0 + results90 + results180 + results270
 
     def _find_text_one_way(self, image: np.ndarray) -> list[RecognizedText]:
-        """Finds text from the given image and returns the result."""
+        """Finds text from the given image and returns the result. Only runs
+        OCR once in one orientation.
+
+        Args:
+            image: Image to process.
+        Returns:
+            List of text recognized from the image.
+        """
         ocr_results = self._reader.readtext(image)
         my_results: list[RecognizedText] = []
         for points, text, confidence in ocr_results:
@@ -100,7 +113,6 @@ class TextRecognizer:
         return my_results
 
 
-# Not used yet but will be used in a future pull
 def scale_image(image: np.ndarray, max_area: int) -> tuple[np.ndarray, float]:
     """Scales the given image if it's too large.
 
