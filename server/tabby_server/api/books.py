@@ -5,6 +5,7 @@ from functools import cache
 from io import BytesIO
 import logging
 import time
+from typing import Literal
 from PIL import Image
 import PIL
 from flask import Blueprint, request, current_app
@@ -30,18 +31,16 @@ RESET = "\033[0m"
 
 
 @contextmanager
-def logging_duration(
-    logger: logging.Logger, message: str
-) -> Generator[None, None, None]:
+def logging_duration(message: str) -> Generator[None, None, None]:
     """Context manager in which the total time the code took is logged at
     exit."""
     start = time.time()
-    logger.info(f"{G}START       {message}{RESET}")
+    logging.info(f"{G}START       {message}{RESET}")
     try:
         yield
     finally:
         duration = time.time() - start
-        logger.info(f"{B}END {duration:6.2f}s {message}{RESET}")
+        logging.info(f"{B}END {duration:6.2f}s {message}{RESET}")
 
 
 @subapp.route("/scan_cover", methods=["POST"])
@@ -56,7 +55,7 @@ def books_scan_cover():
     current_app.logger.info(f"{G}START       /scan_shelf{RESET}")
 
     # Try scan image
-    with logging_duration(current_app.logger, "Read image"):
+    with logging_duration("Read image"):
         try:
             img = Image.open(BytesIO(request.data))
         except PIL.UnidentifiedImageError:
@@ -81,7 +80,9 @@ def books_scan_cover():
     return result, HTTPStatus.OK
 
 
-def scan_cover(image_matrix: MatLike) -> list[google_books.Book]:
+def scan_cover(
+    image_matrix: MatLike, angles: tuple[Literal[0, 90, 180, 270], ...] = (0,)
+) -> list[google_books.Book]:
     """Takes in an image of a cover and returns a list of results.
 
     Args:
@@ -92,14 +93,14 @@ def scan_cover(image_matrix: MatLike) -> list[google_books.Book]:
     """
 
     # Find text
-    with logging_duration(current_app.logger, "Recognize text using OCR"):
-        text_recognizer = get_text_recognizer()
-        recognized_texts = text_recognizer.find_text(image_matrix)
+    recognized_texts = []
+    for angle in angles:
+        with logging_duration(f"Recognize text using OCR ({angle} deg)"):
+            text_recognizer = get_text_recognizer()
+            recognized_texts += text_recognizer.find_text(image_matrix, angle)
 
     # Extract Title and Author
-    with logging_duration(
-        current_app.logger, "Extract title and author using ChatGPT"
-    ):
+    with logging_duration("Extract title and author using ChatGPT"):
         extraction_result = extraction.extract_from_recognized_texts(
             recognized_texts
         )
@@ -107,9 +108,7 @@ def scan_cover(image_matrix: MatLike) -> list[google_books.Book]:
         return []
 
     # Make the request to Google Books
-    with logging_duration(
-        current_app.logger, "Request info from Google Books"
-    ):
+    with logging_duration("Request info from Google Books"):
         top_option = extraction_result.options[0]
         books = google_books.request_volumes_get(
             phrase=top_option.title, author=top_option.author
@@ -167,9 +166,7 @@ def books_search() -> tuple[dict, HTTPStatus]:
         }, HTTPStatus.BAD_REQUEST
 
     # Make the request
-    with logging_duration(
-        current_app.logger, "Request info from Google Books"
-    ):
+    with logging_duration("Request info from Google Books"):
         books = google_books.request_volumes_get(
             phrase=phrase,
             title=title,
@@ -222,7 +219,7 @@ def books_scan_shelf() -> tuple[dict, HTTPStatus]:
     current_app.logger.info(f"{G}START       /scan_shelf{RESET}")
 
     # Load image
-    with logging_duration(current_app.logger, "Read image"):
+    with logging_duration("Read image"):
         try:
             img_file = Image.open(BytesIO(request.data))
         except PIL.UnidentifiedImageError:
@@ -277,7 +274,7 @@ def scan_shelf(image: MatLike) -> list[list[google_books.Book]]:
 
     # Get subimages
     subimages = []
-    with logging_duration(current_app.logger, "Find books on shelf"):
+    with logging_duration("Find books on shelf"):
         segmentation_results = image_labelling.find_books(image_tensor)
     for sr in segmentation_results:
 
@@ -302,10 +299,10 @@ def scan_shelf(image: MatLike) -> list[list[google_books.Book]]:
             subimages.append(subimage)
 
     # Scan each subimage
-    with logging_duration(current_app.logger, "Use OCR on each image."):
+    with logging_duration("Use OCR on each image."):
         shelf = []
         for subimage in subimages:
-            books = scan_cover(subimage)
+            books = scan_cover(subimage, angles=(0, 90, 270))
             shelf.append(books)
 
     return shelf
@@ -382,7 +379,7 @@ def books_recommendations() -> tuple[dict, HTTPStatus]:
         }, HTTPStatus.BAD_REQUEST
 
     # Get tags
-    with logging_duration(current_app.logger, "Get tags from ChatGPT"):
+    with logging_duration("Get tags from ChatGPT"):
         tags_list = tags.get_tags(titles_list, authors_list, weights_list)
         if not tags_list:  # if empty, return error
             return {
@@ -390,7 +387,7 @@ def books_recommendations() -> tuple[dict, HTTPStatus]:
             }, HTTPStatus.BAD_REQUEST
 
     # Get related books using list of tags
-    with logging_duration(current_app.logger, "Request from Google Books"):
+    with logging_duration("Request from Google Books"):
         books = google_books.request_volumes_get(phrase=", ".join(tags_list))
 
     # Filter out books without ISBNs
