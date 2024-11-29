@@ -29,7 +29,7 @@ G = "\u001b[32m"
 B = "\u001b[34m"
 RESET = "\033[0m"
 
-_OCR_CONFIDENCE_MIN: float = 0.5
+_OCR_CONFIDENCE_MIN: float = 0.3
 
 
 @contextmanager
