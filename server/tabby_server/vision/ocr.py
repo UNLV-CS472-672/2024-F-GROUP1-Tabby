@@ -128,35 +128,3 @@ def scale_image(image: np.ndarray, max_area: int) -> tuple[np.ndarray, float]:
         new_width = int(side_ratio * width)
         image = cv2.resize(image, (new_height, new_width))
     return image, float(side_ratio)
-
-
-# ai-gen start (ChatGPT-4o, 0)
-def rotate_image(image: MatLike, angle: float, scale: float = 1.0) -> MatLike:
-    """
-    Rotates an image by a specified angle and scale.
-
-    Parameters:
-        image: Input image as a NumPy array or compatible Mat-like structure.
-        angle: Angle to rotate the image (in degrees).
-        scale: Scaling factor for the image (default is 1.0).
-
-    Returns:
-        The rotated image.
-    """
-    if image is None:
-        raise ValueError("Input image is invalid or None.")
-
-    # Define the center of rotation
-    (h, w) = image.shape[:2]
-    center = (w // 2, h // 2)
-
-    # Get the rotation matrix
-    M = cv2.getRotationMatrix2D(center, angle, scale)
-
-    # Perform the rotation
-    rotated_image = cv2.warpAffine(image, M, (w, h))
-
-    return rotated_image
-
-
-# ai-gen end
