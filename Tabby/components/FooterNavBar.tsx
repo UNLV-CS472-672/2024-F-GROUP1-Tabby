@@ -16,7 +16,6 @@ import { Category } from '@/types/category';
 import { getAllCategories, addUserBook } from '@/database/databaseOperations';
 
 let tempBooks: Book[] = [];
-const tempCategories: String[] = ['Fiction', 'Non-Fiction', 'Comedy', 'Narrative', 'Mystery', 'Science Fiction', 'Thriller', 'Biography', 'Poetry'];
 
 const FooterNavBar = () => {
   // set to true to show camera modal
@@ -29,13 +28,15 @@ const FooterNavBar = () => {
   const size = 40;
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      const fetchedCategories = await getCategories();
-      setCategories(fetchedCategories);
-    }
     fetchCategories();
   }, [])
 
+  const fetchCategories = async () => {
+    const fetchedCategories = await getCategories();
+    setCategories(fetchedCategories);
+  }
+
+  // returns names of all categories
   const getCategories = async () => {
     let categoryNames: String[] = [];
     const givenCategories: Category[] | null = await getAllCategories();
@@ -44,10 +45,10 @@ const FooterNavBar = () => {
         await categoryNames.push(item.name);
       }
     }
-
     return categoryNames;
   }
 
+  // when a book is selected as correct book mark selected isbn as its isbn
   const handlePress = (isbn: string | undefined) => {
     setSelectedIsbn(isbn);
   };
@@ -74,6 +75,7 @@ const FooterNavBar = () => {
     )
   }
 
+  // add book to a category
   const addBookToCategory = () => {
     let returnBook: Book = {
       id: "tempID",
@@ -82,6 +84,7 @@ const FooterNavBar = () => {
       excerpt: "tempexcerpt",
       summary: "tempsummary",
       image: "tempimage",
+      isFavorite: false,
     };
     for (const item of tempBooks) {
       if (item.isbn === selectedIsbn) {
@@ -148,6 +151,7 @@ const FooterNavBar = () => {
         <CameraModal closeModal={() => setCameraModalVisible(false)}
           onBookSelectionStart={(returnedBooks: Book[]) => {
             tempBooks = returnedBooks;
+            fetchCategories();
             setCameraModalVisible(false);
             setBookSelectionModalVisible(true);
           }} />
