@@ -48,6 +48,7 @@ You will output {_ANSWER_COUNT} answers on separate lines. Conditions:
 - The first answer is your most confident answer, while the bottom answer is your least confident answer.
 - More confident answers should include the volume.
 - More confident answers should include the edition.
+- For more confident answers, the author's name should be a real person.
 """  # noqa: E501
 
 #
@@ -187,7 +188,7 @@ def extract_result(response: str) -> Optional[ExtractionResult]:
 
     # Filter answers
     answers = [a for a in answers if a and not a.isspace()]
-    if len(answers) != _ANSWER_COUNT:
+    if len(answers) == 0:
         return None
 
     # Extract values into option objects

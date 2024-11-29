@@ -426,6 +426,9 @@ def books_recommendations() -> tuple[dict, HTTPStatus]:
             return {
                 "message": "Unable to get tags from the given books."
             }, HTTPStatus.BAD_REQUEST
+        logging.info("Tags list:")
+        for tag in tags_list:
+            logging.info(f"  {tag}")
 
     # Get related books using list of tags
     with logging_duration("Request from Google Books"):
