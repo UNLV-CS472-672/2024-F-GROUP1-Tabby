@@ -131,6 +131,9 @@ def extract_from_recognized_texts(
         extracted_result = extract_result(response)
         if extracted_result is None:
             logging.info(f"Invalid format of response, attempt {i}")
+            logging.info("Response:")
+            for line in response.splitlines():
+                logging.info(f"  {line}")
             continue
 
         # Everything is successful, break loop

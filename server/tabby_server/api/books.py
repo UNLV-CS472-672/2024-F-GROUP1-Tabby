@@ -29,6 +29,8 @@ G = "\u001b[32m"
 B = "\u001b[34m"
 RESET = "\033[0m"
 
+_OCR_CONFIDENCE_MIN: float = 0.5
+
 
 @contextmanager
 def logging_duration(message: str) -> Generator[None, None, None]:
@@ -93,11 +95,27 @@ def scan_cover(
     """
 
     # Find text
-    recognized_texts = []
+    recognized_texts: list[ocr.RecognizedText] = []
     for angle in angles:
         with logging_duration(f"Recognize text using OCR ({angle} deg)"):
             text_recognizer = get_text_recognizer()
             recognized_texts += text_recognizer.find_text(image_matrix, angle)
+
+    # Filter out bad text
+    recognized_texts = [
+        r
+        for r in recognized_texts
+        if r.confidence >= _OCR_CONFIDENCE_MIN and len(r.text) >= 2
+    ]
+
+    # Log text
+    if recognized_texts:
+        logging.info("Found text:")
+        for r in recognized_texts:
+            logging.info(f"  ({r.confidence * 100:5.2f}%) {r.text}")
+    else:  # None found
+        logging.info("Found NO text")
+        return []
 
     # Extract Title and Author
     with logging_duration("Extract title and author using ChatGPT"):
@@ -297,6 +315,8 @@ def scan_shelf(image: MatLike) -> list[list[google_books.Book]]:
         subimage = image[y1:y2, x1:x2, :]
         if np.all(subimage.shape):  # if none of the dimensions are 0, add it
             subimages.append(subimage)
+
+    logging.info(f"Found {len(subimages)} books in shelf image.")
 
     # Scan each subimage
     with logging_duration("Use OCR on each image."):
