@@ -1,5 +1,7 @@
 from dataclasses import dataclass
+from typing import Literal
 import cv2
+import easyocr
 import numpy as np
 from cv2.typing import MatLike
 
@@ -39,57 +41,51 @@ class RecognizedText:
 class TextRecognizer:
     """Wrapper class to recognize text from images."""
 
-    def __init__(self) -> None:
+    def __init__(self, reader: easyocr.Reader | None = None) -> None:
         """Creates a new TextRecognizer object."""
         import easyocr
 
-        self._reader = easyocr.Reader(
-            lang_list=["en"],
-            model_storage_directory="./tabby_server/vision/EasyOCR",
-        )
+        if reader is None:
+            self._reader = easyocr.Reader(
+                lang_list=["en"],
+                model_storage_directory="./tabby_server/vision/EasyOCR",
+            )
+        else:
+            self._reader = reader
 
-    def find_text(self, image: np.ndarray) -> list[RecognizedText]:
+    def find_text(
+        self, image: np.ndarray, angle: Literal[0, 90, 180, 270] = 0
+    ) -> list[RecognizedText]:
         """Finds text from the given image and returns the result.
 
         Args:
             image: Image to process.
+            angle: Angle at which to process the image at. Can only be right
+                angles.
         Returns:
             List of text recognized from the image.
         """
 
+        h, w, _ = image.shape
+
+        if angle == 0:
+            f_m1 = lambda xp, yp: (xp, yp)
+        elif angle == 90:
+            f_m1 = lambda xp, yp: (yp, h - xp)
+            image = cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
+        elif angle == 180:
+            f_m1 = lambda xp, yp: (w - xp, h - yp)
+            image = cv2.rotate(image, cv2.ROTATE_180)
+        else:  # 270
+            f_m1 = lambda xp, yp: (w - yp, xp)
+            image = cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
+
         results = self._find_text_one_way(image)
+
+        for r in results:
+            r.corners = np.array([f_m1(xp, yp) for xp, yp in r.corners])
+
         return results
-
-        # h, w, _ = image.shape
-
-        # image0 = image
-        # image90 = cv2.rotate(image0, cv2.ROTATE_90_COUNTERCLOCKWISE)
-        # image180 = cv2.rotate(image0, cv2.ROTATE_180)
-        # image270 = cv2.rotate(image0, cv2.ROTATE_90_CLOCKWISE)
-
-        # results0 = self._find_text_one_way(image0)
-        # results90 = self._find_text_one_way(image90)
-        # results180 = self._find_text_one_way(image180)
-        # results270 = self._find_text_one_way(image270)
-
-        # Convert coordinates back to original image
-        # for result in results270:
-        #     for corner in result.corners:
-        #         xp, yp = corner
-        #         corner[0] = h - yp
-        #         corner[1] = xp
-        # for result in results180:
-        #     for corner in result.corners:
-        #         xp, yp = corner
-        #         corner[0] = w - xp
-        #         corner[1] = h - yp
-        # for result in results90:
-        #     for corner in result.corners:
-        #         yp, xp = corner
-        #         corner[0] = yp
-        #         corner[1] = w - xp
-
-        # return results0 + results90 + results180 + results270
 
     def _find_text_one_way(self, image: np.ndarray) -> list[RecognizedText]:
         """Finds text from the given image and returns the result. Only runs
