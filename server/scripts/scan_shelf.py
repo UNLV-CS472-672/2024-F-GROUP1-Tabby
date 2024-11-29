@@ -30,7 +30,8 @@ def main(image_path: cy.types.ResolvedExistingFile) -> None:
     for result in results:
         if result:
             book = result[0]
-            pprint(book)
+            print(f"{book.title}")
+            print(f"- {book.authors}")
 
 
 if __name__ == "__main__":

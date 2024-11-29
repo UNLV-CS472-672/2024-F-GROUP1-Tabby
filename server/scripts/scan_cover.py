@@ -20,7 +20,9 @@ def main(
 
     image = cv.imread(str(image_path))
     books = scan_cover(image)
-    pprint(books)
+    for book in books:
+        print(f"{book.title}")
+        print(f"- {book.authors}")
 
 
 if __name__ == "__main__":

@@ -4,6 +4,7 @@ from dataclasses import asdict
 from functools import cache
 from io import BytesIO
 import logging
+import re
 import time
 from typing import Literal
 from PIL import Image
@@ -128,12 +129,31 @@ def scan_cover(
     # Make the request to Google Books
     with logging_duration("Request info from Google Books"):
         top_option = extraction_result.options[0]
-        books = google_books.request_volumes_get(
-            phrase=f"{top_option.title}, {top_option.author}"
-        )
+
+        title = remove_punctuation(top_option.title).lower()
+        author = remove_punctuation(top_option.title).lower()
+
+        books = google_books.request_volumes_get(f"{title} {author}")
         logging.info(f"Got {len(books)} from Google Books")
 
     return books
+
+
+# ai-gen start (ChatGPT-4o, 0)
+def remove_punctuation(text: str) -> str:
+    """
+    Removes all punctuation from the given text.
+
+    Args:
+        text (str): The input string from which punctuation will be removed.
+
+    Returns:
+        str: The text without any punctuation.
+    """
+    return re.sub(r"[^\w\s]", "", text)
+
+
+# ai-gen end
 
 
 # Creates object on first call, then returns that same object
