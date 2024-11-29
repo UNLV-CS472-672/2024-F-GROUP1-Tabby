@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { FlatList, Pressable, View, Text } from "react-native";
-import BookPreview from "@/components/BookPreview"; // Adjust the path as necessary
+import { FlatList, Pressable, View, Text, Alert } from "react-native";
+import BookPreview from "@/components/BookPreview";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AddButtonIcon from "@/components/AddButtonIcon";
 import { SearchBar } from "@rneui/themed";
@@ -21,6 +21,8 @@ import CancelIcon from "@/assets/menu-icons/cancel-icon.svg";
 import DeleteBooksModal from "@/components/DeleteBooksModal";
 import AddBooksOrMoveBooksToCategoryModal from "@/components/AddBooksOrMoveBooksToCategoryModal";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import WebIcon from "@/assets/menu-icons/web-icon.svg";
+import NotSelectedExplore from "@/components/navbar/notSelectedExplore";
 import axios from "axios";
 
 type SelectableBook = {
@@ -138,11 +140,36 @@ const size = 36;
 const baseAPIUrlRender = "https://group1-tabby.onrender.com/";
 const baseAPIUrlKoyeb = "https://just-ulrike-tabby-app-9d270e1b.koyeb.app/"
 
+const convertApiResponseToBooks = (apiResponse: any): Book[] => {
+    if (!apiResponse || !apiResponse.results || !Array.isArray(apiResponse.results)) {
+        throw new Error("Invalid API response format");
+    }
 
-// will make a call to the server to get recommended books using book array passed
+    let idCounter = 1; // Counter starts at 1
+
+    return apiResponse.results.map((item: any) => ({
+        id: idCounter++, // Assign the current counter value and increment it
+        isbn: item.isbn || "",
+        title: item.title || "",
+        author: item.authors || "",
+        excerpt: item.excerpt || "",
+        summary: item.summary || "",
+        image: item.thumbnail || "",
+        rating: item.rating !== undefined
+            ? Math.min(5, Math.max(0, Math.ceil(item.rating))) // Ensure rating is between 0 and 5
+            : 0,
+        genres: item.genres || "",
+        publisher: item.publisher || "",
+        publishedDate: item.published_date || "",
+        pageCount: item.page_count || 0,
+    }));
+};
+
+
+// Get recommended books from the server
 const getRecommendedBooksFromServerBasedOnBooksPassed = async (
     booksToUseForRecommendations: Book[]
-) => {
+): Promise<Book[]> => {
     const baseUrl = baseAPIUrlKoyeb; // Ensure baseAPIUrlKoyeb is properly defined
 
     // Extract the required data from the books array
@@ -175,22 +202,24 @@ const getRecommendedBooksFromServerBasedOnBooksPassed = async (
         // Make the GET request to the recommendations endpoint
         const response = await axios.get(`${baseUrl}/recommendations?${queryParams}`);
 
-        // Check the response and return the results
+        // Check the response and convert results
         if (response.status === 200) {
-            const { results } = response.data;
-            return results || [];
+
+            // Use the conversion function to return a Book array
+            return convertApiResponseToBooks(response.data);
         } else {
             console.error("Unexpected response status:", response.status);
-            return [];
+            return defaultBooks; // Fallback to default books
         }
     } catch (error) {
         console.error("Error fetching recommendations:", error);
-        return [];
+        return defaultBooks; // Fallback to default books
     }
 };
 
-// will make a call to the server to get books based on what is in the search bar  will use query param to search by isbn or phrase
-const getBooksFromServerBasedOnSearch = async (search: string) => {
+
+
+const getBooksFromServerBasedOnSearch = async (search: string): Promise<Book[]> => {
     const baseUrl = baseAPIUrlKoyeb; // Ensure baseAPIUrlKoyeb is properly defined
     const isbnRegex = /^\d{13}$/; // Regular expression for ISBN-13
 
@@ -204,12 +233,10 @@ const getBooksFromServerBasedOnSearch = async (search: string) => {
         const response = await axios.get(`${baseUrl}/search?${queryParam}`);
 
         if (response.status === 200) {
-            const { message, results, resultsCount } = response.data;
+            console.log("Search Results:", response);
 
-            console.log("Search Results:", { message, results, resultsCount });
-
-            // Return the results or handle as needed
-            return results;
+            // Convert the API response to a Book array
+            return convertApiResponseToBooks(response.data);
         } else {
             console.error("Unexpected status code:", response.status);
             return [];
@@ -231,13 +258,46 @@ const Recommendations = () => {
     const [isAddingBookModalVisible, setIsAddingBookModalVisible] = useState(
         false
     );
+    const [isSearchResultsModalVisible, setIsSearchResultsModalVisible] = useState(
+        false
+    );
     const [
         pressedAddBookToLibraryButtonFromBookPreview,
         setPressedAddBookToLibraryButtonFromBookPreview,
     ] = useState(false);
 
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-    const [loading, setLoading] = useState(true);
+    const [loadingRecommendations, setLoadingRecommendations] = useState(true);
+    const [searchResults, setSearchResults] = useState<Book[]>([]);
+    const [loadingSearchResults, setLoadingSearchResults] = useState(false);
+
+
+    const handleAddSearchResultBooksFromApi = async (booksSelectedToAdd: Book[], categoriesSelected: string[]) => {
+        let wasAbleToAddAllBooksToAllCategories = true;
+
+        try {    // go through all categories adding books
+            for (const category of categoriesSelected) {
+                const resultOfAddingBooksToCurrentCategory = await addMultipleUserBooksWithCategoryName(booksSelectedToAdd, category);
+                if (!resultOfAddingBooksToCurrentCategory) {
+                    wasAbleToAddAllBooksToAllCategories = false;
+                    console.error("Failed to add books to category: ", category);
+                }
+            }
+
+            if (wasAbleToAddAllBooksToAllCategories) {
+                Alert.alert("Successfully added book to all categories");
+                return true;
+            }
+
+            Alert.alert("Failed to add book to all categories");
+            return false;
+        } catch (error) {
+            console.error("Error adding books to categories:", error);
+            return false;
+        }
+
+    }
+
 
     // function to check if any books are selected
     const areAnyBooksSelected = () => {
@@ -306,7 +366,7 @@ const Recommendations = () => {
             } catch (error) {
                 console.error("Failed to load books:", error);
             } finally {
-                setLoading(false);
+                setLoadingRecommendations(false);
             }
         };
 
@@ -485,11 +545,24 @@ const Recommendations = () => {
     const RecommendationsPage = () => {
         return (
             <SafeAreaView className="flex-1">
-                <SearchBar
-                    placeholder="Search by title, ISBN, or author..."
-                    onChangeText={updateSearch}
-                    value={search}
-                />
+                <View className=" flex-row items-center justify-between">
+                    <View className="w-[90%] mx-auto">
+                        <SearchBar
+                            placeholder="Search by title, author, genre, or isbn"
+                            onChangeText={updateSearch}
+                            value={search}
+                        />
+                    </View>
+
+                    <Pressable className="p-1" onPress={() => setIsSearchResultsModalVisible(true)}>
+                        <WebIcon height={35} width={35} />
+                    </Pressable>
+
+
+
+
+                </View>
+
                 <View className="flex-1">
                     <FlatList
                         data={selectableBooks}
@@ -559,7 +632,7 @@ const Recommendations = () => {
 
     // will render main component if not loading
     return (
-        loading ? (
+        loadingRecommendations ? (
             <LoadingSpinner />
         ) : (
             RecommendationsPage()

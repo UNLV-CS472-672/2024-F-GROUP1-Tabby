@@ -62,7 +62,7 @@ const data: FieldData[] = [
     {
         key: "Add Page Count", placeholder: "Page Count", field: "pageCount", isMultiline: false,
     },
-    { key: "notes", placeholder: "Notes", field: "notes", isMultiline: true } // Optional field, no validation required
+    { key: "Add Notes", placeholder: "Notes", field: "notes", isMultiline: true } // Optional field, no validation required
 ];
 
 
@@ -443,19 +443,19 @@ const CategoryPage: React.FC = () => {
     return (
         <SafeAreaView className="flex-1">
             <View className="flex-row items-center justify-between">
-                <View className="w-[85%] mx-auto">
+                <View className="w-[90%] mx-auto">
                     <SearchBar
-                        placeholder="Search by title, ISBN, or author..."
+                        placeholder="Search by title, author, genre, or isbn"
                         onChangeText={updateSearch}
                         value={search}
                     />
                 </View>
 
                 <Pressable
-                    className="p-2 mx-auto"
+                    className="p-1"
                     onPress={() => setAddCustomBookModalVisible(true)}
                 >
-                    {<PlusIcon height={38} width={38} />}
+                    {<PlusIcon height={35} width={35} />}
                 </Pressable>
             </View>
 

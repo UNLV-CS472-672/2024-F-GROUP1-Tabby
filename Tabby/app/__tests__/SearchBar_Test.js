@@ -36,6 +36,8 @@ jest.mock("expo-font", () => ({
 
 // Mock SVG imports
 jest.mock("@/assets/menu-icons/plus-icon.svg", () => "MockPlusIcon");
+jest.mock("@/assets/menu-icons/search-icon.svg", () => "MockSearchIcon");
+
 
 // Mock vector icons
 jest.mock("@expo/vector-icons", () => ({
@@ -72,7 +74,7 @@ describe("Favorite tab test everything else", () => {
         // Render category page
         const categoryPage = render(<CategoryPage />);
         const searchBar3 = await categoryPage.findByPlaceholderText(
-            "Search by title, ISBN, or author..."
+            "Search by title, author, genre, or isbn"
         );
         fireEvent.changeText(searchBar3, "tempText3");
         expect(searchBar3.props.value).toBe("tempText3");
@@ -80,7 +82,7 @@ describe("Favorite tab test everything else", () => {
         // Render recommendations page
         const recommendationsPage = render(<Recommendations />);
         const searchBar4 = await recommendationsPage.findByPlaceholderText(
-            "Search by title, ISBN, or author..."
+            "Search by title, author, genre, or isbn"
         );
         fireEvent.changeText(searchBar4, "tempText4");
         expect(searchBar4.props.value).toBe("tempText4");
