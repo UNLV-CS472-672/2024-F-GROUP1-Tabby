@@ -129,8 +129,9 @@ def scan_cover(
     with logging_duration("Request info from Google Books"):
         top_option = extraction_result.options[0]
         books = google_books.request_volumes_get(
-            phrase=top_option.title, author=top_option.author
+            phrase=f"{top_option.title}, {top_option.author}"
         )
+        logging.info(f"Got {len(books)} from Google Books")
 
     return books
 

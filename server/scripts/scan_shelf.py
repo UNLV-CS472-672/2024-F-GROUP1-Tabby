@@ -24,9 +24,13 @@ def main(image_path: cy.types.ResolvedExistingFile) -> None:
 
     image = cv.imread(str(image_path))
     results = scan_shelf(image)
-    pprint(results)
+    # pprint(results)
 
     pprint([len(result) for result in results])
+    for result in results:
+        if result:
+            book = result[0]
+            pprint(book)
 
 
 if __name__ == "__main__":
