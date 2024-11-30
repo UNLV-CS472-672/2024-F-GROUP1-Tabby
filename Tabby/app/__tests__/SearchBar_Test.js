@@ -34,9 +34,13 @@ jest.mock("expo-font", () => ({
     loadAsync: jest.fn(),
 }));
 
+
+
 // Mock SVG imports
 jest.mock("@/assets/menu-icons/plus-icon.svg", () => "MockPlusIcon");
-jest.mock("@/assets/menu-icons/search-icon.svg", () => "MockSearchIcon");
+jest.mock("@/assets/menu-icons/web-icon.svg", () => "MockWebIcon");
+jest.mock("@/assets/menu-icons/refresh-icon.svg", () => "MockRefreshIcon");
+jest.mock("@/assets/menu-icons/select-icon.svg", () => "MockSelectIcon");
 
 
 // Mock vector icons
