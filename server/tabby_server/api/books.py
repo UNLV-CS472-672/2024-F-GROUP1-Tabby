@@ -4,11 +4,13 @@ from dataclasses import asdict
 from functools import cache
 from io import BytesIO
 import logging
+import os
 import re
 import time
 from typing import Literal
 from PIL import Image
 import PIL
+from dotenv import load_dotenv
 from flask import Blueprint, request, current_app
 from http import HTTPStatus
 import cv2 as cv
@@ -21,8 +23,14 @@ from ..vision import ocr
 from ..vision import extraction
 from ..vision import image_labelling
 
+
+load_dotenv()
+
 _SCAN_SHELF_MAX_RESULTS_PER_BOOK = 5
 """Maximum results for each book when scanning shelf"""
+
+_FILTER_ISBN: bool = bool(int(os.getenv("FILTER_ISBN", "1")))
+"""True if books without ISBN should be filtered out, false otherwise."""
 
 subapp = Blueprint(name="books", import_name=__name__)
 
@@ -76,7 +84,8 @@ def books_scan_cover():
     books = scan_cover(img_mat)
 
     # Filter out books without ISBNs
-    books = [b for b in books if b.isbn]
+    if _FILTER_ISBN:
+        books = [b for b in books if b.isbn]
 
     # Wrap it up in another dictionary and send!
     result = _get_result_dict(books)
@@ -216,7 +225,8 @@ def books_search() -> tuple[dict, HTTPStatus]:
         )
 
     # Filter out books without ISBNs
-    books = [b for b in books if b.isbn]
+    if _FILTER_ISBN:
+        books = [b for b in books if b.isbn]
 
     # Wrap it up in another dictionary and send!
     result = _get_result_dict(books)
@@ -279,7 +289,8 @@ def books_scan_shelf() -> tuple[dict, HTTPStatus]:
     # and limit each sublist to a maximum number of books
     new_shelf = []
     for books in scanned_shelf:
-        books = [b for b in books if b.isbn]
+        if _FILTER_ISBN:
+            books = [b for b in books if b.isbn]
         books = books[:_SCAN_SHELF_MAX_RESULTS_PER_BOOK]
         if len(books) >= 1:  # if not empty, append it
             new_shelf.append(books)
@@ -435,7 +446,8 @@ def books_recommendations() -> tuple[dict, HTTPStatus]:
         books = google_books.request_volumes_get(phrase=", ".join(tags_list))
 
     # Filter out books without ISBNs
-    books = [b for b in books if b.isbn]
+    if _FILTER_ISBN:
+        books = [b for b in books if b.isbn]
 
     # Wrap it up in another dictionary and send!
     result = _get_result_dict(books)
