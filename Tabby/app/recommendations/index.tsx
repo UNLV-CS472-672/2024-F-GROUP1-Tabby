@@ -163,14 +163,14 @@ const convertApiResponseToBooks = (apiResponse: any): Book[] => {
 
 
 // Get recommended books from the server
-// Get recommended books from the server
 const getRecommendedBooksFromServerBasedOnBooksPassed = async (
     booksToUseForRecommendations: Book[]
 ): Promise<Book[]> => {
     const baseUrl = baseAPIUrlKoyeb; // Ensure baseAPIUrlKoyeb is properly defined
+
     // if the booksToUseForRecommendations is empty send default books
     if (booksToUseForRecommendations.length === 0) {
-        booksToUseForRecommendations = defaultBooks
+        booksToUseForRecommendations = defaultBooks;
     }
 
     // Extract the required data from the books array
@@ -192,19 +192,21 @@ const getRecommendedBooksFromServerBasedOnBooksPassed = async (
         return [];
     }
 
+    // Manually create URLSearchParams to encode the parameters
+    const params = new URLSearchParams({
+        titles: titles,
+        authors: authors,
+        weights: weights
+    });
+
+    const fullUrl = `${baseUrl}books/recommendations?${params.toString()}`;
+
     try {
-        // Construct the query string manually
-        const queryParams = `titles=${titles}&authors=${authors
-            }&weights=${weights}`;
+        // Use Axios params to handle URL encoding automatically
+        const response = await axios.get(fullUrl)
 
-        const fullUrl = `${baseUrl}books/recommendations?${queryParams}`;
-        console.log("Full URL:", fullUrl);
-        console.log("\n \n Titles:", titles, "\n \n");
-        console.log("\n \n Authors:", authors, "\n \n");
-        console.log("\n \n Weights:", weights, "\n \n");
-
-        // Make the GET request to the recommendations endpoint
-        const response = await axios.get(fullUrl);
+        // Construct the full URL manually (without actually sending the request yet)
+        console.log("\n\n\n\nFull URL manually constructed  for recommendations:\n\n\n\n", fullUrl);
 
         // Check the response and convert results
         if (response.status === 200) {
@@ -219,6 +221,7 @@ const getRecommendedBooksFromServerBasedOnBooksPassed = async (
         return []; // Fallback to default books
     }
 };
+
 
 
 

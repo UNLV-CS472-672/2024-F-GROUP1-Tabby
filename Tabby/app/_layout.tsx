@@ -23,7 +23,9 @@ const ContentContainer = styled(View, 'flex-grow');
 // Fallback component displayed while database initializes
 function Fallback() {
     return (
-        <LoadingSpinner />
+        <View testID="LoadingSpinner">
+            <LoadingSpinner />
+        </View>
     );
 }
 
@@ -32,14 +34,17 @@ export default function RootLayout() {
     const isWelcomePage = pathname === '/';
 
     return (
-        <SafeAreaProvider>
-            <Container>
+        <SafeAreaProvider testID="SafeAreaProvider">
+            <Container testID="RootLayoutContainer">
                 <Suspense fallback={<Fallback />}>
-                    <SQLiteProvider databaseName="bookCollection.db" onInit={migrateDbIfNeeded} useSuspense>
-                        <ContentContainer>
+                    <SQLiteProvider databaseName="bookCollection.db" onInit={migrateDbIfNeeded} useSuspense >
+                        <ContentContainer testID="ContentContainer">
                             <Slot />
                         </ContentContainer>
-                        {!isWelcomePage && <FooterNavBar />}
+                        {!isWelcomePage &&
+                            <View testID="FooterNavBar">
+                                <FooterNavBar />
+                            </View>}
                     </SQLiteProvider>
                 </Suspense>
             </Container>

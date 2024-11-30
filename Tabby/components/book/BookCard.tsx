@@ -52,7 +52,7 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
             <View className="pt-2">
                 <Text className="text-lg text-white">Summary</Text>
                 <ScrollView className='max-h-40'>
-                    <Text className="text-sm text-white">{book.summary}</Text>
+                    <Text className="text-sm text-white p-1">{book.summary}</Text>
                 </ScrollView>
 
             </View>
