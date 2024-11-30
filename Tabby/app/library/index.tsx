@@ -322,9 +322,11 @@ const Categories = () => {
               <Text
                 className={`text-xl font-semibold ${index % 2 === 0 ? "text-white" : "text-black"
                   }`}
+                numberOfLines={1}
               >
                 {item.name}
               </Text>
+
             </View>
             <Pressable
               className="p-1"

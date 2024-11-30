@@ -8,6 +8,7 @@ import {
     Alert,
     TextInput,
     Modal,
+    ScrollView
 } from "react-native";
 import BookPreview from "@/components/BookPreview";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -513,7 +514,9 @@ const CategoryPage: React.FC = () => {
                 </View>
 
                 <View className="flex-row items-center pt-4 pl-4">
-                    <Text className="text-white text-xl font-bold text-left">{category}</Text>
+                    <ScrollView className="max-h-8">
+                        <Text className="text-white text-xl font-bold text-left">{category}</Text>
+                    </ScrollView>
                     <View className="flex-row  ml-auto">
                         <Pressable className="mr-1" onPress={() => selectAllBooks()}><SelectIcon height={35} width={35} /></Pressable>
                     </View>

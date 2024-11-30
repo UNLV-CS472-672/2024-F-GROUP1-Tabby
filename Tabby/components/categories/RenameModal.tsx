@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, Modal, FlatList } from 'react-native';
+import { View, Text, TextInput, Pressable, Modal, FlatList, ScrollView } from 'react-native';
 import { Category } from "@/types/category";
 import LoadingSpinner from '@/components/LoadingSpinner';
 
@@ -29,6 +29,7 @@ const RenameModal: React.FC<RenameModalProps> = ({
     );
     const [errorMessage, setErrorMessage] = useState(null as string | null);
     const [loading, setLoading] = useState(false);
+    const maxLength = 100;
 
     const handleConfirm = async () => {
         setErrorMessage(null);
@@ -36,6 +37,12 @@ const RenameModal: React.FC<RenameModalProps> = ({
 
         if (trimmedName === "") {
             setErrorMessage("Category name cannot be empty.");
+            setNewName('');
+            return;
+        }
+
+        if (trimmedName.length > maxLength) {
+            setErrorMessage(`Category name cannot be longer than ${maxLength} characters.`);
             setNewName('');
             return;
         }
@@ -116,14 +123,18 @@ const RenameModal: React.FC<RenameModalProps> = ({
 
                 </View>
 
+                <ScrollView className='max-h-16'>
+                    <TextInput
+                        value={newName}
+                        onChangeText={handleChangeText}
+                        placeholder="Enter new category name"
+                        className="border p-2 mb-4"
+                        autoFocus={true}
+                        multiline={true}
+                    />
+                </ScrollView>
 
-                <TextInput
-                    value={newName}
-                    onChangeText={handleChangeText}
-                    placeholder="Enter new category name"
-                    className="border p-2 mb-4"
-                    autoFocus={true}
-                />
+
                 {errorMessage && (
                     <Text className="text-red-500 mb-2">{errorMessage}</Text>
                 )}
