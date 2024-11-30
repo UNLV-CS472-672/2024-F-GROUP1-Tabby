@@ -8,8 +8,8 @@ interface AddSearchResultsBooksModalProps {
     visible: boolean;
     onClose: () => void;
     booksToAdd: Book[];
-    categories: string[]; // Categories passed as props
-    onConfirmAddBooks: (booksSelectedToAdd: Book[], categoriesSelected: string[]) => Promise<boolean>; // Async success handler for adding books 
+    categories: string[];
+    onConfirmAddBooks: (booksSelectedToAdd: Book[], categoriesSelected: string[]) => Promise<boolean>;
 }
 
 const AddSearchResultsBooksModal: React.FC<AddSearchResultsBooksModalProps> = ({
@@ -20,44 +20,58 @@ const AddSearchResultsBooksModal: React.FC<AddSearchResultsBooksModalProps> = ({
     onConfirmAddBooks,
 }) => {
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+    const [selectedBooks, setSelectedBooks] = useState<Book[]>([]);
     const [errorMessage, setErrorMessage] = useState<string>("");
+    const [bookErrorMessage, setBookErrorMessage] = useState<string>('');
+    const [categoryErrorMessage, setCategoryErrorMessage] = useState<string>('');
 
     // Toggle selection of categories
     const toggleCategorySelection = (category: string) => {
-        // Clear error message if there is one
-        if (errorMessage.length > 0) {
-            setErrorMessage('');
-        }
-        setSelectedCategories((prev) => {
-            if (prev.includes(category)) {
-                return prev.filter((item) => item !== category); // Remove from selection
-            } else {
-                return [...prev, category]; // Add to selection
-            }
-        });
+        // reset error messages
+        if (categoryErrorMessage.length > 0) setCategoryErrorMessage('');
+        setSelectedCategories((prev) =>
+            prev.includes(category) ? prev.filter((item) => item !== category) : [...prev, category]
+        );
     };
 
-    // Handle adding books to selected categories and trigger onSuccess with selected categories
+    // Toggle selection of books
+    const toggleBookSelection = (book: Book) => {
+        // reset error messages
+        if (bookErrorMessage.length > 0) setBookErrorMessage('');
+        setSelectedBooks((prev) =>
+            prev.some((b) => b.id === book.id) ? prev.filter((b) => b.id !== book.id) : [...prev, book]
+        );
+    };
+
+    // Handle adding books to selected categories
     const handleAddBooks = async () => {
-        console.log("length of selected categories: ", selectedCategories.length);
-        if (selectedCategories.length === 0) {
-            setErrorMessage('Please select at least one category.');
+        // reset error message
+        setErrorMessage('');
+
+        // category or book not selected so return early and set error messages
+        const isCategorySelectedNone = selectedCategories.length === 0;
+        const isBookSelectedNone = selectedBooks.length === 0;
+        if (isCategorySelectedNone) {
+            setCategoryErrorMessage('Please select at least one category.');
+        }
+        if (isBookSelectedNone) {
+            setBookErrorMessage('Please select at least one book.');
+        }
+        if (isCategorySelectedNone || isBookSelectedNone) {
             return;
         }
 
         try {
-            const result = await onConfirmAddBooks(booksToAdd, selectedCategories);
-            if (!result) {
-                setErrorMessage('Failed to add books to categories.');
-            }
-
+            const result = await onConfirmAddBooks(selectedBooks, selectedCategories);
+            if (!result) setErrorMessage('Failed to add books to categories.');
+            // reset selected categories and books
+            setSelectedCategories([]);
+            setSelectedBooks([]);
 
         } catch (error) {
             console.error('Error adding books to categories:', error);
         }
     };
-
-
 
     return (
         <Modal
@@ -66,36 +80,35 @@ const AddSearchResultsBooksModal: React.FC<AddSearchResultsBooksModalProps> = ({
             animationType="fade"
             onRequestClose={onClose}
         >
-
             <View className="p-4 m-4 bg-white rounded-lg mx-auto w-96">
-                <View className="">
-
-
-                    <Text className="text-lg text-black font-semibold mb-4">
-                        Select one or more categories to add the selected books to
-                    </Text>
-                </View>
-
-                {/* Display the list of books to be added */}
-                <Text className="font-semibold text-gray-800 mt-5 mb-2">
-                    Books to add:
+                <Text className="text-lg text-black font-semibold mb-4">
+                    Select one or more books to add:
                 </Text>
+                {/* Display the list of books to be added */}
                 <FlatList
-                    className="max-h-52"
+                    className="max-h-96"
                     data={booksToAdd}
                     keyExtractor={(item) => item.id.toString()}
-                    renderItem={({ item }) => (
-                        <Pressable className='flex-row items-center p-4 rounded-lg my-1' onPress={() => { console.log("Selected book:", item) }}>
-                            <BookSearchPreview book={item} />
-                        </Pressable>
-
-                    )}
+                    renderItem={({ item }) => {
+                        const isSelected = selectedBooks.some((b) => b.id === item.id);
+                        return (
+                            <Pressable
+                                className={`flex-row items-center p-4 rounded-lg my-1 ${isSelected ? 'bg-blue-500 opacity-80' : ''}`}
+                                onPress={() => toggleBookSelection(item)}
+                            >
+                                <BookSearchPreview book={item} />
+                            </Pressable>
+                        );
+                    }}
                 />
 
+                <Text className="text-lg text-black font-semibold my-4">
+                    Select one or more categories to add selected books:
+                </Text>
 
                 {/* Category selection */}
                 <FlatList
-                    className="max-h-52"
+                    className="max-h-28"
                     data={categories}
                     keyExtractor={(item) => item}
                     renderItem={({ item }) => (
@@ -104,20 +117,24 @@ const AddSearchResultsBooksModal: React.FC<AddSearchResultsBooksModalProps> = ({
                             className="flex-row items-center mb-2"
                         >
                             <Checkbox
-                                value={selectedCategories.includes(item)} // Ensure the checkbox reflects the selected state
-                                onValueChange={() => toggleCategorySelection(item)} // Toggle state properly
+                                value={selectedCategories.includes(item)}
+                                onValueChange={() => toggleCategorySelection(item)}
                             />
                             <Text className="ml-2 text-sm text-gray-800">{item}</Text>
                         </Pressable>
                     )}
                 />
 
+                <View className='py-1'>
+                    {categoryErrorMessage.length > 0 && <Text className="text-red-500">{categoryErrorMessage}</Text>}
+                    {bookErrorMessage.length > 0 && <Text className="text-red-500">{bookErrorMessage}</Text>}
+                    {errorMessage.length > 0 && <Text className="text-red-500">{errorMessage}</Text>}
+                </View>
 
 
-                {errorMessage.length > 0 && <Text className='text-red-500'>{errorMessage}</Text>}
+
 
                 <View className="flex-row justify-between mt-4">
-
                     <Pressable
                         className="px-4 py-2 bg-blue-500 rounded-lg"
                         onPress={handleAddBooks}
@@ -132,7 +149,6 @@ const AddSearchResultsBooksModal: React.FC<AddSearchResultsBooksModalProps> = ({
                     </Pressable>
                 </View>
             </View>
-
         </Modal>
     );
 };

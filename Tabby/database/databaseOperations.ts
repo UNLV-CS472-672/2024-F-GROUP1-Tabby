@@ -646,6 +646,7 @@ export const addRecommendedBook = async (book: Book): Promise<Book | null> => {
 
   try {
     // all books will have a uuid as their id allows for multiple categories having the same book
+    // also updating book id of book passed so that the id for the book gotten from the api is updated to the one in our database
     book.id = uuidv4();
     await (await db).runAsync(
       `INSERT INTO recommendedBooks (id, title, author, excerpt, summary, image, rating, genres, addToLibrary, publisher, publishedDate, pageCount, notes, isbn)
@@ -679,6 +680,36 @@ export const addRecommendedBook = async (book: Book): Promise<Book | null> => {
     return null;
   }
 };
+
+// add a recommended book if book isbn is not already in database
+export const addRecommendedBookIfNotInRecommendationsBasedOnIsbn = async (book: Book): Promise<Book | null> => {
+  try {
+    const result = await (
+      await db
+    ).getFirstAsync("SELECT * FROM recommendedBooks WHERE isbn = ?", [book.isbn || null]);
+    if (result) {
+      console.log("Recommended book already exists:", result);
+      return null;
+    }
+    return await addRecommendedBook(book);
+  } catch (error) {
+    console.error("Error adding recommended book if not exists:", error);
+    return null;
+  }
+};
+
+// delete all recommended books
+export const deleteAllRecommendedBooks = async (): Promise<boolean> => {
+  try {
+    await (await db).runAsync("DELETE FROM recommendedBooks");
+    console.log("All recommended books deleted successfully");
+    return true;
+  } catch (error) {
+    console.error("Error deleting all recommended books:", error);
+    return false;
+  }
+};
+
 
 // Delete a recommended book by id which will be isbn for book from api
 export const deleteRecommendedBookById = async (

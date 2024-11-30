@@ -31,8 +31,18 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
                 />
 
                 <View className="flex-col pl-4">
-                    <Text className="text-lg font-bold text-white">{book.title}</Text>
-                    <Text className="text-md text-white font-semibold italic"> By {book.author}</Text>
+
+                    <ScrollView className='max-h-16'>
+                        <Text className="text-lg font-bold text-white w-56" >{book.title}</Text>
+                    </ScrollView>
+
+                    <ScrollView className='max-h-5'>
+                        <Text className="text-md text-white font-semibold italic w-56"> By {book.author}</Text>
+                    </ScrollView>
+
+
+
+
                     <Text className="mt-3 text-lg text-white">Rating</Text>
                     <StarsRating rating={book.rating || 0} />
                 </View>

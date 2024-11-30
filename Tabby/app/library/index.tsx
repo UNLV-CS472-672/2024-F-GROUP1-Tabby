@@ -340,8 +340,6 @@ const Categories = () => {
       <SafeAreaView className="flex-1">
         {/* Top row for add category icon and search bar */}
 
-        {/* only show search bar if no categories are selected */}
-
         <View className="flex-row items-center justify-between">
           <View className="w-[85%] mx-auto">
             <SearchBar

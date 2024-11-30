@@ -7,11 +7,11 @@ import { SearchBar } from "@rneui/themed";
 import {
     getAllCategories,
     getAllRecommendedBooks,
-    addRecommendedBook,
+    deleteAllRecommendedBooks,
+    addRecommendedBookIfNotInRecommendationsBasedOnIsbn,
     deleteMultipleRecommendedBooksByIds,
     addMultipleUserBooksWithCategoryName,
     updateMultipleRecommendedBooksToBeAddedToLibrary,
-    getAllNonCustomFavoriteUserBooks,
     getAllNonCustomUserBooks
 } from "@/database/databaseOperations";
 import { Book } from "@/types/book";
@@ -22,7 +22,9 @@ import DeleteBooksModal from "@/components/DeleteBooksModal";
 import AddBooksOrMoveBooksToCategoryModal from "@/components/AddBooksOrMoveBooksToCategoryModal";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import WebIcon from "@/assets/menu-icons/web-icon.svg";
-import NotSelectedExplore from "@/components/navbar/notSelectedExplore";
+import RefreshIcon from "@/assets/menu-icons/refresh-icon.svg";
+import ClearIcon from "@/assets/menu-icons/clear-icon.svg";
+import AddSearchResultsBooksModal from "@/components/AddSearchResultsBooksModal";
 import axios from "axios";
 
 type SelectableBook = {
@@ -131,10 +133,6 @@ const defaultBooks: Book[] = [
 ]
 
 
-const defaultSelectableBooks: SelectableBook[] = defaultBooks.map(
-    (currentBook) => ({ book: currentBook, isSelected: false })
-);
-
 const size = 36;
 
 const baseAPIUrlRender = "https://group1-tabby.onrender.com/";
@@ -167,10 +165,15 @@ const convertApiResponseToBooks = (apiResponse: any): Book[] => {
 
 
 // Get recommended books from the server
+// Get recommended books from the server
 const getRecommendedBooksFromServerBasedOnBooksPassed = async (
     booksToUseForRecommendations: Book[]
 ): Promise<Book[]> => {
     const baseUrl = baseAPIUrlKoyeb; // Ensure baseAPIUrlKoyeb is properly defined
+    // if the booksToUseForRecommendations is empty send default books
+    if (booksToUseForRecommendations.length === 0) {
+        booksToUseForRecommendations = defaultBooks
+    }
 
     // Extract the required data from the books array
     const titles = booksToUseForRecommendations
@@ -192,53 +195,62 @@ const getRecommendedBooksFromServerBasedOnBooksPassed = async (
     }
 
     try {
-        // Construct the query parameters
-        const queryParams = new URLSearchParams({
-            titles,
-            authors,
-            weights,
-        });
+        // Construct the query string manually
+        const queryParams = `titles=${titles}&authors=${authors
+            }&weights=${weights}`;
+
+        const fullUrl = `${baseUrl}books/recommendations?${queryParams}`;
+        console.log("Full URL:", fullUrl);
+        console.log("\n \n Titles:", titles, "\n \n");
+        console.log("\n \n Authors:", authors, "\n \n");
+        console.log("\n \n Weights:", weights, "\n \n");
 
         // Make the GET request to the recommendations endpoint
-        const response = await axios.get(`${baseUrl}/recommendations?${queryParams}`);
+        const response = await axios.get(fullUrl);
 
         // Check the response and convert results
         if (response.status === 200) {
-
             // Use the conversion function to return a Book array
             return convertApiResponseToBooks(response.data);
         } else {
             console.error("Unexpected response status:", response.status);
-            return defaultBooks; // Fallback to default books
+            return []; // Fallback to default books
         }
     } catch (error) {
         console.error("Error fetching recommendations:", error);
-        return defaultBooks; // Fallback to default books
+        return []; // Fallback to default books
     }
 };
 
 
 
+
 const getBooksFromServerBasedOnSearch = async (search: string): Promise<Book[]> => {
     const baseUrl = baseAPIUrlKoyeb; // Ensure baseAPIUrlKoyeb is properly defined
-    const isbnRegex = /^\d{13}$/; // Regular expression for ISBN-13
 
+    // Normalize the search string by removing dashes
+    const normalizedSearch = search.replace(/-/g, "");
+
+    // Regular expression to match ISBN-13 or ISBN-10
+    const isbnRegex = /^(?:\d{10}|\d{13})$/;
     try {
         // Determine whether to search by ISBN or phrase
-        const queryParam = isbnRegex.test(search)
-            ? `isbn=${search}`
+        const queryParam = isbnRegex.test(normalizedSearch)
+            ? `isbn=${normalizedSearch}`
             : `phrase=${encodeURIComponent(search)}`;
 
         // Make the API call
-        const response = await axios.get(`${baseUrl}/search?${queryParam}`);
+        const fullUrl = `${baseUrl}books/search?${queryParam}`;
+        console.log("Full URL:", fullUrl);
+
+        const response = await axios.get(fullUrl);
 
         if (response.status === 200) {
-            console.log("Search Results:", response);
 
             // Convert the API response to a Book array
             return convertApiResponseToBooks(response.data);
         } else {
-            console.error("Unexpected status code:", response.status);
+            console.error("Unexpected response status:", response.status);
             return [];
         }
     } catch (error) {
@@ -251,7 +263,7 @@ const getBooksFromServerBasedOnSearch = async (search: string): Promise<Book[]> 
 const Recommendations = () => {
     // State to keep track of books and their selected status
     const [selectableBooks, setSelectableBooks] = useState<SelectableBook[]>(
-        defaultSelectableBooks
+        []
     );
     const [search, setSearch] = useState("");
     const [categories, setCategories] = useState<string[]>([]);
@@ -272,6 +284,7 @@ const Recommendations = () => {
     const [loadingSearchResults, setLoadingSearchResults] = useState(false);
 
 
+    // will add books that the user has searched for and selected to their library will be passed into search modal
     const handleAddSearchResultBooksFromApi = async (booksSelectedToAdd: Book[], categoriesSelected: string[]) => {
         let wasAbleToAddAllBooksToAllCategories = true;
 
@@ -296,6 +309,38 @@ const Recommendations = () => {
             return false;
         }
 
+    }
+
+    // handle showing search results modal
+    const handleShowSearchResultsModal = async () => {
+        if (isSearchResultsModalVisible || search.length === 0) {
+            return;
+        } else {
+            setLoadingSearchResults(true);
+            // get search results from api and show modal
+            try {
+                const booksSearchResults = await getBooksFromServerBasedOnSearch(search);
+                // check if search results are empty
+                if (booksSearchResults.length === 0) {
+                    Alert.alert("No results found for search");
+                } else {
+                    setSearchResults(booksSearchResults);
+                    setIsSearchResultsModalVisible(true);
+                }
+
+            } catch (error) {
+                console.error("Error getting search results from api", error);
+            } finally {
+                setLoadingSearchResults(false);
+            }
+
+        }
+    }
+
+    const handleClosingSearchResultsModal = () => {
+        setIsSearchResultsModalVisible(false);
+        // reset search results
+        setSearchResults([]);
     }
 
 
@@ -325,46 +370,108 @@ const Recommendations = () => {
         );
     };
 
+    const refreshRecommendedBooksFromApi = async () => {
+        try {
+            setLoadingRecommendations(true);
+            //getting all non custom user books
+            const nonCustomUserBooks = await getAllNonCustomUserBooks();
+            // getting recommended books based on non custom user books
+            const recommendedBooksFromApi = await getRecommendedBooksFromServerBasedOnBooksPassed(nonCustomUserBooks || defaultBooks);
+            // keep track of 
+            let booksFromApiThatAreActuallyAddedIntoDatabase: Book[] = [];
+            // checking if the recommended books from api are empty
+            if (recommendedBooksFromApi.length !== 0) {
+                // adding recommended books to database if not already in database
+                for (const bookFromApi of recommendedBooksFromApi) {
+                    const resultOfAddingBook = await addRecommendedBookIfNotInRecommendationsBasedOnIsbn(bookFromApi);
+                    if (resultOfAddingBook) {
+                        booksFromApiThatAreActuallyAddedIntoDatabase.push(bookFromApi);
+                    }
+                }
+            } else {
+                throw new Error("No recommended books from api were found");
+            }
+            // add books from api to selectable books
+            const selectableBooksToAdd = booksFromApiThatAreActuallyAddedIntoDatabase.map((book) => ({ book, isSelected: false }));
+            setSelectableBooks([...selectableBooksToAdd, ...selectableBooks]);
+
+        } catch (error) {
+            console.log("Error getting recommended books from api", error);
+            Alert.alert("Error getting new recommended books from");
+        } finally {
+            setLoadingRecommendations(false);
+        }
+
+    }
+
+    const handleDeletingAllRecommendedBooks = async () => {
+        try {
+            setLoadingRecommendations(true);
+            const result = await deleteAllRecommendedBooks();
+            if (!result) {
+                throw new Error("Failed to delete all recommended books");
+            }
+            setSelectableBooks([]);
+            Alert.alert("Deleted all recommended books");
+        } catch (error) {
+            console.error("Error deleting all recommended books", error);
+        } finally {
+            setLoadingRecommendations(false);
+        }
+
+    }
+
     useEffect(() => {
+        const addRecommendedBooksFromApiIfNoRecommendedBooks = async () => {
+            try {
+                //getting all non custom user books
+                const nonCustomUserBooks = await getAllNonCustomUserBooks();
+                // getting recommended books based on non custom user books
+                const recommendedBooksFromApi = await getRecommendedBooksFromServerBasedOnBooksPassed(nonCustomUserBooks || defaultBooks);
+
+                // checking if the recommended books from api are empty
+                if (recommendedBooksFromApi.length !== 0) {
+                    // adding recommended books to database if not already in database
+                    for (const bookFromApi of recommendedBooksFromApi) {
+                        await addRecommendedBookIfNotInRecommendationsBasedOnIsbn(bookFromApi);
+                    }
+                } else {
+                    throw new Error("No recommended books from api were found");
+                }
+                // add books from api to selectable books
+                const selectableBooksToAdd = recommendedBooksFromApi.map((book) => ({ book, isSelected: false }));
+                setSelectableBooks((prevSelectableBooks) => ([...selectableBooksToAdd, ...prevSelectableBooks]));
+            } catch (error) {
+                console.log("Error getting recommended books from api", error);
+                Alert.alert("Error getting new recommended books from");
+                throw error;
+            }
+
+        }
+
         // Fetch books from the database when the component mounts
         const fetchBooksAndCategories = async () => {
             try {
-                const initialBooks = await getAllRecommendedBooks();
-                // check if initialBooks is an array of books
-                if (Array.isArray(initialBooks)) {
-                    // check if  initialBooks is empty i it is then add default books to db
-                    if (initialBooks.length === 0) {
-                        // add default books to the database
-                        defaultBooks.forEach(async (book) => {
-                            await addRecommendedBook(book);
-                        });
+                setLoadingRecommendations(true);
 
-                        // fetch books from the database again and set the books to have the updated uuids
-                        const resultWithAddedBooks = await getAllRecommendedBooks();
-                        if (Array.isArray(resultWithAddedBooks)) {
-                            setSelectableBooks(
-                                resultWithAddedBooks.map((book) => ({
-                                    book,
-                                    isSelected: false,
-                                }))
-                            );
-                        }
-                    }
-                    // setting if initial books is not empty
-                    else {
-                        setSelectableBooks(
-                            initialBooks.map((book) => ({ book, isSelected: false }))
-                        );
-                    }
-
-                    // setting categories
-                    const initialCategories = await getAllCategories();
-                    if (Array.isArray(initialCategories)) {
-                        setCategories(initialCategories.map((category) => category.name));
-                    }
+                // setting categories
+                const initialCategories = await getAllCategories();
+                if (Array.isArray(initialCategories)) {
+                    setCategories(initialCategories.map((category) => category.name));
                 }
+
+                // setting initial recommended books from database or from api if no recommended books
+                const recommendedBooks = await getAllRecommendedBooks();
+                if (recommendedBooks === null || recommendedBooks.length === 0) {
+                    await addRecommendedBooksFromApiIfNoRecommendedBooks();
+                } else {
+                    setSelectableBooks(recommendedBooks.map((book) => ({ book, isSelected: false })));
+                }
+
             } catch (error) {
-                console.error("Failed to load books:", error);
+                // error getting recommended books from api so will just use old recommended books from earlier api calls
+                Alert.alert("Could not get ");
+                console.log(error);
             } finally {
                 setLoadingRecommendations(false);
             }
@@ -546,22 +653,38 @@ const Recommendations = () => {
         return (
             <SafeAreaView className="flex-1">
                 <View className=" flex-row items-center justify-between">
-                    <View className="w-[90%] mx-auto">
-                        <SearchBar
-                            placeholder="Search by title, author, genre, or isbn"
-                            onChangeText={updateSearch}
-                            value={search}
-                        />
-                    </View>
+                    {loadingSearchResults ? <LoadingSpinner /> : (<>
+                        <View className="w-[90%] h-16 mx-auto">
+                            <SearchBar
+                                placeholder="Search by title, author, genre, or isbn"
+                                onChangeText={updateSearch}
+                                value={search}
+                            />
+                        </View>
+                        <Pressable className="p-1" onPress={() => handleShowSearchResultsModal()} >
+                            <WebIcon height={35} width={35} />
+                        </Pressable>
 
-                    <Pressable className="p-1" onPress={() => setIsSearchResultsModalVisible(true)}>
-                        <WebIcon height={35} width={35} />
-                    </Pressable>
+                    </>
+                    )}
 
 
+                    {/* handle showing search results modal */}
+                    <AddSearchResultsBooksModal visible={isSearchResultsModalVisible} onClose={handleClosingSearchResultsModal} onConfirmAddBooks={handleAddSearchResultBooksFromApi} categories={categories} booksToAdd={searchResults} />
 
 
                 </View>
+
+                <View className="flex-row items-center pt-4 pl-4">
+                    <Text className="text-white text-xl font-bold text-left">Recommendations</Text>
+                    <View className="flex-row  ml-auto">
+                        <Pressable onPress={refreshRecommendedBooksFromApi} className="mr-5"><RefreshIcon height={35} width={35} /></Pressable>
+                        <Pressable onPress={handleDeletingAllRecommendedBooks} className="mr-1"><ClearIcon height={35} width={35} /></Pressable>
+
+                    </View>
+
+                </View>
+
 
                 <View className="flex-1">
                     <FlatList
