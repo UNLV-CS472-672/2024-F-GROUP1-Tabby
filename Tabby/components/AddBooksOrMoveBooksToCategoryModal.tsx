@@ -82,9 +82,10 @@ const AddBooksOrMoveBooksToCategoryModal: React.FC<AddBooksOrMoveBooksToCategory
     }
 
     const AddOrMoveSwitch = () => {
-        return (<View className='flex-row mb-3 items-center'>
+        return (<View className='flex-row mb-3 items-center' >
             <Text className='text-black font-bold text-lg'>{addOrMoveBooks ? "Add Books:" : "Move Books:"}</Text>
             <Switch
+                testID='add-or-move-switch'
                 value={addOrMoveBooks}
                 onValueChange={(value) => setAddOrMoveBooks(value)}
             />
@@ -149,7 +150,7 @@ const AddBooksOrMoveBooksToCategoryModal: React.FC<AddBooksOrMoveBooksToCategory
 
                 {errorMessage.length > 0 && <Text className='text-red-500'>{errorMessage}</Text>}
 
-                {(loading) ? <View className='w-full h-20'>
+                {(loading) ? <View className='w-full h-20' testID='loading-spinner'>
                     <LoadingSpinner />
                 </View>
                     : <View className="flex-row justify-between mt-4">
