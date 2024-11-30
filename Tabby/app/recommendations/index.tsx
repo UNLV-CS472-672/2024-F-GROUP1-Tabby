@@ -461,7 +461,6 @@ const Recommendations = () => {
 
             } catch (error) {
                 // error getting recommended books from api so will just use old recommended books from earlier api calls
-                Alert.alert("Could not get ");
                 console.log(error);
             } finally {
                 setLoadingRecommendations(false);
