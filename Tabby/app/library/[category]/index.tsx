@@ -496,7 +496,7 @@ const CategoryPage: React.FC = () => {
                 <LoadingSpinner />
             </View> : <>
                 <View className="flex-row items-center justify-between">
-                    <View className="w-[90%] mx-auto">
+                    <View className="w-[90%] h-16 mx-auto">
                         <SearchBar
                             placeholder="Search by title, author, genre, or isbn"
                             onChangeText={updateSearch}

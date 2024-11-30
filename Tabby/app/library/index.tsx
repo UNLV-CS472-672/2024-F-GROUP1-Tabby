@@ -346,7 +346,7 @@ const Categories = () => {
         {/* Top row for add category icon and search bar */}
 
         <View className="flex-row items-center justify-between">
-          <View className="w-[85%] mx-auto">
+          <View className="w-[85%] h-16 mx-auto">
             <SearchBar
               placeholder="Search by category name..."
               onChangeText={updateSearch}
