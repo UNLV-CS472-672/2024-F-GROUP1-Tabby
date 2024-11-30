@@ -7,7 +7,6 @@ import { SearchBar } from "@rneui/themed";
 import {
     getAllCategories,
     getAllRecommendedBooks,
-    deleteAllRecommendedBooks,
     addRecommendedBookIfNotInRecommendationsBasedOnIsbn,
     deleteMultipleRecommendedBooksByIds,
     addMultipleUserBooksWithCategoryName,
@@ -23,7 +22,7 @@ import AddBooksOrMoveBooksToCategoryModal from "@/components/AddBooksOrMoveBooks
 import LoadingSpinner from "@/components/LoadingSpinner";
 import WebIcon from "@/assets/menu-icons/web-icon.svg";
 import RefreshIcon from "@/assets/menu-icons/refresh-icon.svg";
-import ClearIcon from "@/assets/menu-icons/clear-icon.svg";
+import SelectIcon from "@/assets/menu-icons/select-icon.svg";
 import AddSearchResultsBooksModal from "@/components/AddSearchResultsBooksModal";
 import axios from "axios";
 
@@ -135,7 +134,6 @@ const defaultBooks: Book[] = [
 
 const size = 36;
 
-const baseAPIUrlRender = "https://group1-tabby.onrender.com/";
 const baseAPIUrlKoyeb = "https://just-ulrike-tabby-app-9d270e1b.koyeb.app/"
 
 const convertApiResponseToBooks = (apiResponse: any): Book[] => {
@@ -298,7 +296,7 @@ const Recommendations = () => {
             }
 
             if (wasAbleToAddAllBooksToAllCategories) {
-                Alert.alert("Successfully added book to all categories");
+                Alert.alert("Successfully added all books to all categories");
                 return true;
             }
 
@@ -397,27 +395,20 @@ const Recommendations = () => {
 
         } catch (error) {
             console.log("Error getting recommended books from api", error);
-            Alert.alert("Error getting new recommended books from");
+            Alert.alert("Error occurred while getting new recommended books");
         } finally {
             setLoadingRecommendations(false);
         }
 
     }
 
-    const handleDeletingAllRecommendedBooks = async () => {
-        try {
-            setLoadingRecommendations(true);
-            const result = await deleteAllRecommendedBooks();
-            if (!result) {
-                throw new Error("Failed to delete all recommended books");
-            }
-            setSelectableBooks([]);
-            Alert.alert("Deleted all recommended books");
-        } catch (error) {
-            console.error("Error deleting all recommended books", error);
-        } finally {
-            setLoadingRecommendations(false);
-        }
+    const selectAllBooks = () => {
+        // set all books to selected
+        const updatedSelectableBooks = selectableBooks.map((book) => ({
+            ...book,
+            isSelected: true,
+        }))
+        setSelectableBooks(updatedSelectableBooks);
 
     }
 
@@ -443,7 +434,7 @@ const Recommendations = () => {
                 setSelectableBooks((prevSelectableBooks) => ([...selectableBooksToAdd, ...prevSelectableBooks]));
             } catch (error) {
                 console.log("Error getting recommended books from api", error);
-                Alert.alert("Error getting new recommended books from");
+                Alert.alert("Error occurred while getting new recommended books");
                 throw error;
             }
 
@@ -542,6 +533,7 @@ const Recommendations = () => {
             console.log("deleted all recommended books that were selected");
             setSelectableBooks(unselectedSelectableBooks);
             setIsDeleteModalVisible(false);
+            Alert.alert("Successfully deleted selected books");
         } else {
             console.error("Failed to delete recommended books that were selected");
         }
@@ -596,10 +588,12 @@ const Recommendations = () => {
             );
             setSelectableBooks(updatedSelectableBooks);
             setIsAddingBookModalVisible(false);
+
             // if add button was pressed reset it to false after adding it
             if (pressedAddBookToLibraryButtonFromBookPreview) {
                 setPressedAddBookToLibraryButtonFromBookPreview(false);
             }
+            Alert.alert("Successfully added selected books to all categories");
         } else {
             console.error("Failed to add selected books to all categories");
         }
@@ -679,7 +673,7 @@ const Recommendations = () => {
                     <Text className="text-white text-xl font-bold text-left">Recommendations</Text>
                     <View className="flex-row  ml-auto">
                         <Pressable onPress={refreshRecommendedBooksFromApi} className="mr-5"><RefreshIcon height={35} width={35} /></Pressable>
-                        <Pressable onPress={handleDeletingAllRecommendedBooks} className="mr-1"><ClearIcon height={35} width={35} /></Pressable>
+                        <Pressable className="mr-1" onPress={() => selectAllBooks()}><SelectIcon height={35} width={35} /></Pressable>
 
                     </View>
 

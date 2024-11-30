@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View, Text, Pressable, Modal, FlatList } from 'react-native';
 import { Category } from "@/types/category";
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 interface DeleteConfirmationModalProps {
     onConfirm: () => Promise<string>; // onConfirm is now async
@@ -11,8 +12,10 @@ interface DeleteConfirmationModalProps {
 const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({ onConfirm, onCancel, selectedCategories }) => {
     const onlySingleItemSelectedToDelete = selectedCategories.length === 1;
     const [errorMessage, setErrorMessage] = useState(null as string | null);
+    const [loading, setLoading] = useState(false);
     const handleConfirm = async () => {
         try {
+            setLoading(true);
             const result = await onConfirm(); // Await the async onConfirm function
             if (result === "Cannot delete all categories") {
                 setErrorMessage("Cannot delete all categories");
@@ -23,6 +26,8 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({ onCon
             console.error("Error deleting categories:", error);
             // Optionally, you could show an error message here if needed
             setErrorMessage("Something went wrong. Please try again.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -60,7 +65,11 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({ onCon
                 {errorMessage && (
                     <Text className="text-red-500 text-center">{errorMessage}</Text>
                 )}
-                <View className="flex-row justify-between mt-5">
+
+                {loading ? <View className='w-full h-10'>
+                    <LoadingSpinner />
+
+                </View> : <View className="flex-row justify-between mt-5">
                     <Pressable
                         onPress={handleConfirm}
                         className="px-4 py-2 bg-red-500 rounded-md"
@@ -73,7 +82,11 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({ onCon
                     >
                         <Text>Cancel</Text>
                     </Pressable>
-                </View>
+                </View>}
+
+
+
+
             </View>
             <Pressable
                 className="flex-1"

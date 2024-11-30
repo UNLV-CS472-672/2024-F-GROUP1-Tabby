@@ -1,6 +1,7 @@
-import React from 'react';
+import { useState } from 'react';
 import { Modal, Pressable, FlatList, View, Text } from 'react-native';
 import { Book } from '@/types/book';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 interface DeleteBooksModalProps {
     visible: boolean;
@@ -15,6 +16,19 @@ const DeleteBooksModal: React.FC<DeleteBooksModalProps> = ({
     booksToDelete,
     onConfirm,
 }) => {
+    const [loading, setLoading] = useState(false);
+
+    const handleConfirm = async () => {
+        try {
+            setLoading(true);
+            await onConfirm();
+        } catch (error) {
+            console.error('Error deleting books:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <Modal
             visible={visible}
@@ -40,10 +54,15 @@ const DeleteBooksModal: React.FC<DeleteBooksModalProps> = ({
                         <Text className="text-sm text-gray-800 mb-2">• {item.title}</Text>
                     )}
                 />
-                <View className="flex-row justify-between mt-4">
+
+                {loading ? (
+                    <View className='w-full h-20'>
+                        <LoadingSpinner />
+                    </View>
+                ) : <View className="flex-row justify-between mt-4">
                     <Pressable
                         className="px-4 py-2 bg-red-500 rounded-lg"
-                        onPress={onConfirm}
+                        onPress={handleConfirm}
                     >
                         <Text className="text-white">Delete</Text>
                     </Pressable>
@@ -53,7 +72,10 @@ const DeleteBooksModal: React.FC<DeleteBooksModalProps> = ({
                     >
                         <Text className="text-black">Cancel</Text>
                     </Pressable>
-                </View>
+                </View>}
+
+
+
             </View>
 
             <Pressable className='flex-1' onPress={onClose}></Pressable>

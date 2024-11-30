@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { View, Text, Pressable, FlatList } from "react-native";
+import { View, Text, Pressable, FlatList, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState, useRef } from "react";
 import PinnedIcon from "@/components/categories/PinnedIcon";
@@ -156,6 +156,7 @@ const Categories = () => {
       );
       setCategories(sortCategories(remainingCategories));
       setIsDeleteModalVisible(false);
+      Alert.alert("Selected categories were deleted successfully");
       return "Categories deleted successfully";
     } catch (error) {
       console.error("Error deleting categories:", error);
@@ -219,7 +220,6 @@ const Categories = () => {
                 ? "User books updated successfully with new category name"
                 : "Error updating user books with new category name";
               console.log(message);
-
             }
           }
         }
@@ -228,6 +228,11 @@ const Categories = () => {
       // Update the categories state after renaming
       setCategories(sortCategories(updatedCategories));
       setIsRenameModalVisible(false);
+      if (!isAddingCategory) {
+        Alert.alert("Selected categories were renamed successfully");
+      } else {
+        Alert.alert("Category added successfully");
+      }
     } catch (error) {
       console.error("Error renaming categories:", error);
     }

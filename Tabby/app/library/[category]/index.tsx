@@ -29,8 +29,11 @@ import PlusIcon from "@/assets/menu-icons/plus-icon.svg";
 import DeleteIcon from "@/assets/menu-icons/delete-icon.svg";
 import AddSquareIcon from "@/assets/menu-icons/add-square-icon.svg";
 import CancelIcon from "@/assets/menu-icons/cancel-icon.svg";
+import SelectIcon from "@/assets/menu-icons/select-icon.svg";
 import DeleteBooksModal from "@/components/DeleteBooksModal";
 import AddBooksOrMoveBooksToCategoryModal from "@/components/AddBooksOrMoveBooksToCategoryModal";
+
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 
 type SelectableBook = {
@@ -98,6 +101,7 @@ const CategoryPage: React.FC = () => {
     ] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [categories, setCategories] = useState<string[]>([]);
+    const [loadingInitialBooks, setLoadingInitialBooks] = useState(false);
 
     /* New custom book state for */
     const [newCustomBook, setNewCustomBook] = useState<NewCustomBook>({
@@ -158,6 +162,7 @@ const CategoryPage: React.FC = () => {
                 if (!category) {
                     throw new Error("No category found");
                 }
+                setLoadingInitialBooks(true);
                 // getting initial books and categories
                 const initialBooks = await getAllUserBooksByCategory(
                     category as string
@@ -187,6 +192,8 @@ const CategoryPage: React.FC = () => {
                 }
             } catch (error) {
                 console.error("Failed to load categories:", error);
+            } finally {
+                setLoadingInitialBooks(false);
             }
         };
 
@@ -259,6 +266,7 @@ const CategoryPage: React.FC = () => {
             //reset local state of selectable books
             deselectAllBooks();
             setIsAddingOrMovingBookModalVisible(false);
+            Alert.alert("Successfully added selected books to all selected categories");
         } else {
             console.error("Failed to add selected books to all categories");
         }
@@ -271,36 +279,67 @@ const CategoryPage: React.FC = () => {
         const selectedBookObjects = getBookObjectsFromSelectableBooksPassed(
             getSelectedSelectableBooks()
         );
-        let wasAbleToMoveBooksToAllCategories = true;
+        let wasAbleToAddBooksToAllCategories = true;
+        const onlyOneSelectedCategory = categories.length === 1;
         console.log("selected book objects: ", selectedBookObjects);
 
-        // for each category add the selected books
-        for (const category of categories) {
-            const resultOfMovingBooksToCurrentCategory = await updateMultipleUserBooksToHaveCategoryPassed(
+        // if there is only one category we can just update the user books to have that one category
+        if (onlyOneSelectedCategory) {
+            const resultOfUpdatingUserBooks = await updateMultipleUserBooksToHaveCategoryPassed(
                 selectedBookObjects,
-                category
-            );
-            if (!resultOfMovingBooksToCurrentCategory) {
-                console.error("Failed to move books to current category: ", category);
-                wasAbleToMoveBooksToAllCategories = false;
-            } else {
-                console.log("Moved books to category: ", category);
+                categories[0]
+            )
+
+            if (!resultOfUpdatingUserBooks) {
+                console.error("Failed to update user books to have category: ", categories[0]);
+                wasAbleToAddBooksToAllCategories = false;
             }
+
+        }
+        // otherwise we need to add the selected books to each category
+        else if (categories.length > 1) {
+            // for each category add the selected books
+            for (const category of categories) {
+                const resultOfAddingBooksToCurrentCategory = await addMultipleUserBooksWithCategoryName(
+                    selectedBookObjects,
+                    category
+                );
+                if (!resultOfAddingBooksToCurrentCategory) {
+                    console.error("Failed to add books to current category: ", category);
+                    wasAbleToAddBooksToAllCategories = false;
+                } else {
+                    console.log("added books to category: ", category);
+                }
+            }
+
         }
 
-        if (wasAbleToMoveBooksToAllCategories) {
-            console.log("Moved selected books to all categories successfully");
+
+
+        if (wasAbleToAddBooksToAllCategories) {
+            console.log("added selected books to all categories successfully");
+
+            // delete selected books from current category only if there were more than one category
+            if (!onlyOneSelectedCategory) {
+                const resultOfDeletingSelectedBooks = await deleteMultipleUserBooksByIds(
+                    getAllSelectedBookIds()
+                )
+                if (!resultOfDeletingSelectedBooks) {
+                    Alert.alert("Failed to delete selected books in current category");
+                }
+            }
+
+
 
             // set local state of selectable books to not have the selected book objects as they have been moved from current category
             const unselectedSelectableBooks = getUnselectedSelectableBooks();
             console.log("Unselected books: ", unselectedSelectableBooks);
             setSelectableBooks(getUnselectedSelectableBooks());
 
-            //reset local state of selectable books
-            deselectAllBooks();
             setIsAddingOrMovingBookModalVisible(false);
+            Alert.alert("Successfully moved selected books to all selected categories");
         } else {
-            console.error("Failed to add selected books to all categories");
+            Alert.alert("Failed to add selected books to all categories");
         }
     };
 
@@ -396,10 +435,20 @@ const CategoryPage: React.FC = () => {
             console.log("deleted all user books that were selected");
             setSelectableBooks(unselectedSelectableBooks);
             setIsDeleteModalVisible(false);
+            Alert.alert("Successfully deleted selected books");
         } else {
             console.error("Failed to delete user books that were selected");
         }
     };
+
+    const selectAllBooks = () => {
+        // set all books to selected
+        const updatedSelectableBooks = selectableBooks.map((book) => ({
+            ...book,
+            isSelected: true,
+        }))
+        setSelectableBooks(updatedSelectableBooks);
+    }
 
     const handleAddCustomBook = async () => {
         console.log("New custom book (submitted):", newCustomBook);
@@ -441,143 +490,152 @@ const CategoryPage: React.FC = () => {
     };
 
     return (
+
         <SafeAreaView className="flex-1">
-            <View className="flex-row items-center justify-between">
-                <View className="w-[90%] mx-auto">
-                    <SearchBar
-                        placeholder="Search by title, author, genre, or isbn"
-                        onChangeText={updateSearch}
-                        value={search}
+            {loadingInitialBooks ? <View className="w-full h-full">
+                <LoadingSpinner />
+            </View> : <>
+                <View className="flex-row items-center justify-between">
+                    <View className="w-[90%] mx-auto">
+                        <SearchBar
+                            placeholder="Search by title, author, genre, or isbn"
+                            onChangeText={updateSearch}
+                            value={search}
+                        />
+                    </View>
+
+                    <Pressable
+                        className="p-1"
+                        onPress={() => setAddCustomBookModalVisible(true)}
+                    >
+                        {<PlusIcon height={35} width={35} />}
+                    </Pressable>
+                </View>
+
+                <View className="flex-row items-center pt-4 pl-4">
+                    <Text className="text-white text-xl font-bold text-left">{category}</Text>
+                    <View className="flex-row  ml-auto">
+                        <Pressable className="mr-1" onPress={() => selectAllBooks()}><SelectIcon height={35} width={35} /></Pressable>
+                    </View>
+
+                </View>
+
+
+
+                <View className="flex-1">
+                    <FlatList
+                        data={selectableBooks}
+                        keyExtractor={(item) => item.book.id}
+                        renderItem={renderItem}
                     />
                 </View>
 
-                <Pressable
-                    className="p-1"
-                    onPress={() => setAddCustomBookModalVisible(true)}
-                >
-                    {<PlusIcon height={35} width={35} />}
-                </Pressable>
-            </View>
-
-            <Text className="text-white text-xl font-bold text-left pl-5 pt-4">{category}</Text>
-
-
-            <View className="flex-1">
-                <FlatList
-                    data={selectableBooks}
-                    keyExtractor={(item) => item.book.id}
-                    renderItem={renderItem}
-                />
-            </View>
-
-            {areAnyBooksSelected() && (
-                <View className="flex-row justify-around bg-[#161f2b] w-full border-t border-blue-500">
-                    <View className="">
-                        <Pressable
-                            className="flex-col items-center"
-                            onPress={() => setIsDeleteModalVisible(true)}
-                        >
-                            <DeleteIcon height={size} width={size} />
-                            <Text className="text-white text-sm">Delete </Text>
-                        </Pressable>
-                    </View>
-
-                    <View>
-                        <Pressable
-                            className="flex-col items-center"
-                            onPress={() => handleShowAddOrMoveBooksModal()}
-                        >
-                            <AddSquareIcon height={size} width={size} />
-                            <Text className="text-white text-sm">Add</Text>
-                        </Pressable>
-                    </View>
-
-                    <View>
-                        <Pressable
-                            className="flex-col items-center"
-                            onPress={() => deselectAllBooks()}
-                        >
-                            <CancelIcon height={size} width={size} />
-                            <Text className="text-white text-sm">Cancel</Text>
-                        </Pressable>
-                    </View>
-                </View>
-            )}
-
-            {/* Delete Books Modal */}
-            <DeleteBooksModal
-                visible={isDeleteModalVisible}
-                onClose={() => setIsDeleteModalVisible(false)}
-                booksToDelete={getBookObjectsFromSelectableBooksPassed(
-                    getSelectedSelectableBooks()
-                )}
-                onConfirm={deleteSelectedBooks}
-            />
-
-            {/* Add Books to Category Modal */}
-            <AddBooksOrMoveBooksToCategoryModal
-                visible={isAddingOrMovingBookModalVisible}
-                onClose={() => setIsAddingOrMovingBookModalVisible(false)}
-                booksToAdd={getBookObjectsFromSelectableBooksPassed(
-                    getSelectedSelectableBooks()
-                )}
-                categories={categories}
-                onConfirmAddBooks={handleAddSelectedBooksToCategories}
-                onConfirmMoveBooks={handleMovingSelectedBooksToCategories}
-            />
-
-            {/* Add Custom Book Modal */}
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={addCustomBookModalVisible}
-                onRequestClose={() => setAddCustomBookModalVisible(false)}
-            >
-                {/* close modal on background tap */}
-                <Pressable className="flex-1" onPress={() => setAddCustomBookModalVisible(false)}></Pressable>
-                <View className="flex-1 justify-center items-center">
-                    <View className="w-4/5 p-6 bg-white rounded-lg">
-                        <FlatList
-                            data={data}
-                            renderItem={({ item }) => (
-                                <View className="mb-4">
-                                    <Text className="text-lg font-medium mb-2">{item.key}</Text>
-
-                                    <TextInput
-                                        placeholder={item.placeholder}
-                                        value={String(newCustomBook[item.field] ?? "")}  // Ensures it's a string
-                                        onChangeText={(text) => handleInputChange(item.field, text)}
-                                        className="border-b border-gray-300 p-2"
-                                        multiline={item.isMultiline}
-                                        numberOfLines={item.isMultiline ? 4 : 1}
-                                    />
-                                </View>
-                            )}
-                            keyExtractor={(item) => item.key}
-                            className="max-h-52"
-                        />
-                        <View className="mt-4">
+                {areAnyBooksSelected() && (
+                    <View className="flex-row justify-around bg-[#161f2b] w-full border-t border-blue-500">
+                        <View className="">
                             <Pressable
-                                className="bg-blue-500 rounded p-2 mb-4"
-                                onPress={handleConfirmForAddingCustomBook}
+                                className="flex-col items-center"
+                                onPress={() => setIsDeleteModalVisible(true)}
                             >
-                                <Text className="text-white text-center">Confirm</Text>
+                                <DeleteIcon height={size} width={size} />
+                                <Text className="text-white text-sm">Delete </Text>
                             </Pressable>
+                        </View>
+
+                        <View>
                             <Pressable
-                                className="bg-red-500 rounded p-2"
-                                onPress={() => setAddCustomBookModalVisible(false)}
+                                className="flex-col items-center"
+                                onPress={() => handleShowAddOrMoveBooksModal()}
                             >
-                                <Text className="text-white text-center">Cancel</Text>
+                                <AddSquareIcon height={size} width={size} />
+                                <Text className="text-white text-sm">Add</Text>
+                            </Pressable>
+                        </View>
+
+                        <View>
+                            <Pressable
+                                className="flex-col items-center"
+                                onPress={() => deselectAllBooks()}
+                            >
+                                <CancelIcon height={size} width={size} />
+                                <Text className="text-white text-sm">Cancel</Text>
                             </Pressable>
                         </View>
                     </View>
-                </View>
-                {/* close modal on background tap */}
-                <Pressable className="flex-1" onPress={() => setAddCustomBookModalVisible(false)}></Pressable>
-            </Modal>
+                )}
 
+                {/* Delete Books Modal */}
+                <DeleteBooksModal
+                    visible={isDeleteModalVisible}
+                    onClose={() => setIsDeleteModalVisible(false)}
+                    booksToDelete={getBookObjectsFromSelectableBooksPassed(
+                        getSelectedSelectableBooks()
+                    )}
+                    onConfirm={deleteSelectedBooks}
+                />
 
+                {/* Add Books to Category Modal */}
+                <AddBooksOrMoveBooksToCategoryModal
+                    visible={isAddingOrMovingBookModalVisible}
+                    onClose={() => setIsAddingOrMovingBookModalVisible(false)}
+                    booksToAdd={getBookObjectsFromSelectableBooksPassed(
+                        getSelectedSelectableBooks()
+                    )}
+                    categories={categories}
+                    onConfirmAddBooks={handleAddSelectedBooksToCategories}
+                    onConfirmMoveBooks={handleMovingSelectedBooksToCategories}
+                />
 
+                {/* Add Custom Book Modal */}
+                <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={addCustomBookModalVisible}
+                    onRequestClose={() => setAddCustomBookModalVisible(false)}
+                >
+                    {/* close modal on background tap */}
+                    <Pressable className="flex-1" onPress={() => setAddCustomBookModalVisible(false)}></Pressable>
+                    <View className="flex-1 justify-center items-center">
+                        <View className="w-4/5 p-6 bg-white rounded-lg">
+                            <FlatList
+                                data={data}
+                                renderItem={({ item }) => (
+                                    <View className="mb-4">
+                                        <Text className="text-lg font-medium mb-2">{item.key}</Text>
+
+                                        <TextInput
+                                            placeholder={item.placeholder}
+                                            value={String(newCustomBook[item.field] ?? "")}  // Ensures it's a string
+                                            onChangeText={(text) => handleInputChange(item.field, text)}
+                                            className="border-b border-gray-300 p-2"
+                                            multiline={item.isMultiline}
+                                            numberOfLines={item.isMultiline ? 4 : 1}
+                                        />
+                                    </View>
+                                )}
+                                keyExtractor={(item) => item.key}
+                                className="max-h-52"
+                            />
+                            <View className="mt-4">
+                                <Pressable
+                                    className="bg-blue-500 rounded p-2 mb-4"
+                                    onPress={handleConfirmForAddingCustomBook}
+                                >
+                                    <Text className="text-white text-center">Confirm</Text>
+                                </Pressable>
+                                <Pressable
+                                    className="bg-red-500 rounded p-2"
+                                    onPress={() => setAddCustomBookModalVisible(false)}
+                                >
+                                    <Text className="text-white text-center">Cancel</Text>
+                                </Pressable>
+                            </View>
+                        </View>
+                    </View>
+                    {/* close modal on background tap */}
+                    <Pressable className="flex-1" onPress={() => setAddCustomBookModalVisible(false)}></Pressable>
+                </Modal>
+            </>}
 
 
         </SafeAreaView>

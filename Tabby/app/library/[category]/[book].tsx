@@ -114,6 +114,7 @@ const BookPage = () => {
 
         // closing modal
         setIsAddOrMoveBookModalVisible(false);
+        Alert.alert("Successfully added book to all categories");
         return true;
     };
 
@@ -160,6 +161,7 @@ const BookPage = () => {
         console.log(`Deleting ${book} from ${category}`);
         // deleting book from db
         deleteUserBookById(book as string);
+        Alert.alert("Successfully deleted book! Will be moving to category page: " + category + ".");
         router.push(`/library/${category}`);
     };
 
@@ -252,7 +254,6 @@ const BookPage = () => {
                         <AddOrMoveSingleBookModal
                             visible={isAddOrMoveBookModalVisible}
                             onClose={() => setIsAddOrMoveBookModalVisible(false)}
-                            bookToAdd={currentBook}
                             categories={categories}
                             onConfirmAddBook={handleAddBookToSelectedCategories}
                             onConfirmMoveBook={handleMoveBookToSelectedCategories}
