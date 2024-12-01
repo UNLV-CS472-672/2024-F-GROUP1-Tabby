@@ -360,79 +360,92 @@ def scan_shelf(image: MatLike) -> list[list[google_books.Book]]:
     return shelf
 
 
-@subapp.route("/recommendations", methods=["GET"])
+@subapp.route("/recommendations", methods=["POST"])
 def books_recommendations() -> tuple[dict, HTTPStatus]:
     """Gets a list of recommendations for the given set of books.
 
-    The request must contain parameters for two parallel lists.
-
-    Required args:
-        titles: List with each element being the title of each book, each
-            separated by |---|
-        authors: List with each element being the author(s) of each book, each
-            separated by |---|
+    The request must contain a JSON body with the following parameters:
+        titles: List with each element being the title of each book
+        authors: List with each element being the author(s) of each book
         weights: List of numbers corresponding to how heavily weighed is each
-            book, separated by |---|. Each number is from 0 to 1.
+            book. Each number is from 0 to 1.
+
+    Each parameter must be of the same length.
     """
     current_app.logger.info(f"{G}START       /recommendations{RESET}")
 
     # Titles and authors are separated by |---| because they might contain
     # punctuation like commas, semicolons, etc.
 
-    # Check required args
-    titles_str = request.args.get("titles")
-    if not titles_str:
+    # Get parameters
+
+    if request.json is None:
         return {
-            "message": "Must specify 'titles' as a non-empty query parameter."
-        }, HTTPStatus.BAD_REQUEST
-    authors_str = request.args.get("authors")
-    if not authors_str:
-        return {
-            "message": "Must specify 'authors' as a non-empty query parameter."
-        }, HTTPStatus.BAD_REQUEST
-    weights_str = request.args.get("weights")
-    if not weights_str:
-        return {
-            "message": "Must specify 'weights' as a non-empty query parameter."
+            "message": "Request body must be JSON."
         }, HTTPStatus.BAD_REQUEST
 
-    # Extract each title and author
-    titles_list = [t.strip() for t in titles_str.split("|---|")]
-    authors_list = [a.strip() for a in authors_str.split("|---|")]
-    if any(t == "" for t in titles_list):
+    json = request.json
+
+    # Check if body is dict
+    if not isinstance(json, dict):
         return {
-            "message": ("'titles' cannot have an empty element.")
-        }, HTTPStatus.BAD_REQUEST
-    if any(a == "" for a in authors_list):
-        return {
-            "message": ("'authors' cannot have an empty element.")
+            "message": "Request body must be a JSON object."
         }, HTTPStatus.BAD_REQUEST
 
-    # Extract each weight
-    weights_list = []
-    for i, wstr in enumerate(weights_str.split("|---|")):
-        wstr = wstr.strip()
-        try:
-            w = float(wstr)
-            if not (0.0 <= w <= 1.0):
-                return {
-                    "message": (f"Element {i} at 'weights' is not in [0, 1].")
-                }, HTTPStatus.BAD_REQUEST
-            weights_list.append(w)
-        except ValueError:
-            return {
-                "message": (f"Element {i} at 'weights' is not a number.")
-            }, HTTPStatus.BAD_REQUEST
+    # Get titles
+    titles = json.get("titles")
+    if titles is None:
+        return {
+            "message": 'Body must have "title" parameter (array of strings)'
+        }, HTTPStatus.BAD_REQUEST
+    if not (
+        isinstance(titles, list) and all(isinstance(s, str) for s in titles)
+    ):
+        return {
+            "message": '"title" must be an array of strings'
+        }, HTTPStatus.BAD_REQUEST
+
+    # Get authors
+    authors = json.get("authors")
+    if authors is None:
+        return {
+            "message": 'Body must have "authors" parameter (array of strings)'
+        }, HTTPStatus.BAD_REQUEST
+    if not (
+        isinstance(authors, list) and all(isinstance(s, str) for s in authors)
+    ):
+        return {
+            "message": '"title" must be an array of strings'
+        }, HTTPStatus.BAD_REQUEST
+
+    # Get weights
+    weights = json.get("weights")
+    if weights is None:
+        return {
+            "message": 'Body must have "weights" parameter (array of numbers'
+            "between 0 and 1)"
+        }, HTTPStatus.BAD_REQUEST
+    if not (
+        isinstance(authors, list)
+        and all(isinstance(w, (float, int)) for w in weights)
+    ):
+        return {
+            "message": '"weights" must be an array of numbers'
+        }, HTTPStatus.BAD_REQUEST
+
+    # Make weights floats and clamp them
+    for i, w in enumerate(weights):
+        weights[i] = float(np.clip(w, 0.0, 1.0))
 
     # If not equal-length lists, then return error
-    if not (len(titles_list) == len(authors_list) == len(weights_list)):
+    if not (len(titles) == len(authors) == len(weights)):
         return {
             "message": "All lists must be equal in length."
         }, HTTPStatus.BAD_REQUEST
 
     # Get tags
     with logging_duration("Get tags from ChatGPT"):
-        tags_list = tags.get_tags(titles_list, authors_list, weights_list)
+        tags_list = tags.get_tags(titles, authors, weights)
         if not tags_list:  # if empty, return error
             return {
                 "message": "Unable to get tags from the given books."
