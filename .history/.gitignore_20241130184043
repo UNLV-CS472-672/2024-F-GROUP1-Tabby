@@ -182,7 +182,7 @@ cython_debug/
 .vscode/
 
 # ignore vs code history files in tabby folder
-# Ignore VS Code workspace and history in Tabby folder yah
+# Ignore VS Code workspace and history in Tabby folder
 Tabby/.vscode/
 Tabby/.history/
 
