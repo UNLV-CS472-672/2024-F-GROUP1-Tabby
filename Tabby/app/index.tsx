@@ -9,7 +9,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 
 const WelcomeScreen = () => {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   // will check if there are any categories if there are some no need to welcome user as they have used the app before
   useEffect(() => {
     try {
@@ -21,39 +21,49 @@ const WelcomeScreen = () => {
 
       getCategories().then((categories) => {
         if (categories && categories.length > 0) {
+          console.log("categories: ", categories);
+
           router.push("/library");
+        } else {
+          setIsLoading(false);
         }
       });
     } catch (error) {
       console.log(error);
-    } finally {
-      setIsLoading(false);
     }
   }, [router]);
 
+
+  const handleShowingLoading = () => {
+    if (isLoading) {
+      return <SafeAreaView className="flex-1 justify-center items-center bg-[#1E1E1E] h-full">
+        <LoadingSpinner />
+      </SafeAreaView>
+    } else {
+      return <SafeAreaView className="flex-1 justify-center items-center bg-[#1E1E1E] h-full">
+        <Text className="text-4xl font-bold mb-4 text-white">
+          Welcome to Tabby
+        </Text>
+        <Text className="text-lg text-center mb-8 text-white">
+          Scan books and store your book information effortlessly.
+        </Text>
+        <Link
+          className="bg-blue-600 py-2 px-4 rounded text-white text-lg font-semibold"
+          href={"/library"}
+          testID="get-started-button" // Add testID here
+        >
+          Get Started
+        </Link>
+      </SafeAreaView>
+    }
+
+  };
+
+
+
   return (
     <>
-      {isLoading ? (
-        <SafeAreaView className="flex-1 justify-center items-center bg-[#1E1E1E] h-full">
-          <LoadingSpinner />{" "}
-        </SafeAreaView>
-      ) : (
-        <SafeAreaView className="flex-1 justify-center items-center bg-[#1E1E1E] h-full">
-          <Text className="text-4xl font-bold mb-4 text-white">
-            Welcome to Tabby
-          </Text>
-          <Text className="text-lg text-center mb-8 text-white">
-            Scan books and store your book information effortlessly.
-          </Text>
-          <Link
-            className="bg-blue-600 py-2 px-4 rounded text-white text-lg font-semibold"
-            href={"/library"}
-            testID="get-started-button" // Add testID here
-          >
-            Get Started
-          </Link>
-        </SafeAreaView>
-      )}
+      {handleShowingLoading()}
     </>
   );
 };
