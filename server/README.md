@@ -225,28 +225,56 @@ Expects a request with *at least one* of the following parameters:
 - `subject`:   Subject to search for.
 - `isbn`:      ISBN to search for.
 
-## GET /books/recommendations
+## POST /books/recommendations
 
 Gets recommendations given a set of books.
 
-Expects a request with the following parameters:
+Expects a request with a JSON body. The body is a JSON object with the following fields:
 
-- `titles`: A list of titles, separated by `|---|`.
-- `authors`: A list, with each element being an author or multiple authors
-             separated by commas; each element is separated by `|---|`
-- `weights`: A list of numbers corresponding to how heavily weighed is each
-             book, separated by `|---|`. Each number is from 0 to 1.
+- `"titles"`: An array of strings, each representing a title.
+- `"authors"`: An array of strings, each element being an author or multiple authors
+               separated by commas.
+- `"weights"`: An array of numbers corresponding to how heavily weighed is each
+               book. Each number is from 0 to 1. If any numbers fall out of this
+               range, they are clamped to either 0 or 1.
 
-All lists are parallel arrays, so the first title corresponds with the
+All arrays are parallel arrays, so the first title corresponds with the
 first author(s) and first weight, the second title corresponds with the second
 author(s) and second weight, and so on.
 
-None of the elements can be blank.
+### Request Example
+
+One example is to make a POST request to `/books/recommendations` with the JSON body:
+
+```json
+{
+    "titles": ["The Fellowship of the Ring", "The Two Towers", "Return of the King"],
+    "authors": ["John Ronald Reuel Tolkien", "John Ronald Reuel Tolkien", "John Ronald Reuel Tolkien"],
+    "weights": [0.5, 0.7, 1.0]
+}
+```
+
+# Environment Variables
+
+To run the server and/or some scripts, we have two environment variables. You
+must specify them whenever you run a portion of code that needs that environment
+variable.
+
+- `OPENAI_API_KEY`: API key for OpenAI. Must be allowed to use ChatGPT 4o.
+- `GOOGLE_CLOUD_API_KEY`: API for Google Cloud. Must be allowed to use Google Books.
+
+The following environment variables are optional and do not need to specified.
+
+- `FILTER_ISBN`: An boolean-like integer representing if books with no ISBN 13
+  ID should be filtered out. Defaults to `1`.
+  - Non-zero value: Filter out books.
+  - `0`: Filter off.
 
 # Koyeb Deployment
 Koyeb is a web hosting service offering CPU and GPU instances. The current project will be using a GPU instance needed because the server will have to perform some intense processing for image and character recognition.
 
 ![Koyeb Overview page](./../.github/assets/koyeb_overview.png)
+
 
 ## Starting/Pausing the instance
 ### Starting

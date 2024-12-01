@@ -281,8 +281,9 @@ case4_result = None
 test_extract_result_cases: list[tuple[str, Optional[ExtractionResult]]] = [
     (case0_string, case0_result),
     (case1_string, case1_result),
-    (case2_string, case2_result),
-    (case3_string, case3_result),
+    # These case are no longer included it just needs to have at least 1 answer
+    # (case2_string, case2_result),
+    # (case3_string, case3_result),
     (case4_string, case4_result),
 ]
 

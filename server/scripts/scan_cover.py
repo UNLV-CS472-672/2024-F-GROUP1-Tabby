@@ -2,7 +2,6 @@ import logging
 import sys
 import cv2 as cv
 import cyclopts as cy
-from pprint import pprint
 
 from tabby_server.api.books import scan_cover
 
@@ -20,7 +19,9 @@ def main(
 
     image = cv.imread(str(image_path))
     books = scan_cover(image)
-    pprint(books)
+    for book in books:
+        print(f"{book.title}")
+        print(f"- {book.authors}")
 
 
 if __name__ == "__main__":

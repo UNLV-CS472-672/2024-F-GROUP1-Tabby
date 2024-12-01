@@ -1,10 +1,17 @@
+from collections.abc import Generator
+from contextlib import contextmanager
 from dataclasses import asdict
 from functools import cache
 from io import BytesIO
 import logging
+import os
+import re
+import time
+from typing import Literal
 from PIL import Image
 import PIL
-from flask import Blueprint, request
+from dotenv import load_dotenv
+from flask import Blueprint, request, current_app
 from http import HTTPStatus
 import cv2 as cv
 from cv2.typing import MatLike
@@ -16,10 +23,38 @@ from ..vision import ocr
 from ..vision import extraction
 from ..vision import image_labelling
 
+
+load_dotenv()
+
 _SCAN_SHELF_MAX_RESULTS_PER_BOOK = 5
 """Maximum results for each book when scanning shelf"""
 
+_FILTER_ISBN: bool = bool(int(os.getenv("FILTER_ISBN", "1")))
+"""True if books without ISBN should be filtered out, false otherwise."""
+
 subapp = Blueprint(name="books", import_name=__name__)
+
+G = "\u001b[32m"
+B = "\u001b[34m"
+RESET = "\033[0m"
+
+_OCR_CONFIDENCE_MIN: float = 0.3
+
+_RECOMMENDATIONS_INPUT_LIMIT: int = 100
+"""Maximum number of books to give to recommendations."""
+
+
+@contextmanager
+def logging_duration(message: str) -> Generator[None, None, None]:
+    """Context manager in which the total time the code took is logged at
+    exit."""
+    start = time.time()
+    logging.info(f"{G}START       {message}{RESET}")
+    try:
+        yield
+    finally:
+        duration = time.time() - start
+        logging.info(f"{B}END {duration:6.2f}s {message}{RESET}")
 
 
 @subapp.route("/scan_cover", methods=["POST"])
@@ -31,39 +66,38 @@ def books_scan_cover():
     the image.
     """
 
-    logging.info("scanning image")
+    current_app.logger.info(f"{G}START       /scan_shelf{RESET}")
 
     # Try scan image
-    try:
-        img = Image.open(BytesIO(request.data))
-    except PIL.UnidentifiedImageError:
-        return {
-            "message": "Couldn't read an image from the given body."
-        }, HTTPStatus.BAD_REQUEST
-
-    img = img.convert("RGB")
-
-    logging.info("creating matrix")
+    with logging_duration("Read image"):
+        try:
+            img = Image.open(BytesIO(request.data))
+        except PIL.UnidentifiedImageError:
+            return {
+                "message": "Couldn't read an image from the given body."
+            }, HTTPStatus.BAD_REQUEST
+        img = img.convert("RGB")
 
     # ai-gen start (ChatGPT-4o, 2)
     img_mat = np.array(img)
     img_mat = cv.cvtColor(img_mat, cv.COLOR_RGB2BGR)
     # ai-gen end
 
-    logging.info("scanning cover")
-
+    # Scan cover
     books = scan_cover(img_mat)
-    logging.info("filtering book results")
 
     # Filter out books without ISBNs
-    books = [b for b in books if b.isbn]
+    if _FILTER_ISBN:
+        books = [b for b in books if b.isbn]
 
     # Wrap it up in another dictionary and send!
     result = _get_result_dict(books)
     return result, HTTPStatus.OK
 
 
-def scan_cover(image_matrix: MatLike) -> list[google_books.Book]:
+def scan_cover(
+    image_matrix: MatLike, angles: tuple[Literal[0, 90, 180, 270], ...] = (0,)
+) -> list[google_books.Book]:
     """Takes in an image of a cover and returns a list of results.
 
     Args:
@@ -74,23 +108,64 @@ def scan_cover(image_matrix: MatLike) -> list[google_books.Book]:
     """
 
     # Find text
-    text_recognizer = get_text_recognizer()
-    recognized_texts = text_recognizer.find_text(image_matrix)
+    recognized_texts: list[ocr.RecognizedText] = []
+    for angle in angles:
+        with logging_duration(f"Recognize text using OCR ({angle} deg)"):
+            text_recognizer = get_text_recognizer()
+            recognized_texts += text_recognizer.find_text(image_matrix, angle)
+
+    # Filter out bad text
+    recognized_texts = [
+        r
+        for r in recognized_texts
+        if r.confidence >= _OCR_CONFIDENCE_MIN and len(r.text) >= 2
+    ]
+
+    # Log text
+    if recognized_texts:
+        logging.info("Found text:")
+        for r in recognized_texts:
+            logging.info(f"  ({r.confidence * 100:5.2f}%) {r.text}")
+    else:  # None found
+        logging.info("Found NO text")
+        return []
 
     # Extract Title and Author
-    extraction_result = extraction.extract_from_recognized_texts(
-        recognized_texts
-    )
+    with logging_duration("Extract title and author using ChatGPT"):
+        extraction_result = extraction.extract_from_recognized_texts(
+            recognized_texts
+        )
     if extraction_result is None:
         return []
 
     # Make the request to Google Books
-    top_option = extraction_result.options[0]
-    books = google_books.request_volumes_get(
-        phrase=top_option.title, author=top_option.author
-    )
+    with logging_duration("Request info from Google Books"):
+        top_option = extraction_result.options[0]
+
+        title = remove_punctuation(top_option.title).lower()
+        author = remove_punctuation(top_option.title).lower()
+
+        books = google_books.request_volumes_get(f"{title} {author}")
+        logging.info(f"Got {len(books)} from Google Books")
 
     return books
+
+
+# ai-gen start (ChatGPT-4o, 0)
+def remove_punctuation(text: str) -> str:
+    """
+    Removes all punctuation from the given text.
+
+    Args:
+        text (str): The input string from which punctuation will be removed.
+
+    Returns:
+        str: The text without any punctuation.
+    """
+    return re.sub(r"[^\w\s]", "", text)
+
+
+# ai-gen end
 
 
 # Creates object on first call, then returns that same object
@@ -125,6 +200,7 @@ def books_search() -> tuple[dict, HTTPStatus]:
         results: Array of books found.
         resultsCount: Number of results in 'result'.
     """
+    current_app.logger.info(f"{G}START       /search{RESET}")
 
     # Extract optional args
     phrase = request.args.get("phrase", "")
@@ -141,17 +217,19 @@ def books_search() -> tuple[dict, HTTPStatus]:
         }, HTTPStatus.BAD_REQUEST
 
     # Make the request
-    books = google_books.request_volumes_get(
-        phrase=phrase,
-        title=title,
-        author=author,
-        publisher=publisher,
-        subject=subject,
-        isbn=isbn,
-    )
+    with logging_duration("Request info from Google Books"):
+        books = google_books.request_volumes_get(
+            phrase=phrase,
+            title=title,
+            author=author,
+            publisher=publisher,
+            subject=subject,
+            isbn=isbn,
+        )
 
     # Filter out books without ISBNs
-    books = [b for b in books if b.isbn]
+    if _FILTER_ISBN:
+        books = [b for b in books if b.isbn]
 
     # Wrap it up in another dictionary and send!
     result = _get_result_dict(books)
@@ -190,15 +268,16 @@ def books_scan_shelf() -> tuple[dict, HTTPStatus]:
     The body of the request should be binary data (JPG or PNG) reprsenting
     the image.
     """
+    current_app.logger.info(f"{G}START       /scan_shelf{RESET}")
 
     # Load image
-    logging.info("scanning image")
-    try:
-        img_file = Image.open(BytesIO(request.data))
-    except PIL.UnidentifiedImageError:
-        return {
-            "message": "Couldn't read an image from the given body."
-        }, HTTPStatus.BAD_REQUEST
+    with logging_duration("Read image"):
+        try:
+            img_file = Image.open(BytesIO(request.data))
+        except PIL.UnidentifiedImageError:
+            return {
+                "message": "Couldn't read an image from the given body."
+            }, HTTPStatus.BAD_REQUEST
 
     img = img_file.convert("RGB")
     # ai-gen start (ChatGPT-4o, 2)
@@ -213,7 +292,8 @@ def books_scan_shelf() -> tuple[dict, HTTPStatus]:
     # and limit each sublist to a maximum number of books
     new_shelf = []
     for books in scanned_shelf:
-        books = [b for b in books if b.isbn]
+        if _FILTER_ISBN:
+            books = [b for b in books if b.isbn]
         books = books[:_SCAN_SHELF_MAX_RESULTS_PER_BOOK]
         if len(books) >= 1:  # if not empty, append it
             new_shelf.append(books)
@@ -247,7 +327,8 @@ def scan_shelf(image: MatLike) -> list[list[google_books.Book]]:
 
     # Get subimages
     subimages = []
-    segmentation_results = image_labelling.find_books(image_tensor)
+    with logging_duration("Find books on shelf"):
+        segmentation_results = image_labelling.find_books(image_tensor)
     for sr in segmentation_results:
 
         # scale results to the original image
@@ -270,96 +351,125 @@ def scan_shelf(image: MatLike) -> list[list[google_books.Book]]:
         if np.all(subimage.shape):  # if none of the dimensions are 0, add it
             subimages.append(subimage)
 
+    logging.info(f"Found {len(subimages)} books in shelf image.")
+
     # Scan each subimage
-    shelf = []
-    for subimage in subimages:
-        books = scan_cover(subimage)
-        shelf.append(books)
+    with logging_duration("Use OCR on each image."):
+        shelf = []
+        for subimage in subimages:
+            books = scan_cover(subimage, angles=(0, 90, 270))
+            shelf.append(books)
 
     return shelf
 
 
-@subapp.route("/recommendations", methods=["GET"])
+@subapp.route("/recommendations", methods=["POST"])
 def books_recommendations() -> tuple[dict, HTTPStatus]:
     """Gets a list of recommendations for the given set of books.
 
-    The request must contain parameters for two parallel lists.
-
-    Required args:
-        titles: List with each element being the title of each book, each
-            separated by |---|
-        authors: List with each element being the author(s) of each book, each
-            separated by |---|
+    The request must contain a JSON body with the following parameters:
+        titles: List with each element being the title of each book
+        authors: List with each element being the author(s) of each book
         weights: List of numbers corresponding to how heavily weighed is each
-            book, separated by |---|. Each number is from 0 to 1.
+            book. Each number is from 0 to 1.
+
+    Each parameter must be of the same length.
     """
+    current_app.logger.info(f"{G}START       /recommendations{RESET}")
 
     # Titles and authors are separated by |---| because they might contain
     # punctuation like commas, semicolons, etc.
 
-    # Check required args
-    titles_str = request.args.get("titles")
-    if not titles_str:
+    # Get parameters
+
+    if request.json is None:
         return {
-            "message": "Must specify 'titles' as a non-empty query parameter."
-        }, HTTPStatus.BAD_REQUEST
-    authors_str = request.args.get("authors")
-    if not authors_str:
-        return {
-            "message": "Must specify 'authors' as a non-empty query parameter."
-        }, HTTPStatus.BAD_REQUEST
-    weights_str = request.args.get("weights")
-    if not weights_str:
-        return {
-            "message": "Must specify 'weights' as a non-empty query parameter."
+            "message": "Request body must be JSON."
         }, HTTPStatus.BAD_REQUEST
 
-    # Extract each title and author
-    titles_list = [t.strip() for t in titles_str.split("|---|")]
-    authors_list = [a.strip() for a in authors_str.split("|---|")]
-    if any(t == "" for t in titles_list):
+    json = request.json
+
+    # Check if body is dict
+    if not isinstance(json, dict):
         return {
-            "message": ("'titles' cannot have an empty element.")
-        }, HTTPStatus.BAD_REQUEST
-    if any(a == "" for a in authors_list):
-        return {
-            "message": ("'authors' cannot have an empty element.")
+            "message": "Request body must be a JSON object."
         }, HTTPStatus.BAD_REQUEST
 
-    # Extract each weight
-    weights_list = []
-    for i, wstr in enumerate(weights_str.split("|---|")):
-        wstr = wstr.strip()
-        try:
-            w = float(wstr)
-            if not (0.0 <= w <= 1.0):
-                return {
-                    "message": (f"Element {i} at 'weights' is not in [0, 1].")
-                }, HTTPStatus.BAD_REQUEST
-            weights_list.append(w)
-        except ValueError:
-            return {
-                "message": (f"Element {i} at 'weights' is not a number.")
-            }, HTTPStatus.BAD_REQUEST
+    # Get titles
+    titles = json.get("titles")
+    if titles is None:
+        return {
+            "message": 'Body must have "title" parameter (array of strings)'
+        }, HTTPStatus.BAD_REQUEST
+    if not (
+        isinstance(titles, list) and all(isinstance(s, str) for s in titles)
+    ):
+        return {
+            "message": '"title" must be an array of strings'
+        }, HTTPStatus.BAD_REQUEST
+
+    # Get authors
+    authors = json.get("authors")
+    if authors is None:
+        return {
+            "message": 'Body must have "authors" parameter (array of strings)'
+        }, HTTPStatus.BAD_REQUEST
+    if not (
+        isinstance(authors, list) and all(isinstance(s, str) for s in authors)
+    ):
+        return {
+            "message": '"title" must be an array of strings'
+        }, HTTPStatus.BAD_REQUEST
+
+    # Get weights
+    weights = json.get("weights")
+    if weights is None:
+        return {
+            "message": 'Body must have "weights" parameter (array of numbers'
+            "between 0 and 1)"
+        }, HTTPStatus.BAD_REQUEST
+    if not (
+        isinstance(authors, list)
+        and all(isinstance(w, (float, int)) for w in weights)
+    ):
+        return {
+            "message": '"weights" must be an array of numbers'
+        }, HTTPStatus.BAD_REQUEST
+
+    # Make weights floats and clamp them
+    for i, w in enumerate(weights):
+        weights[i] = float(np.clip(w, 0.0, 1.0))
 
     # If not equal-length lists, then return error
-    if not (len(titles_list) == len(authors_list) == len(weights_list)):
+    if not (len(titles) == len(authors) == len(weights)):
         return {
             "message": "All lists must be equal in length."
         }, HTTPStatus.BAD_REQUEST
 
-    # Get tags
-    tags_list = tags.get_tags(titles_list, authors_list, weights_list)
-    if not tags_list:  # if empty, return error
+    # If too long, then return error
+    if len(titles) > _RECOMMENDATIONS_INPUT_LIMIT:
         return {
-            "message": "Unable to get tags from the given books."
+            "message": "Too many books, must be at most 100."
         }, HTTPStatus.BAD_REQUEST
 
+    # Get tags
+    with logging_duration("Get tags from ChatGPT"):
+        tags_list = tags.get_tags(titles, authors, weights)
+        if not tags_list:  # if empty, return error
+            return {
+                "message": "Unable to get tags from the given books."
+            }, HTTPStatus.BAD_REQUEST
+        logging.info("Tags list:")
+        for tag in tags_list:
+            logging.info(f"  {tag}")
+
     # Get related books using list of tags
-    books = google_books.request_volumes_get(phrase=", ".join(tags_list))
+    with logging_duration("Request from Google Books"):
+        books = google_books.request_volumes_get(phrase=", ".join(tags_list))
 
     # Filter out books without ISBNs
-    books = [b for b in books if b.isbn]
+    if _FILTER_ISBN:
+        books = [b for b in books if b.isbn]
 
     # Wrap it up in another dictionary and send!
     result = _get_result_dict(books)
