@@ -1,5 +1,5 @@
 import { View, Pressable, Text, Modal, FlatList, Image, Alert } from "react-native";
-import { Link, usePathname } from "expo-router";
+import { Link, usePathname, useRouter } from "expo-router";
 import React, { useState, useEffect } from "react";
 import { SelectList } from 'react-native-dropdown-select-list'
 import SelectedLibrary from "@/components/navbar/selectedLibrary";
@@ -26,6 +26,8 @@ const FooterNavBar = () => {
   const [selectedIsbn, setSelectedIsbn] = useState<String | undefined>(undefined);
   const pathname = usePathname();
   const size = 40;
+
+  const router = useRouter();
 
   useEffect(() => {
     fetchCategories();
@@ -100,6 +102,8 @@ const FooterNavBar = () => {
       }
     }
     returnBook.category = chosenCategory;
+
+    router.push(`/library/${chosenCategory}`);
 
     addUserBook(returnBook);
     setBookSelectionModalVisible(false);
