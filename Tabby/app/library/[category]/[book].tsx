@@ -198,8 +198,8 @@ const BookPage = () => {
     deleteUserBookById(book as string);
     Alert.alert(
       "Successfully deleted book! Will be moving to category page: " +
-        category +
-        "."
+      category +
+      "."
     );
     router.push(`/library/${category}`);
   };

@@ -54,9 +54,7 @@ const BookPage = () => {
                 const bookResponse = await getRecommendedBookById(book as string);
                 const categoriesResponse = await getAllCategories();
 
-                // console.log(bookResponse);
-                // console.log(categoriesResponse);
-                // set current book if not empty
+
                 if (bookResponse) {
                     setCurrentBook(bookResponse);
                 }
@@ -90,8 +88,9 @@ const BookPage = () => {
 
         let wasAbleToAddBookToAllCategories = true;
         for (const currentCategory of selectedCategories) {
-            const bookToBeAddedToCategory = {
+            const bookToBeAddedToCategory: Book = {
                 ...currentBook,
+                rating: 0,
                 category: currentCategory,
             };
             const result = await addUserBook(bookToBeAddedToCategory);
@@ -206,7 +205,6 @@ const BookPage = () => {
                         <AddOrMoveSingleBookModal
                             visible={isAddOrMoveBookModalVisible}
                             onClose={() => setIsAddOrMoveBookModalVisible(false)}
-                            bookToAdd={currentBook}
                             categories={categories}
                             onConfirmAddBook={handleAddBookToSelectedCategories}
                         />

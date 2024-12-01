@@ -31,122 +31,291 @@ type SelectableBook = {
   isSelected: boolean;
 };
 
-// test data to send recommendations to
+// test data to send recommendations to and will use this to send recommendations to if user has no books
 const defaultBooks: Book[] = [
   {
-    id: "1",
-    isbn: "9780061122415",
-    title: "To Kill a Mockingbird",
-    author: "Harper Lee",
+    id: "7",
+    isbn: "9780593291468",
+    title: "The Midnight Library",
+    author: "Matt Haig",
     summary:
-      "A gripping, heart-wrenching, and wholly remarkable tale of a young girl in a quiet Southern town and the moral and social struggles of her community.",
-    excerpt: "A novel about racial injustice and the loss of innocence.",
-    image: "https://m.media-amazon.com/images/I/71HZbA0WscL._SY466_.jpg",
-    genres: "Fiction, Historical Fiction, Drama, Classic",
+      "A thought-provoking and uplifting novel about a woman who explores alternate lives in a magical library, discovering the many versions of herself she could have lived.",
+    excerpt:
+      "Nora Seed finds herself in a library between life and death, where each book offers a different version of her life. Will she choose to return to life, or will she embrace the alternative paths she discovers?",
+    image: "https://m.media-amazon.com/images/I/51GZysDO-QL._SY445_.jpg",
+    genres: "Fiction, Fantasy, Philosophical Fiction",
     notes:
-      "A Pulitzer Prize-winning novel about the themes of racism and morality.",
-    pageCount: 281,
-    publisher: "J.B. Lippincott & Co.",
-    publishedDate: "July 11, 1960",
+      "A novel that explores themes of regret, mental health, and the possibilities of life choices.",
+    pageCount: 304,
+    publisher: "Viking",
+    publishedDate: "August 13, 2020",
     addToLibrary: true,
-    rating: 3,
+    isFavorite: false,
+    rating: 4,
   },
   {
-    id: "2",
-    isbn: "9781451673319",
-    title: "The Catcher in the Rye",
-    author: "J.D. Salinger",
+    id: "8",
+    isbn: "9781250141807",
+    title: "Where the Crawdads Sing",
+    author: "Delia Owens",
     summary:
-      "A story of adolescent alienation and loss of innocence, told through the eyes of Holden Caulfield.",
+      "A compelling murder mystery and coming-of-age novel set in the wild marshes of North Carolina, focusing on Kya, the mysterious 'Marsh Girl'.",
     excerpt:
-      "Holden Caulfield is struggling to find his place in the world after being expelled from his prestigious prep school.",
-    image: "https://m.media-amazon.com/images/I/51uEKxRBCHL._SY445_SX342_.jpg",
-    genres: "Fiction, Coming-of-Age, Literary Fiction",
+      "Kya Clark has lived in isolation for most of her life, but when a murder takes place nearby, she is thrust into the center of a mystery.",
+    image: "https://m.media-amazon.com/images/I/51fuXLP7k0L._SY445_.jpg",
+    genres: "Fiction, Mystery, Literary Fiction, Thriller",
     notes:
-      "A controversial yet beloved classic about the trials and tribulations of teenage angst.",
-    pageCount: 214,
-    publisher: "Little, Brown and Company",
-    publishedDate: "July 16, 1951",
+      "A bestseller that combines mystery, romance, and a rich exploration of nature and loneliness.",
+    pageCount: 384,
+    publisher: "G.P. Putnam's Sons",
+    publishedDate: "August 14, 2018",
     addToLibrary: true,
-    rating: 2,
+    isFavorite: true,
+    rating: 5,
   },
   {
-    id: "3",
-    isbn: "9780143127796",
-    title: "The Road",
-    author: "Cormac McCarthy",
+    id: "9",
+    isbn: "9780385544797",
+    title: "Project Hail Mary",
+    author: "Andy Weir",
     summary:
-      "A haunting post-apocalyptic novel that follows a father and son as they journey through a desolate landscape.",
+      "A gripping science fiction novel about a lone astronaut who wakes up on a spaceship with no memory of who he is or how he got there, tasked with saving Earth from an extinction-level disaster.",
     excerpt:
-      "In a world without hope, a father and son strive for survival in the face of unspeakable horrors.",
-    image: "https://m.media-amazon.com/images/I/41GuWgTvzoL._SY445_SX342_.jpg",
-    genres: "Fiction, Post-Apocalyptic, Drama",
+      "Ryland Grace is the only survivor of a mission to save humanity, but he must piece together the puzzle of his situation while working against time and the unknown.",
+    image: "https://m.media-amazon.com/images/I/41oyt8FQ0JL._SY445_.jpg",
+    genres: "Science Fiction, Thriller, Space Opera",
     notes:
-      "A Pulitzer Prize-winning novel that explores human resilience and love in a dystopian world.",
-    pageCount: 287,
-    publisher: "Alfred A. Knopf",
-    publishedDate: "September 26, 2006",
+      "From the author of 'The Martian', a fast-paced and suspenseful adventure full of science, humor, and human resilience.",
+    pageCount: 496,
+    publisher: "Ballantine Books",
+    publishedDate: "May 4, 2021",
+    addToLibrary: true,
+    isFavorite: false,
+    rating: 4,
+  },
+  {
+    id: "10",
+    isbn: "9781984899379",
+    title: "The Seven Husbands of Evelyn Hugo",
+    author: "Taylor Jenkins Reid",
+    summary:
+      "A captivating novel about a reclusive Hollywood icon who tells her life story to a young journalist, revealing secrets, heartbreak, and the complexities of love and fame.",
+    excerpt:
+      "Evelyn Hugo, now in her 80s, opens up about her tumultuous life, including her seven marriages and the woman who changed everything.",
+    image: "https://m.media-amazon.com/images/I/51V6tllsY0L._SY445_.jpg",
+    genres: "Historical Fiction, Romance, Drama",
+    notes:
+      "A dazzling tale of fame, love, and the price of secrets in the glamorous world of old Hollywood.",
+    pageCount: 400,
+    publisher: "Atria Books",
+    publishedDate: "June 13, 2017",
     addToLibrary: false,
-    rating: 2,
+    isFavorite: true,
+    rating: 5,
   },
   {
-    id: "4",
-    isbn: "9780307454546",
-    title: "The Girl on the Train",
-    author: "Paula Hawkins",
+    id: "11",
+    isbn: "9780142424179",
+    title: "The Fault in Our Stars",
+    author: "John Green",
     summary:
-      "A psychological thriller that explores the lives of three women entangled in a web of lies, deceit, and mystery.",
+      "A heart-wrenching love story about two teenagers with cancer, exploring themes of life, death, and the impact we have on others.",
     excerpt:
-      "Rachel, an alcoholic woman with a fractured life, gets involved in a missing person investigation that forces her to confront her own demons.",
-    image: "https://m.media-amazon.com/images/I/41tc7XtIfjL._SY445_SX342_.jpg",
-    genres: "Thriller, Mystery, Psychological Fiction, Crime",
-    notes: "A gripping and twisted narrative that keeps readers on edge.",
-    pageCount: 395,
-    publisher: "Riverhead Books",
-    publishedDate: "January 13, 2015",
+      "Hazel Grace Lancaster and Augustus Waters fall in love after meeting at a cancer support group, and their love story is full of humor, heartbreak, and profound truths.",
+    image: "https://m.media-amazon.com/images/I/41Ynm99Im7L._SY445_.jpg",
+    genres: "Young Adult, Romance, Drama, Contemporary Fiction",
+    notes:
+      "A bestselling, emotionally charged novel that has resonated with readers around the world.",
+    pageCount: 313,
+    publisher: "Dutton Books",
+    publishedDate: "January 10, 2012",
     addToLibrary: true,
-    rating: 1,
+    isFavorite: false,
+    rating: 4,
   },
   {
-    id: "5",
-    isbn: "9780399590504",
+    id: "12",
+    isbn: "9780062457738",
+    title: "Circe",
+    author: "Madeline Miller",
+    summary:
+      "A modern retelling of the Greek myth of Circe, a powerful witch who is banished to an island, discovering her own strength and capacity for love.",
+    excerpt:
+      "Circe, once a minor character in the Odyssey, takes center stage in this beautifully written and thought-provoking novel of power, isolation, and transformation.",
+    image: "https://m.media-amazon.com/images/I/41NF6ZT22hL._SY445_.jpg",
+    genres: "Fantasy, Mythology, Historical Fiction",
+    notes:
+      "A bestselling novel that blends Greek mythology with a modern sensibility and a deep exploration of identity and autonomy.",
+    pageCount: 393,
+    publisher: "Little, Brown and Company",
+    publishedDate: "April 10, 2018",
+    addToLibrary: false,
+    isFavorite: true,
+    rating: 5,
+  },
+  {
+    id: "13",
+    isbn: "9780452295294",
+    title: "Sapiens: A Brief History of Humankind",
+    author: "Yuval Noah Harari",
+    summary:
+      "A compelling overview of human history, from the emergence of Homo sapiens to the present day, examining how culture, science, and technology shaped our world.",
+    excerpt:
+      "Harari explores the history of humanity in a way that challenges conventional wisdom, discussing everything from the invention of agriculture to the digital revolution.",
+    image: "https://m.media-amazon.com/images/I/41sdGVh4uKL._SY445_.jpg",
+    genres: "Non-fiction, History, Anthropology",
+    notes:
+      "A critically acclaimed and thought-provoking exploration of human history, science, and philosophy.",
+    pageCount: 443,
+    publisher: "Harvill Secker",
+    publishedDate: "February 4, 2015",
+    addToLibrary: true,
+    isFavorite: false,
+    rating: 4,
+  },
+  // New Books Added
+  {
+    id: "14",
+    isbn: "9780062315007",
+    title: "Becoming",
+    author: "Michelle Obama",
+    summary:
+      "The inspiring memoir of the former First Lady of the United States, recounting her life from childhood to the White House and beyond.",
+    excerpt:
+      "Michelle Obama's personal journey reflects her experiences as a mother, wife, and political figure, and her insights on leadership, family, and values.",
+    image: "https://m.media-amazon.com/images/I/51N0H0e88oL._SY445_.jpg",
+    genres: "Memoir, Non-fiction, Biography",
+    notes:
+      "A powerful and motivational memoir that resonates with readers of all ages, offering a glimpse into the life of one of the most influential women of our time.",
+    pageCount: 448,
+    publisher: "Crown Publishing Group",
+    publishedDate: "November 13, 2018",
+    addToLibrary: true,
+    isFavorite: true,
+    rating: 5,
+  },
+  {
+    id: "15",
+    isbn: "9780385695242",
+    title: "The Night Circus",
+    author: "Erin Morgenstern",
+    summary:
+      "A magical and mysterious tale of two rival magicians who create a circus that becomes the center of their intense, intricate competition.",
+    excerpt:
+      "The circus is open only at night, and its performers are bound by a magical competition with high stakes. This novel is a beautiful, whimsical journey through a fantastical world.",
+    image: "https://m.media-amazon.com/images/I/41P4t9hFSOL._SY445_.jpg",
+    genres: "Fantasy, Magical Realism, Romance",
+    notes:
+      "A lyrical, atmospheric novel filled with rich descriptions and captivating characters, perfect for fans of magical realism.",
+    pageCount: 387,
+    publisher: "Doubleday",
+    publishedDate: "September 13, 2011",
+    addToLibrary: true,
+    isFavorite: true,
+    rating: 4,
+  },
+  {
+    id: "16",
+    isbn: "9780143127741",
+    title: "The Subtle Art of Not Giving a F*ck",
+    author: "Mark Manson",
+    summary:
+      "A no-nonsense self-help book that challenges traditional ideas about happiness and success, encouraging readers to embrace life’s difficulties and focus on what really matters.",
+    excerpt:
+      "Mark Manson emphasizes that we often give too many f*cks about unimportant things. Instead, we should focus on the things that truly make us happy and fulfilled.",
+    image: "https://m.media-amazon.com/images/I/41vqOXqR9pL._SY445_.jpg",
+    genres: "Self-help, Personal Development",
+    notes:
+      "A candid and refreshing approach to personal growth, this book has become a bestseller worldwide.",
+    pageCount: 224,
+    publisher: "HarperOne",
+    publishedDate: "September 13, 2016",
+    addToLibrary: true,
+    isFavorite: false,
+    rating: 4,
+  },
+  {
+    id: "17",
+    isbn: "9780142424179",
     title: "Educated",
     author: "Tara Westover",
     summary:
-      "A memoir about a young girl who grows up in a strict, survivalist family in rural Idaho and eventually escapes to receive an education.",
+      "A gripping memoir about a woman who grows up in a strict, survivalist family in rural Idaho, and her journey toward education and independence.",
     excerpt:
-      "Tara Westover’s journey from isolation to academic achievement is both inspiring and heartbreaking.",
-    image:
-      "https://m.media-amazon.com/images/I/41goWDE1PUL._SY445_SX342_QL70_FMwebp_.jpg",
-    genres: "Memoir, Non-fiction, Biography",
+      "Tara Westover’s incredible story of overcoming the constraints of her upbringing, navigating trauma, and finding her own voice is both inspiring and heartbreaking.",
+    image: "https://m.media-amazon.com/images/I/51rB2r6e+9L._SY445_.jpg",
+    genres: "Memoir, Non-fiction",
     notes:
-      "A bestseller that showcases the power of education and resilience in the face of adversity.",
+      "A powerful memoir that reflects on the importance of education and self-determination in overcoming adversity.",
     pageCount: 334,
     publisher: "Random House",
     publishedDate: "February 20, 2018",
     addToLibrary: false,
-    rating: 0,
+    isFavorite: true,
+    rating: 5,
   },
   {
-    id: "6",
-    isbn: "9780743273565",
-    title: "The Book Thief",
-    author: "Markus Zusak",
+    id: "18",
+    isbn: "9780525432419",
+    title: "Little Fires Everywhere",
+    author: "Celeste Ng",
     summary:
-      "A story set during WWII narrated by Death itself, focusing on the life of a young girl, Liesel, and her love of books in Nazi Germany.",
+      "Set in a suburban community, this novel explores the complex relationships between a mother-daughter duo and the family they become entangled with, tackling race, privilege, and family secrets.",
     excerpt:
-      "Liesel finds solace in stealing books amidst the chaos of war and discovers the power of words.",
-    image: "https://m.media-amazon.com/images/I/41RKGjq-XGL._SY445_SX342_.jpg",
-    genres: "Fiction, Historical Fiction, Young Adult",
+      "When Mia Warren enters the seemingly perfect lives of the Richardson family, she sets off a chain of events that changes everyone involved.",
+    image: "https://m.media-amazon.com/images/I/51TxHjkH74L._SY445_.jpg",
+    genres: "Fiction, Contemporary Fiction, Drama",
     notes:
-      "A deeply moving and beautifully written tale about the impact of books and words during wartime.",
-    pageCount: 552,
-    publisher: "Alfred A. Knopf",
-    publishedDate: "March 14, 2006",
-    addToLibrary: true,
-    rating: 0,
+      "A gripping, layered narrative that deals with themes of identity, family, and the clash of different socio-economic realities.",
+    pageCount: 338,
+    publisher: "Penguin Press",
+    publishedDate: "September 12, 2017",
+    addToLibrary: false,
+    isFavorite: true,
+    rating: 4,
   },
+  {
+    id: "19",
+    isbn: "9780525562941",
+    title: "The Silent Patient",
+    author: "Alex Michaelides",
+    summary:
+      "A psychological thriller about a woman who shoots her husband in the face and then falls silent, leaving a psychotherapist to unravel the mystery behind her silence.",
+    excerpt:
+      "The story follows Theo, a psychotherapist who becomes obsessed with uncovering the truth about Alicia Berenson, a famous painter who murdered her husband.",
+    image: "https://m.media-amazon.com/images/I/51TxHjkH74L._SY445_.jpg",
+    genres: "Thriller, Mystery, Psychological Fiction",
+    notes:
+      "A suspenseful, twist-filled thriller that has become a global bestseller.",
+    pageCount: 336,
+    publisher: "Celadon Books",
+    publishedDate: "February 5, 2019",
+    addToLibrary: false,
+    isFavorite: true,
+    rating: 5,
+  },
+  {
+    id: "20",
+    isbn: "9781984824560",
+    title: "Anxious People",
+    author: "Fredrik Backman",
+    summary:
+      "A humorous yet poignant novel about a failed bank robber who inadvertently takes a group of strangers hostage at an apartment viewing, leading to unexpected connections and self-discovery.",
+    excerpt:
+      "What begins as a chaotic hostage situation quickly transforms into a story about human connection, vulnerability, and understanding.",
+    image: "https://m.media-amazon.com/images/I/51Cgx4nd9JL._SY445_.jpg",
+    genres: "Fiction, Contemporary Fiction, Humor",
+    notes:
+      "A beautifully written novel that combines humor, heartbreak, and introspection.",
+    pageCount: 368,
+    publisher: "Atria Books",
+    publishedDate: "September 8, 2020",
+    addToLibrary: true,
+    isFavorite: true,
+    rating: 4,
+  }
 ];
+
 
 const size = 36;
 const maxLimitOfBooksToSendToServer = 100;
@@ -176,7 +345,7 @@ const convertApiResponseToBooks = (apiResponse: any): Book[] => {
     image: item.thumbnail || "",
     rating:
       item.rating !== undefined
-        ? Math.min(5, Math.max(0, Math.ceil(item.rating))) // Ensure rating is between 0 and 5
+        ? Math.min(5, Math.max(0, Math.round(item.rating))) // Ensure rating is between 0 and 5 and round to nearest integer
         : 0,
     genres: item.genres || "",
     publisher: item.publisher || "",
@@ -186,43 +355,48 @@ const convertApiResponseToBooks = (apiResponse: any): Book[] => {
 };
 
 // function to pick 100 books or less to send to the server
+const shuffleArray = (array: any[]): any[] => {
+  // Fisher-Yates shuffle
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+};
+
 const pickBooksToSendToServer = (books: Book[]): Book[] => {
-  // return the books directly if not more than limit of books to send to the server
+  // Return the books directly if not more than the limit of books to send to the server
   if (books.length <= maxLimitOfBooksToSendToServer) {
     return books;
   }
-  // sort book by rating
-  const sortedBooks = books.sort((a, b) => {
-    const ratingA = a.rating ?? -1; // use -1 for undefined ratings
-    const ratingB = b.rating ?? -1; // use -1 for undefined ratings
-    return ratingB - ratingA; // descending order
-  });
 
-  // filter books passed to get all favorite books and non favorite books
-  const favoriteBooks = sortedBooks.filter((book) => book.isFavorite);
-  let favoriteBooksCounter = 0; // keep track of how many favorite books we add
-  const nonFavoriteBooks = sortedBooks.filter((book) => !book.isFavorite);
-  let nonFavoriteBooksCounter = 0; // keep track of how many non favorite books we add
+
+  // Filter books into favorites and non-favorites
+  const favoriteBooks = books.filter((book) => book.isFavorite);
+  const nonFavoriteBooks = books.filter((book) => !book.isFavorite);
+
+  // Shuffle the books in each category to randomize the selection
+  const shuffledFavoriteBooks = shuffleArray(favoriteBooks);
+  const shuffledNonFavoriteBooks = shuffleArray(nonFavoriteBooks);
+
   let booksToSendToServer: Book[] = [];
+  let favoriteBooksCounter = 0;
+  let nonFavoriteBooksCounter = 0;
 
+  // Select books up to the max limit, prioritizing favorites
   for (let i = 0; i < maxLimitOfBooksToSendToServer; i++) {
-    // we add favorite books first otherwise we add non favorite books
-    if (
-      favoriteBooksCounter < favoriteBooks.length &&
-      favoriteBooks.length > 0
-    ) {
-      booksToSendToServer.push(favoriteBooks[favoriteBooksCounter]);
+    if (favoriteBooksCounter < shuffledFavoriteBooks.length) {
+      booksToSendToServer.push(shuffledFavoriteBooks[favoriteBooksCounter]);
       favoriteBooksCounter++;
-    } else if (
-      nonFavoriteBooksCounter < nonFavoriteBooks.length &&
-      nonFavoriteBooks.length > 0
-    ) {
-      booksToSendToServer.push(nonFavoriteBooks[nonFavoriteBooksCounter]);
+    } else if (nonFavoriteBooksCounter < shuffledNonFavoriteBooks.length) {
+      booksToSendToServer.push(shuffledNonFavoriteBooks[nonFavoriteBooksCounter]);
       nonFavoriteBooksCounter++;
     }
   }
+
   return booksToSendToServer;
 };
+
 
 // Get recommended books from the server
 const getRecommendedBooksFromServerBasedOnBooksPassed = async (
@@ -249,7 +423,7 @@ const getRecommendedBooksFromServerBasedOnBooksPassed = async (
 
   const weights = limitedBooksToUseForRecommendations.map((book) => {
     // Base weight for books without ratings or favorites or if rating is 0
-    if (!book.isFavorite && !book.rating) {
+    if (!book.isFavorite && !book.rating || book.rating === 0) {
       return 0.1;
     }
 
@@ -266,7 +440,8 @@ const getRecommendedBooksFromServerBasedOnBooksPassed = async (
       weight += book.rating * 0.1;
     }
 
-    return weight;
+    // Round weight to one decimal place and cap at 1.0
+    return Math.min(1.0, Math.round(weight * 10) / 10);
   });
   console.log("titles \n\n\n\n: ", titles, "\n\n\n\n");
 
@@ -607,9 +782,9 @@ const Recommendations = () => {
       prevSelectableBooks.map((currentSelectableBook) =>
         currentSelectableBook.book.id === bookId
           ? {
-              ...currentSelectableBook,
-              isSelected: !currentSelectableBook.isSelected,
-            } // Toggle selected status
+            ...currentSelectableBook,
+            isSelected: !currentSelectableBook.isSelected,
+          } // Toggle selected status
           : currentSelectableBook
       )
     );
@@ -655,8 +830,11 @@ const Recommendations = () => {
     const selectedBookObjects = getBookObjectsFromSelectableBooksPassed(
       getSelectedSelectableBooks()
     );
+    // change all selectable book objects to have ratings of 0
+    selectedBookObjects.forEach((book) => {
+      book.rating = 0;
+    })
     let wasAbleToAddBooksToAllCategories = true;
-    console.log("selected book objects: ", selectedBookObjects);
 
     // for each category add the selected books
     for (const category of categories) {
