@@ -191,10 +191,17 @@ const pickBooksToSendToServer = (books: Book[]): Book[] => {
   if (books.length <= maxLimitOfBooksToSendToServer) {
     return books;
   }
+  // sort book by rating
+  const sortedBooks = books.sort((a, b) => {
+    const ratingA = a.rating ?? -1; // use -1 for undefined ratings
+    const ratingB = b.rating ?? -1; // use -1 for undefined ratings
+    return ratingB - ratingA; // descending order
+  });
+
   // filter books passed to get all favorite books and non favorite books
-  const favoriteBooks = books.filter((book) => book.isFavorite);
+  const favoriteBooks = sortedBooks.filter((book) => book.isFavorite);
   let favoriteBooksCounter = 0; // keep track of how many favorite books we add
-  const nonFavoriteBooks = books.filter((book) => !book.isFavorite);
+  const nonFavoriteBooks = sortedBooks.filter((book) => !book.isFavorite);
   let nonFavoriteBooksCounter = 0; // keep track of how many non favorite books we add
   let booksToSendToServer: Book[] = [];
 
@@ -240,9 +247,30 @@ const getRecommendedBooksFromServerBasedOnBooksPassed = async (
     (book) => book.author
   );
 
-  const weights = limitedBooksToUseForRecommendations.map((book) =>
-    book.isFavorite ? 1 : 0.5
-  );
+  const weights = limitedBooksToUseForRecommendations.map((book) => {
+    // Base weight for books without ratings or favorites or if rating is 0
+    if (!book.isFavorite && !book.rating) {
+      return 0.1;
+    }
+
+    // Start with the weight 0
+    let weight = 0;
+
+    // Add weight for favorite books
+    if (book.isFavorite) {
+      weight += 0.5;
+    }
+
+    // Add weight based on the rating (1 adds 0.1, 2 adds 0.2, etc.)
+    if (book.rating) {
+      weight += book.rating * 0.1;
+    }
+
+    return weight;
+  });
+  console.log("titles \n\n\n\n: ", titles, "\n\n\n\n");
+
+  console.log("weights \n\n\n\n: ", weights, "\n\n\n\n");
 
   // Ensure all required parameters are present
   if (!titles || !authors || !weights) {
