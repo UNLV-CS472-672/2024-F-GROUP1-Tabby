@@ -40,6 +40,9 @@ RESET = "\033[0m"
 
 _OCR_CONFIDENCE_MIN: float = 0.3
 
+_RECOMMENDATIONS_INPUT_LIMIT: int = 100
+"""Maximum number of books to give to recommendations."""
+
 
 @contextmanager
 def logging_duration(message: str) -> Generator[None, None, None]:
@@ -441,6 +444,12 @@ def books_recommendations() -> tuple[dict, HTTPStatus]:
     if not (len(titles) == len(authors) == len(weights)):
         return {
             "message": "All lists must be equal in length."
+        }, HTTPStatus.BAD_REQUEST
+
+    # If too long, then return error
+    if len(titles) > _RECOMMENDATIONS_INPUT_LIMIT:
+        return {
+            "message": "Too many books, must be at most 100."
         }, HTTPStatus.BAD_REQUEST
 
     # Get tags

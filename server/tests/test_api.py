@@ -727,6 +727,19 @@ class TestAPIEndpoint:
         assert response.status_code == HTTPStatus.BAD_REQUEST
         assert response.json is not None and "message" in response.json
 
+        # Test too many books
+        response = client.post(
+            url,
+            json={
+                "titles": ["T"] * 101,
+                "authors": ["A"] * 101,
+                "weights": [0.5] * 101,
+            },
+        )
+        logging.info(response.json)
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json is not None and "message" in response.json
+
         # Mock chat completion
         mock_completion = Mock()
         mock_chat_completion(mock_completion)
