@@ -1,4 +1,4 @@
-import { View, Pressable, Text, Modal, FlatList, Image } from "react-native";
+import { View, Pressable, Text, Modal, FlatList, Image, Alert } from "react-native";
 import { Link, usePathname } from "expo-router";
 import React, { useState, useEffect } from "react";
 import { SelectList } from 'react-native-dropdown-select-list'
@@ -64,8 +64,7 @@ const FooterNavBar = () => {
         }}
         className={`p-2 border rounded-lg mb-2 h-32 flex-row truncate ${isSelected ? "bg-blue-500" : "bg-white"}`}
       >
-        {/* TODO: if no image make default image*/}
-        <Image source={{ uri: item.image }} className='w-1/4 h-full' />
+        <Image source={item.image ? { uri: item.image } : require('@/assets/book/default-book-cover.jpg')} className='w-1/4 h-full' />
         <View className="flex-col h-32 flex-1 truncate">
           <Text className="text-center">{item.title}</Text>
           <Text className='text-center'>{item.author}</Text>
@@ -77,6 +76,15 @@ const FooterNavBar = () => {
 
   // add book to a category
   const addBookToCategory = () => {
+    if (chosenCategory === '') {
+      Alert.alert("Please Select a category to add this book");
+      return;
+    }
+    if (selectedIsbn === undefined) {
+      Alert.alert('Please Select a book to add');
+      return;
+    }
+
     let returnBook: Book = {
       id: "tempID",
       title: "temptitle",
@@ -95,6 +103,8 @@ const FooterNavBar = () => {
 
     addUserBook(returnBook);
     setBookSelectionModalVisible(false);
+    setChosenCategory('');
+    setSelectedIsbn(undefined);
   }
 
   return (
@@ -180,7 +190,11 @@ const FooterNavBar = () => {
                 <Text className="text-white">Confirm</Text>
               </Pressable>
               <Pressable
-                onPress={() => setBookSelectionModalVisible(false)}
+                onPress={() => {
+                  setBookSelectionModalVisible(false);
+                  setChosenCategory('');
+                  setSelectedIsbn(undefined);
+                }}
                 className="p-2 bg-red-500 rounded items-center"
               >
                 <Text className="text-white">Cancel</Text>

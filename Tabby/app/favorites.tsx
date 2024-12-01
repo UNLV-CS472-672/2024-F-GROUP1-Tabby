@@ -21,8 +21,6 @@ const Favorites = () => {
         fetchFavoriteBooks();
     }, [])
 
-    // TODO: favorite button under category page doesnt update 
-    //       only when going from favorite to non-favorite
     const handleFavoritePress = async (currentBook: Book) => {
         const updatedBook = { ...currentBook, isFavorite: !currentBook.isFavorite };
         await updateUserBook(updatedBook);

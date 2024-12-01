@@ -21,48 +21,6 @@ type apiReturn = {
     title: string
 };
 
-const tempBook1: Book = {
-    id: "192083745131",
-    title: "holy hell1",
-    author: "joe mama1",
-    excerpt: "this is a sick excerpt1",
-    summary: "wow sick summary1",
-    image: "https://m.media-amazon.com/images/I/81aY1lxk+9L._AC_UF1000,1000_QL80_.jpg",
-    isFavorite: false,
-};
-
-const tempBook2: Book = {
-    id: "192083745132",
-    title: "holy hell2",
-    author: "joe mama2",
-    excerpt: "this is a sick excerpt2",
-    summary: "wow sick summary2",
-    image: "https://m.media-amazon.com/images/I/81QuEGw8VPL._AC_UF1000,1000_QL80_.jpg",
-    isFavorite: false,
-};
-
-const tempBook3: Book = {
-    id: "192083745133",
-    title: "holy hell3",
-    author: "joe mama3",
-    excerpt: "this is a sick excerpt3",
-    summary: "wow sick summary3",
-    image: "https://m.media-amazon.com/images/I/81aY1lxk+9L._AC_UF1000,1000_QL80_.jpg",
-    isFavorite: false,
-};
-
-const tempBook4: Book = {
-    id: "192083745134",
-    title: "holy hell4",
-    author: "joe mama4",
-    excerpt: "this is a sick excerpt4",
-    summary: "wow sick summary4",
-    image: "https://m.media-amazon.com/images/I/81QuEGw8VPL._AC_UF1000,1000_QL80_.jpg",
-    isFavorite: false,
-};
-
-const tempBooks: Book[] = [tempBook1, tempBook2, tempBook3, tempBook4];
-
 const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionStart }) => {
     // const [cameraPermission, requestCameraPermission] = useCameraPermissions();
     // use to disable the buttons temporarily when clicking them to prevent multiple clicks
@@ -192,7 +150,6 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
     };
 
     // returns a Book object from json given by google books
-    // TODO: change id to be the uuid from db and add other fields
     const jsonToBook = (bookjson: apiReturn) => {
         const returnBook: Book = {
             id: `tempid${Math.floor(Math.random() * 1000)}`,
@@ -210,7 +167,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
 
     return (
         <Modal animationType="fade" transparent visible={!userChoosing}>
-            <TouchableWithoutFeedback onPress={closeModal}>
+            <TouchableWithoutFeedback onPress={closeModal} disabled={isProcessing}>
                 <View className="flex-1 justify-center items-center">
                     <TouchableWithoutFeedback>
                         <View className="bg-white rounded-lg w-64 p-4 space-y-4">
@@ -231,7 +188,10 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
                             >
                                 <Text className="text-white">Pick from Camera Roll</Text>
                             </Pressable>
-                            <Pressable onPress={closeModal} className="p-2 bg-red-500 rounded items-center">
+                            <Pressable
+                                onPress={closeModal}
+                                className="p-2 bg-red-500 rounded items-center"
+                                disabled={isProcessing}>
                                 <Text className="text-white">Cancel</Text>
                             </Pressable>
                         </View>

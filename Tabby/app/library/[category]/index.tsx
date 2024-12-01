@@ -116,7 +116,6 @@ const CategoryPage: React.FC = () => {
     };
 
 
-
     // Confirm Button Press
     const handleConfirmForAddingCustomBook = async () => {
         console.log("New custom book (submitted):", newCustomBook);
@@ -196,6 +195,8 @@ const CategoryPage: React.FC = () => {
     const [search, setSearch] = useState("");
     const [addCustomBookModalVisible, setAddCustomBookModalVisible] = useState(false);
 
+    // TODO: favorite button doesnt work on categories page
+    //       Issue is only on IOS, works fine on andriod
     const handleFavoritePress = async (bookId: string) => {
         // get user book by id
         const userBook = await getUserBookById(bookId);
