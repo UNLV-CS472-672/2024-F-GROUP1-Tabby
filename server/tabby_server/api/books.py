@@ -4,9 +4,13 @@ from dataclasses import asdict
 from functools import cache
 from io import BytesIO
 import logging
+import os
+import re
 import time
+from typing import Literal
 from PIL import Image
 import PIL
+from dotenv import load_dotenv
 from flask import Blueprint, request, current_app
 from http import HTTPStatus
 import cv2 as cv
@@ -19,8 +23,14 @@ from ..vision import ocr
 from ..vision import extraction
 from ..vision import image_labelling
 
+
+load_dotenv()
+
 _SCAN_SHELF_MAX_RESULTS_PER_BOOK = 5
 """Maximum results for each book when scanning shelf"""
+
+_FILTER_ISBN: bool = bool(int(os.getenv("FILTER_ISBN", "1")))
+"""True if books without ISBN should be filtered out, false otherwise."""
 
 subapp = Blueprint(name="books", import_name=__name__)
 
@@ -28,20 +38,20 @@ G = "\u001b[32m"
 B = "\u001b[34m"
 RESET = "\033[0m"
 
+_OCR_CONFIDENCE_MIN: float = 0.3
+
 
 @contextmanager
-def logging_duration(
-    logger: logging.Logger, message: str
-) -> Generator[None, None, None]:
+def logging_duration(message: str) -> Generator[None, None, None]:
     """Context manager in which the total time the code took is logged at
     exit."""
     start = time.time()
-    logger.info(f"{G}START       {message}{RESET}")
+    logging.info(f"{G}START       {message}{RESET}")
     try:
         yield
     finally:
         duration = time.time() - start
-        logger.info(f"{B}END {duration:6.2f}s {message}{RESET}")
+        logging.info(f"{B}END {duration:6.2f}s {message}{RESET}")
 
 
 @subapp.route("/scan_cover", methods=["POST"])
@@ -56,7 +66,7 @@ def books_scan_cover():
     current_app.logger.info(f"{G}START       /scan_shelf{RESET}")
 
     # Try scan image
-    with logging_duration(current_app.logger, "Read image"):
+    with logging_duration("Read image"):
         try:
             img = Image.open(BytesIO(request.data))
         except PIL.UnidentifiedImageError:
@@ -74,14 +84,17 @@ def books_scan_cover():
     books = scan_cover(img_mat)
 
     # Filter out books without ISBNs
-    books = [b for b in books if b.isbn]
+    if _FILTER_ISBN:
+        books = [b for b in books if b.isbn]
 
     # Wrap it up in another dictionary and send!
     result = _get_result_dict(books)
     return result, HTTPStatus.OK
 
 
-def scan_cover(image_matrix: MatLike) -> list[google_books.Book]:
+def scan_cover(
+    image_matrix: MatLike, angles: tuple[Literal[0, 90, 180, 270], ...] = (0,)
+) -> list[google_books.Book]:
     """Takes in an image of a cover and returns a list of results.
 
     Args:
@@ -92,14 +105,30 @@ def scan_cover(image_matrix: MatLike) -> list[google_books.Book]:
     """
 
     # Find text
-    with logging_duration(current_app.logger, "Recognize text using OCR"):
-        text_recognizer = get_text_recognizer()
-        recognized_texts = text_recognizer.find_text(image_matrix)
+    recognized_texts: list[ocr.RecognizedText] = []
+    for angle in angles:
+        with logging_duration(f"Recognize text using OCR ({angle} deg)"):
+            text_recognizer = get_text_recognizer()
+            recognized_texts += text_recognizer.find_text(image_matrix, angle)
+
+    # Filter out bad text
+    recognized_texts = [
+        r
+        for r in recognized_texts
+        if r.confidence >= _OCR_CONFIDENCE_MIN and len(r.text) >= 2
+    ]
+
+    # Log text
+    if recognized_texts:
+        logging.info("Found text:")
+        for r in recognized_texts:
+            logging.info(f"  ({r.confidence * 100:5.2f}%) {r.text}")
+    else:  # None found
+        logging.info("Found NO text")
+        return []
 
     # Extract Title and Author
-    with logging_duration(
-        current_app.logger, "Extract title and author using ChatGPT"
-    ):
+    with logging_duration("Extract title and author using ChatGPT"):
         extraction_result = extraction.extract_from_recognized_texts(
             recognized_texts
         )
@@ -107,15 +136,33 @@ def scan_cover(image_matrix: MatLike) -> list[google_books.Book]:
         return []
 
     # Make the request to Google Books
-    with logging_duration(
-        current_app.logger, "Request info from Google Books"
-    ):
+    with logging_duration("Request info from Google Books"):
         top_option = extraction_result.options[0]
-        books = google_books.request_volumes_get(
-            phrase=top_option.title, author=top_option.author
-        )
+
+        title = remove_punctuation(top_option.title).lower()
+        author = remove_punctuation(top_option.title).lower()
+
+        books = google_books.request_volumes_get(f"{title} {author}")
+        logging.info(f"Got {len(books)} from Google Books")
 
     return books
+
+
+# ai-gen start (ChatGPT-4o, 0)
+def remove_punctuation(text: str) -> str:
+    """
+    Removes all punctuation from the given text.
+
+    Args:
+        text (str): The input string from which punctuation will be removed.
+
+    Returns:
+        str: The text without any punctuation.
+    """
+    return re.sub(r"[^\w\s]", "", text)
+
+
+# ai-gen end
 
 
 # Creates object on first call, then returns that same object
@@ -167,9 +214,7 @@ def books_search() -> tuple[dict, HTTPStatus]:
         }, HTTPStatus.BAD_REQUEST
 
     # Make the request
-    with logging_duration(
-        current_app.logger, "Request info from Google Books"
-    ):
+    with logging_duration("Request info from Google Books"):
         books = google_books.request_volumes_get(
             phrase=phrase,
             title=title,
@@ -180,7 +225,8 @@ def books_search() -> tuple[dict, HTTPStatus]:
         )
 
     # Filter out books without ISBNs
-    books = [b for b in books if b.isbn]
+    if _FILTER_ISBN:
+        books = [b for b in books if b.isbn]
 
     # Wrap it up in another dictionary and send!
     result = _get_result_dict(books)
@@ -222,7 +268,7 @@ def books_scan_shelf() -> tuple[dict, HTTPStatus]:
     current_app.logger.info(f"{G}START       /scan_shelf{RESET}")
 
     # Load image
-    with logging_duration(current_app.logger, "Read image"):
+    with logging_duration("Read image"):
         try:
             img_file = Image.open(BytesIO(request.data))
         except PIL.UnidentifiedImageError:
@@ -243,7 +289,8 @@ def books_scan_shelf() -> tuple[dict, HTTPStatus]:
     # and limit each sublist to a maximum number of books
     new_shelf = []
     for books in scanned_shelf:
-        books = [b for b in books if b.isbn]
+        if _FILTER_ISBN:
+            books = [b for b in books if b.isbn]
         books = books[:_SCAN_SHELF_MAX_RESULTS_PER_BOOK]
         if len(books) >= 1:  # if not empty, append it
             new_shelf.append(books)
@@ -277,7 +324,7 @@ def scan_shelf(image: MatLike) -> list[list[google_books.Book]]:
 
     # Get subimages
     subimages = []
-    with logging_duration(current_app.logger, "Find books on shelf"):
+    with logging_duration("Find books on shelf"):
         segmentation_results = image_labelling.find_books(image_tensor)
     for sr in segmentation_results:
 
@@ -301,11 +348,13 @@ def scan_shelf(image: MatLike) -> list[list[google_books.Book]]:
         if np.all(subimage.shape):  # if none of the dimensions are 0, add it
             subimages.append(subimage)
 
+    logging.info(f"Found {len(subimages)} books in shelf image.")
+
     # Scan each subimage
-    with logging_duration(current_app.logger, "Use OCR on each image."):
+    with logging_duration("Use OCR on each image."):
         shelf = []
         for subimage in subimages:
-            books = scan_cover(subimage)
+            books = scan_cover(subimage, angles=(0, 90, 270))
             shelf.append(books)
 
     return shelf
@@ -382,19 +431,23 @@ def books_recommendations() -> tuple[dict, HTTPStatus]:
         }, HTTPStatus.BAD_REQUEST
 
     # Get tags
-    with logging_duration(current_app.logger, "Get tags from ChatGPT"):
+    with logging_duration("Get tags from ChatGPT"):
         tags_list = tags.get_tags(titles_list, authors_list, weights_list)
         if not tags_list:  # if empty, return error
             return {
                 "message": "Unable to get tags from the given books."
             }, HTTPStatus.BAD_REQUEST
+        logging.info("Tags list:")
+        for tag in tags_list:
+            logging.info(f"  {tag}")
 
     # Get related books using list of tags
-    with logging_duration(current_app.logger, "Request from Google Books"):
+    with logging_duration("Request from Google Books"):
         books = google_books.request_volumes_get(phrase=", ".join(tags_list))
 
     # Filter out books without ISBNs
-    books = [b for b in books if b.isbn]
+    if _FILTER_ISBN:
+        books = [b for b in books if b.isbn]
 
     # Wrap it up in another dictionary and send!
     result = _get_result_dict(books)

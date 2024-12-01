@@ -17,14 +17,14 @@ _MODEL = "gpt-4o"
 _ATTEMPT_MAX = 3
 """Maximum amount of attempts to poll ChatGPT for."""
 
-_TAG_COUNT: int = 10
+_TAG_COUNT: int = 15
 """Number of tags to get from ChatGPT."""
 
 SEPARATOR = "|---|"
 """Separator to use for the input message."""
 
 _SYSTEM_MESSAGE: str = f"""\
-You are a model which accepts a list of titles and authors. Using your knowledge of natural language and the internet, you will give a list of tags which generalizes the set of books. These tags will be used in a search query to find similar books.
+You are a model which accepts a list of titles and authors. Using your knowledge of natural language and the internet, you will give a list of tags which generalizes the set of books. These tags will be used in a search query to find recommendations for more books.
 
 In the input, you will accept 3 or more lines of text. Conditions:
 - Each line is the format of "TITLE |---| AUTHOR |---| WEIGHT"
@@ -36,6 +36,7 @@ You will output {_TAG_COUNT} tags, each on separate lines. Conditions:
 - Do not bulletpoint or number lines.
 - These tags represent the best tags for the set.
 - The best tags are first.
+- You may include title and author if it is especially prominent in the given books.
 """  # noqa: E501
 
 

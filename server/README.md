@@ -243,10 +243,27 @@ author(s) and second weight, and so on.
 
 None of the elements can be blank.
 
+# Environment Variables
+
+To run the server and/or some scripts, we have two environment variables. You
+must specify them whenever you run a portion of code that needs that environment
+variable.
+
+- `OPENAI_API_KEY`: API key for OpenAI. Must be allowed to use ChatGPT 4o.
+- `GOOGLE_CLOUD_API_KEY`: API for Google Cloud. Must be allowed to use Google Books.
+
+The following environment variables are optional and do not need to specified.
+
+- `FILTER_ISBN`: An boolean-like integer representing if books with no ISBN 13
+  ID should be filtered out. Defaults to `1`.
+  - Non-zero value: Filter out books.
+  - `0`: Filter off.
+
 # Koyeb Deployment
 Koyeb is a web hosting service offering CPU and GPU instances. The current project will be using a GPU instance needed because the server will have to perform some intense processing for image and character recognition.
 
 ![Koyeb Overview page](./../.github/assets/koyeb_overview.png)
+
 
 ## Starting/Pausing the instance
 ### Starting

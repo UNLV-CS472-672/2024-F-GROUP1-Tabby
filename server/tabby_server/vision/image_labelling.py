@@ -125,7 +125,7 @@ def find_books(tensor_image=None) -> list[dict[str, Any]]:
     # These are a series of verifications to ensure the tensor image is
     # compatible with yolo.
 
-    # ai-gen start (ChatGPT-4.0, 2)
+    # ai-gen start (ChatGPT-4o, 2)
 
     # First Check:
     #   Verifies the tensor has 4-dimensions.

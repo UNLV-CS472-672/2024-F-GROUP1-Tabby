@@ -97,6 +97,11 @@ def mock_chat_completion() -> Callable[[Any], None]:
 
 @pytest.mark.usefixtures("client")
 class TestAPIEndpoint:
+
+    def test_hello_world(self, client):
+        result = client.get("/")
+        assert result.status_code == HTTPStatus.OK
+
     def test_first_funct(self, client, mock_extract):
         # Test Test
         result = client.get("/members")

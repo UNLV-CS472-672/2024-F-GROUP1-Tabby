@@ -24,7 +24,7 @@ def ultralytics_shelf_detection(file_path) -> dict[str, list]:
     # Load pretrained model.
     model = YOLO(file_path + "shelf_yolo.pt")
 
-    # ai-gen start (ChatGPT-4.0, 1)
+    # ai-gen start (ChatGPT-4o, 1)
 
     import cv2
 
