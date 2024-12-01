@@ -31,7 +31,7 @@ const BookSearchPreview: React.FC<BookSearchPreviewProps> = ({
             />
             <View className="flex-1">
                 <Text className="text-lg font-bold text-black">{book.title}</Text>
-                <Text className="text-sm text-black italic">{book.author}</Text>
+                <Text className="text-sm text-black italic" numberOfLines={1}>{book.author}</Text>
                 <Text className="text-sm text-black" numberOfLines={2}>{book.summary}</Text>
             </View>
         </>

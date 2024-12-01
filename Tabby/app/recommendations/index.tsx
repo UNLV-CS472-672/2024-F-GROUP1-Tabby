@@ -31,7 +31,7 @@ type SelectableBook = {
     isSelected: boolean;
 };
 
-// test data to see how the recommendation page would look
+// test data to send recomendations to
 const defaultBooks: Book[] = [
     {
         "id": "1",
@@ -133,8 +133,10 @@ const defaultBooks: Book[] = [
 
 
 const size = 36;
+const maxLimitOfBooksToSendToServer = 100
+const maxLimitOfCharactersForSearch = 100
 
-const baseAPIUrlKoyeb = "https://just-ulrike-tabby-app-9d270e1b.koyeb.app/"
+const baseAPIUrlCpuForSearchAndRecommendations = "https://just-ulrike-tabby-app-9d270e1b.koyeb.app/"
 
 const convertApiResponseToBooks = (apiResponse: any): Book[] => {
     if (!apiResponse || !apiResponse.results || !Array.isArray(apiResponse.results)) {
@@ -161,28 +163,58 @@ const convertApiResponseToBooks = (apiResponse: any): Book[] => {
     }));
 };
 
+// function to pick 100 books or less to send to the server
+const pickBooksToSendToServer = (books: Book[]): Book[] => {
+    // return the books directly if not more than limit of books to send to the server
+    if (books.length <= maxLimitOfBooksToSendToServer) {
+        return books;
+    }
+    // filter books passed to get all favorite books and non favorite books
+    const favoriteBooks = books.filter((book) => book.isFavorite);
+    let favoriteBooksCounter = 0; // keep track of how many favorite books we add
+    const nonFavoriteBooks = books.filter((book) => !book.isFavorite);
+    let nonFavoriteBooksCounter = 0; // keep track of how many non favorite books we add
+    let booksToSendToServer: Book[] = [];
+
+    for (let i = 0; i < maxLimitOfBooksToSendToServer; i++) {
+        // we add favorite books first otherwise we add non favorite books
+        if (favoriteBooksCounter < favoriteBooks.length && favoriteBooks.length > 0) {
+            booksToSendToServer.push(favoriteBooks[favoriteBooksCounter]);
+            favoriteBooksCounter++;
+        } else if (nonFavoriteBooksCounter < nonFavoriteBooks.length && nonFavoriteBooks.length > 0) {
+            booksToSendToServer.push(nonFavoriteBooks[nonFavoriteBooksCounter]);
+            nonFavoriteBooksCounter++;
+        }
+    }
+    return booksToSendToServer
+}
+
+
 
 // Get recommended books from the server
 const getRecommendedBooksFromServerBasedOnBooksPassed = async (
     booksToUseForRecommendations: Book[]
 ): Promise<Book[]> => {
-    const baseUrl = baseAPIUrlKoyeb; // Ensure baseAPIUrlKoyeb is properly defined
+    const baseUrl = baseAPIUrlCpuForSearchAndRecommendations; // Ensure baseAPIUrlKoyeb is properly defined
 
     // if the booksToUseForRecommendations is empty send default books
     if (booksToUseForRecommendations.length === 0) {
         booksToUseForRecommendations = defaultBooks;
     }
 
+    // pick limit of books to send to the server
+    const limitedBooksToUseForRecommendations = pickBooksToSendToServer(booksToUseForRecommendations);
+
     // Extract the required data from the books array
-    const titles = booksToUseForRecommendations
+    const titles = limitedBooksToUseForRecommendations
         .map((book) => book.title)
         .join("|---|");
 
-    const authors = booksToUseForRecommendations
+    const authors = limitedBooksToUseForRecommendations
         .map((book) => book.author)
         .join("|---|");
 
-    const weights = booksToUseForRecommendations
+    const weights = limitedBooksToUseForRecommendations
         .map((book) => (book.isFavorite ? 1 : 0.5))
         .join("|---|");
 
@@ -227,7 +259,7 @@ const getRecommendedBooksFromServerBasedOnBooksPassed = async (
 
 
 const getBooksFromServerBasedOnSearch = async (search: string): Promise<Book[]> => {
-    const baseUrl = baseAPIUrlKoyeb; // Ensure baseAPIUrlKoyeb is properly defined
+    const baseUrl = baseAPIUrlCpuForSearchAndRecommendations; // Ensure baseAPIUrlKoyeb is properly defined
 
     // Normalize the search string by removing dashes
     const normalizedSearch = search.replace(/-/g, "");
@@ -314,7 +346,9 @@ const Recommendations = () => {
 
     // handle showing search results modal
     const handleShowSearchResultsModal = async () => {
-        if (isSearchResultsModalVisible || search.length === 0) {
+        if (isSearchResultsModalVisible || search.length === 0 || search.length > maxLimitOfCharactersForSearch) {
+            Alert.alert(`Search must be between 1 and ${maxLimitOfCharactersForSearch} characters`);
+            setSearch("");
             return;
         } else {
             setLoadingSearchResults(true);
