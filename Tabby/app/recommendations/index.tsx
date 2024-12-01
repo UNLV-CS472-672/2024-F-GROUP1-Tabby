@@ -354,7 +354,7 @@ const convertApiResponseToBooks = (apiResponse: any): Book[] => {
   }));
 };
 
-// function to pick 100 books or less to send to the server
+// function to  randomly shuffle an array
 const shuffleArray = (array: any[]): any[] => {
   // Fisher-Yates shuffle
   for (let i = array.length - 1; i > 0; i--) {
