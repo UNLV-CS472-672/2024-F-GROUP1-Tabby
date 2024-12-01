@@ -159,6 +159,9 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
             excerpt: bookjson.excerpt,
             summary: bookjson.summary,
             image: bookjson.thumbnail,
+            pageCount: bookjson.page_count,
+            publishedDate: bookjson.published_date,
+            publisher: bookjson.publisher,
             // rating: bookjson.rating, (cant do rating like this)
             isFavorite: false,
         }

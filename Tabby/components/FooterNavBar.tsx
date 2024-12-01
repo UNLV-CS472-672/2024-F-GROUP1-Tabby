@@ -103,7 +103,9 @@ const FooterNavBar = () => {
     }
     returnBook.category = chosenCategory;
 
-    router.push(`/library/${chosenCategory}`);
+    if (pathname.includes(`/library/${chosenCategory}`)) {
+      router.push(`/library/${chosenCategory}`);
+    }
 
     addUserBook(returnBook);
     setBookSelectionModalVisible(false);
