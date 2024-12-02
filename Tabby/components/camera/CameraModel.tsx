@@ -21,6 +21,8 @@ type apiReturn = {
     title: string
 };
 
+const gpuUrl = process.env.EXPO_PUBLIC_GPU_API_URL;
+
 const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionStart }) => {
     // const [cameraPermission, requestCameraPermission] = useCameraPermissions();
     // use to disable the buttons temporarily when clicking them to prevent multiple clicks
@@ -102,7 +104,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
             const blob = await res.blob();
 
             // fetch scan_cover
-            const response = await fetch('https://just-ulrike-tabby-app-9d270e1b.koyeb.app/books/scan_cover', {
+            const response = await fetch(`${gpuUrl}/books/scan_cover`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/octet-stream',
