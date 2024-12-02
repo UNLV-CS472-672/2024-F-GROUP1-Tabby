@@ -2,6 +2,7 @@ import { View, Text, Pressable, Modal, TouchableWithoutFeedback, ActivityIndicat
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 import { Book } from '@/types/book';
+import { useSearchParams } from "expo-router/build/hooks";
 
 interface CameraModalProps {
     closeModal: () => void;
@@ -22,6 +23,7 @@ type apiReturn = {
 };
 
 const gpuUrl = process.env.EXPO_PUBLIC_GPU_API_URL;
+const cpuUrl = process.env.EXPO_PUBLIC_CPU_US_API_URL;
 
 const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionStart }) => {
     // const [cameraPermission, requestCameraPermission] = useCameraPermissions();
@@ -42,7 +44,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
         const result = await ImagePicker.launchCameraAsync({
             mediaTypes: ['images'],
             allowsEditing: true,
-            quality: 1,
+            quality: .4,
         });
 
         if (!result.canceled) {
@@ -65,7 +67,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ['images'],
             allowsEditing: true,
-            quality: 1,
+            quality: .4,
         });
 
         if (!result.canceled) {
@@ -103,8 +105,8 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
             const res = await fetch(imageUri);
             const blob = await res.blob();
 
-            // fetch scan_cover
-            const response = await fetch(`${gpuUrl}/books/scan_cover`, {
+            // fetch title and author from scan_cover
+            const titles = await fetch(`${gpuUrl}books/scan_cover?nosearch=false`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/octet-stream',
@@ -112,39 +114,50 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
                 body: blob,
             });
 
-            // add first 4 returned books to an array which are the books that the user can choose from
-            let returnedBooks: Book[] = [];
-            if (response.ok) {
-                console.log('success');
-                const result = await response.json();
-                if (result.results[0]) {
-                    const book1 = jsonToBook(result.results[0]);
-                    returnedBooks.push(book1);
-                }
-                if (result.results[1]) {
-                    const book2 = jsonToBook(result.results[1]);
-                    if (returnedBooks.findIndex(c => c.isbn === book2.isbn)) {
-                        returnedBooks.push(book2);
+            if (titles.ok) {
+                const titles2 = await titles.json();
+                // fetch books from US server
+                const params = `?title=${titles2.title}&author=${titles2.author}`;
+                const response = await fetch(`${cpuUrl}books/search` + params);
+
+                // add first 4 returned books to an array which are the books that the user can choose from
+                let returnedBooks: Book[] = [];
+                if (response.ok) {
+                    console.log('success');
+                    const result = await response.json();
+                    if (result.results[0]) {
+                        const book1 = jsonToBook(result.results[0]);
+                        returnedBooks.push(book1);
                     }
-                }
-                if (result.results[2]) {
-                    const book3 = jsonToBook(result.results[2]);
-                    if (returnedBooks.findIndex(c => c.isbn === book3.isbn)) {
-                        returnedBooks.push(book3);
+                    if (result.results[1]) {
+                        const book2 = jsonToBook(result.results[1]);
+                        if (returnedBooks.findIndex(c => c.isbn === book2.isbn)) {
+                            returnedBooks.push(book2);
+                        }
                     }
-                }
-                if (result.results[3]) {
-                    const book4 = jsonToBook(result.results[3]);
-                    if (returnedBooks.findIndex(c => c.isbn === book4.isbn)) {
-                        returnedBooks.push(book4);
+                    if (result.results[2]) {
+                        const book3 = jsonToBook(result.results[2]);
+                        if (returnedBooks.findIndex(c => c.isbn === book3.isbn)) {
+                            returnedBooks.push(book3);
+                        }
                     }
+                    if (result.results[3]) {
+                        const book4 = jsonToBook(result.results[3]);
+                        if (returnedBooks.findIndex(c => c.isbn === book4.isbn)) {
+                            returnedBooks.push(book4);
+                        }
+                    }
+                } else {
+                    console.error("error uploading author and title: ", response.status);
+                    const errorText = await response.text();
+                    console.error("Error details: ", errorText);
                 }
+                return returnedBooks;
             } else {
-                console.error("error uploading image: ", response.status);
-                const errorText = await response.text();
+                console.error("error uploading image: ", titles.status);
+                const errorText = await titles.text();
                 console.error("Error details: ", errorText);
             }
-            return returnedBooks;
         } catch (error) {
             console.error("Error uploading image:", error);
         }
