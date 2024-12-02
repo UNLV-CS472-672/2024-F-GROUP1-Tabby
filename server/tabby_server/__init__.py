@@ -1,3 +1,4 @@
+from logging.config import dictConfig
 from flask import Flask
 from http import HTTPStatus
 from tabby_server.api import books
@@ -43,3 +44,23 @@ def hello_world():
 @app.route("/api/test", methods=["POST"])
 def test():
     return {"message": "Hello world!"}, HTTPStatus.OK
+
+
+dictConfig(
+    {
+        "version": 1,
+        "formatters": {
+            "default": {
+                "format": "[%(asctime)s] (%(levelname)s) %(module)s: %(message)s",  # noqa: E501
+            }
+        },
+        "handlers": {
+            "wsgi": {
+                "class": "logging.StreamHandler",
+                "stream": "ext://flask.logging.wsgi_errors_stream",
+                "formatter": "default",
+            }
+        },
+        "root": {"level": "INFO", "handlers": ["wsgi"]},
+    }
+)
