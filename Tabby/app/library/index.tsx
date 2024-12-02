@@ -191,7 +191,6 @@ const Categories = () => {
           // Perform async database operation
           if (isAddingCategory) {
             // Add new category
-            console.log("Adding new category:", currentUpdatedCategory);
             await addCategory(currentUpdatedCategory); // Add new category
           }
           // renaming a category

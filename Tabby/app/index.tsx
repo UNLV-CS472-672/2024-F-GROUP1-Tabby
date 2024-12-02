@@ -21,8 +21,6 @@ const WelcomeScreen = () => {
 
       getCategories().then((categories) => {
         if (categories && categories.length > 0) {
-          console.log("categories: ", categories);
-
           router.push("/library");
         } else {
           setIsLoading(false);

@@ -3,6 +3,7 @@ import { Modal, Pressable, Text, FlatList, View } from 'react-native';
 import { Book } from '@/types/book';
 import { Checkbox } from 'expo-checkbox';
 import BookSearchPreview from '@/components/BookSearchPreview';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 interface AddSearchResultsBooksModalProps {
     visible: boolean;
@@ -24,6 +25,7 @@ const AddSearchResultsBooksModal: React.FC<AddSearchResultsBooksModalProps> = ({
     const [errorMessage, setErrorMessage] = useState<string>("");
     const [bookErrorMessage, setBookErrorMessage] = useState<string>('');
     const [categoryErrorMessage, setCategoryErrorMessage] = useState<string>('');
+    const [loading, setLoading] = useState(false);
 
     // Toggle selection of categories
     const toggleCategorySelection = (category: string) => {
@@ -62,6 +64,7 @@ const AddSearchResultsBooksModal: React.FC<AddSearchResultsBooksModalProps> = ({
         }
 
         try {
+            setLoading(true);
             const result = await onConfirmAddBooks(selectedBooks, selectedCategories);
             if (!result) setErrorMessage('Failed to add books to categories.');
             // reset selected categories and books
@@ -70,6 +73,8 @@ const AddSearchResultsBooksModal: React.FC<AddSearchResultsBooksModalProps> = ({
 
         } catch (error) {
             console.error('Error adding books to categories:', error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -131,23 +136,25 @@ const AddSearchResultsBooksModal: React.FC<AddSearchResultsBooksModalProps> = ({
                     {errorMessage.length > 0 && <Text className="text-red-500">{errorMessage}</Text>}
                 </View>
 
+                {loading ? <View className='h-20 w-full'><LoadingSpinner /></View>
+                    : <View className="flex-row justify-between mt-4">
+                        <Pressable
+                            className="px-4 py-2 bg-blue-500 rounded-lg"
+                            onPress={handleAddBooks}
+                        >
+                            <Text className="text-white">Confirm</Text>
+                        </Pressable>
+                        <Pressable
+                            className="px-4 py-2 mr-2 bg-gray-300 rounded-lg"
+                            onPress={onClose}
+                        >
+                            <Text className="text-gray-800">Cancel</Text>
+                        </Pressable>
+                    </View>}
 
 
 
-                <View className="flex-row justify-between mt-4">
-                    <Pressable
-                        className="px-4 py-2 bg-blue-500 rounded-lg"
-                        onPress={handleAddBooks}
-                    >
-                        <Text className="text-white">Confirm</Text>
-                    </Pressable>
-                    <Pressable
-                        className="px-4 py-2 mr-2 bg-gray-300 rounded-lg"
-                        onPress={onClose}
-                    >
-                        <Text className="text-gray-800">Cancel</Text>
-                    </Pressable>
-                </View>
+
             </View>
         </Modal>
     );
