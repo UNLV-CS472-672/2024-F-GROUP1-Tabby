@@ -23,7 +23,7 @@ def main(image_path: cy.types.ResolvedExistingFile) -> None:
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
     image = cv.imread(str(image_path))
-    results = scan_shelf(image)
+    results, _ = scan_shelf(image)
     # pprint(results)
 
     pprint([len(result) for result in results])

@@ -107,8 +107,8 @@ def scan_cover(
     Args:
         image_matrix: Image to scan.
     Returns:
-        (1) List of book information scanned. Empty if there is a failure at any
-        part.
+        (1) List of book information scanned. Empty if there is a failure at
+        any part.
         (2) Title and author tuple. Empty strings if failure.
     """
 
