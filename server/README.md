@@ -205,6 +205,11 @@ be.
 Expects a request with a body that is in *binary*, which represents an image.
 The image can either be JPG or PNG.
 
+It takes one optional parameter:
+
+- `"nosearch"`: If given any value, then Google Books will not be used. This
+  makes the `"books"` attribute an empty array.
+
 The response JSON will contain two additional fields:
 
 - `"title"`: Title recognized from the image.
@@ -219,6 +224,11 @@ the image.
 
 Expects a request with a body that is in *binary*, which represents an image.
 The image can either be JPG or PNG.
+
+It takes one optional parameter:
+
+- `"nosearch"`: If given any value, then Google Books will not be used. This
+  makes the `"books"` attribute an empty array.
 
 The response JSON will contain two additional fields:
 
