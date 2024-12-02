@@ -1,23 +1,14 @@
-import BookCard from '@/components/BookCard';
+import BookPreview from '@/components/BookPreview';
 import React, { useState } from 'react';
 import { FlatList, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FavoriteButtonIcon from '@/components/FavoriteButtonIcon';
 import { SearchBar } from '@rneui/themed';
-
-type Book = {
-    id: string;
-    title: string;
-    author: string;
-    summary: string;
-    excerpt: string;
-    image: string;
-    isFavorite: boolean;
-};
-
+import { Book } from "@/types/book";
 const initialBooks: Book[] = [
     {
         id: '1',
+        isbn: '9780333791035',
         title: 'The Great Gatsby',
         author: 'F. Scott Fitzgerald',
         summary: 'A novel about the American dream.',
@@ -28,6 +19,7 @@ const initialBooks: Book[] = [
     {
         id: '2',
         title: 'To Kill a Mockingbird',
+        isbn: '9780061120084',
         author: 'Harper Lee',
         excerpt: 'A novel about racism and injustice.',
         summary: 'A novel about racism and injustice.',
@@ -39,6 +31,7 @@ const initialBooks: Book[] = [
     {
         id: '3',
         title: 'The Great Gatsby',
+        isbn: '9780333791035',
         author: 'F. Scott Fitzgerald',
         summary: 'A novel about the American dream.',
         excerpt: 'A novel about the American dream.',
@@ -47,6 +40,7 @@ const initialBooks: Book[] = [
     },
     {
         id: '4',
+        isbn: '9780061120084',
         title: 'To Kill a Mockingbird',
         author: 'Harper Lee',
         excerpt: 'A novel about racism and injustice.',
@@ -57,6 +51,7 @@ const initialBooks: Book[] = [
 
     {
         id: '5',
+        isbn: '9780333791035',
         title: 'The Great Gatsby',
         author: 'F. Scott Fitzgerald',
         summary: 'A novel about the American dream.',
@@ -91,11 +86,12 @@ const Favorites = () => {
     );
 
     const renderItem = ({ item }: { item: Book }) => {
-        if (item.isFavorite && (search === "" || item.title.toLowerCase().includes(search.toLowerCase()) || item.author.toLowerCase().includes(search.toLowerCase()) || item.id.includes(search))) {
+        if (item.isFavorite && (search === "" || item.title.toLowerCase().includes(search.toLowerCase()) || item.author.toLowerCase().includes(search.toLowerCase()) || item.isbn?.toLowerCase().includes(search))) {
+            const partialBookObj = { id: item.id, isFavorite: item.isFavorite || false };
             return (
-                <BookCard
+                <BookPreview
                     book={item}
-                    button={renderBookButton(item)}
+                    button={renderBookButton(partialBookObj)}
                 />
             )
         }
@@ -107,7 +103,7 @@ const Favorites = () => {
     };
 
     return (
-        <SafeAreaView className="flex-1 p-4">
+        <SafeAreaView className="flex-1">
             <SearchBar placeholder="Search by title, ISBN, or author..." onChangeText={updateSearch} value={search} />
             <FlatList
                 data={books}

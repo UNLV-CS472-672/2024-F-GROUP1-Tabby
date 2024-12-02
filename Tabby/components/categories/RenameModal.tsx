@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, Modal } from 'react-native';
+import { View, Text, TextInput, Pressable, Modal, FlatList } from 'react-native';
 import { Category } from "@/types/category";
 
 interface RenameModalProps {
     categoriesBeingRenamed: Category[];
-    onRename: (newName: string) => void;
+    onRename: (newName: string) => Promise<void>; // Now returns a Promise<void>
     onCancel: () => void;
     deleteNewCategoryOnCancel: () => void;
     isAddingNewCategory: boolean;
     handleDeselectingNewCategory: () => void;
 }
+
 
 const RenameModal: React.FC<RenameModalProps> = ({
     categoriesBeingRenamed,
@@ -20,38 +21,42 @@ const RenameModal: React.FC<RenameModalProps> = ({
     handleDeselectingNewCategory }) => {
     // if new category is being added then set initial name to empty or if there is more than one category being renamed
     // otherwise set the initial name to the category name being renamed
-    const [newName, setNewName] = useState(
-        (categoriesBeingRenamed.length > 1 || isAddingNewCategory ? '' : categoriesBeingRenamed[0].name) as string);
+    const [newName, setNewName] = useState<string>(
+        categoriesBeingRenamed.length > 1 || isAddingNewCategory
+            ? ''
+            : categoriesBeingRenamed[0]?.name || '' // Using optional chaining and defaulting to an empty string
+    );
     const [errorMessage, setErrorMessage] = useState(null as string | null);
 
-    const handleConfirm = () => {
+    const handleConfirm = async () => {
         setErrorMessage(null);
         const trimmedName = newName.trim();
 
-        // name cannot be empty
         if (trimmedName === "") {
             setErrorMessage("Category name cannot be empty.");
             setNewName('');
-
             return;
         }
 
-        // will diselect the category if the new category being added is renamed
         if (isAddingNewCategory) {
-            handleDeselectingNewCategory()
+            handleDeselectingNewCategory();
         }
 
-
-        // name did not change from initial name
-        if (trimmedName === categoriesBeingRenamed[0].name) {
-            onCancel()
-            return
+        if (trimmedName === categoriesBeingRenamed[0].name && !isAddingNewCategory) {
+            console.log("Category name is the same as before.: ", trimmedName);
+            onCancel();
+            return;
         }
 
-        onRename(trimmedName);
-        setNewName('');
-
+        try {
+            await onRename(trimmedName); // Await the async onRename function
+            setNewName('');
+        } catch (error) {
+            setErrorMessage("Error renaming category.");
+            console.error(error);
+        }
     };
+
 
 
     const handleCancel = () => {
@@ -70,44 +75,68 @@ const RenameModal: React.FC<RenameModalProps> = ({
         setNewName(text);
     }
 
+    // rename label changes based if renaming more than one category
+    const renameLabel = categoriesBeingRenamed.length > 1 ? "Rename Categories" : "Rename Category";
+
     return (
         <Modal
             transparent={true}
             animationType="slide"
             onRequestClose={onCancel}
         >
-            <View className="flex-1 justify-center items-center bg-transparent bg-opacity-50">
-                <View className="bg-white p-4 rounded w-80">
-                    <Text className="text-lg font-semibold mb-2"> {categoriesBeingRenamed.length > 1 ? "Rename Categories:" : "Rename Category"} </Text>
-                    {categoriesBeingRenamed.length > 1 && (<View className='flex-col'>
-                        {categoriesBeingRenamed.map((category) => (
+            {/* Backdrop */}
+            <Pressable
+                className="flex-1"
+                onPress={onCancel} // Close the modal when clicking outside
+            >
+                {/* Empty Pressable ensures clicks outside are registered */}
+            </Pressable>
 
-                            <Text key={category.name} className="mb-2">
-                                {category.name}
-                            </Text>
-                        ))}
-                    </View>)
-                    }
+            <View
+                className="mx-auto bg-white p-4 rounded w-80 z-10"            >
+                <Text className="text-lg font-semibold mb-2">
+                    {isAddingNewCategory ? "Add New Category" : renameLabel}
+                </Text>
 
-                    <TextInput
-                        value={newName}
-                        onChangeText={handleChangeText}
-                        placeholder="Enter new category name"
-                        className="border p-2 mb-4"
+                <View>
+
+                    <FlatList
+                        className='max-h-52'
+                        data={categoriesBeingRenamed}
+                        renderItem={({ item }) => (
+                            <Text className="mb-2">{categoriesBeingRenamed.length > 1 ? "• " : ""} {item.name}</Text>
+                        )}
+                        keyExtractor={(item) => item.name}
                     />
-                    {errorMessage && (
-                        <Text className="text-red-500 mb-2">{errorMessage}</Text>
-                    )}
-                    <View className="flex-row justify-between">
-                        <Pressable onPress={handleConfirm} className="bg-blue-500 p-2 rounded">
-                            <Text className="text-white">OK</Text>
-                        </Pressable>
-                        <Pressable onPress={handleCancel} className="bg-gray-400 p-2 rounded">
-                            <Text className="text-white">Cancel</Text>
-                        </Pressable>
-                    </View>
+
+                </View>
+
+
+                <TextInput
+                    value={newName}
+                    onChangeText={handleChangeText}
+                    placeholder="Enter new category name"
+                    className="border p-2 mb-4"
+                    autoFocus={true}
+                />
+                {errorMessage && (
+                    <Text className="text-red-500 mb-2">{errorMessage}</Text>
+                )}
+                <View className="flex-row justify-between">
+                    <Pressable onPress={handleConfirm} className="bg-blue-500 px-4 p-2 rounded-md">
+                        <Text className="text-white">OK</Text>
+                    </Pressable>
+                    <Pressable onPress={handleCancel} className="px-4 py-2 bg-gray-300 rounded-md">
+                        <Text className="text-black">Cancel</Text>
+                    </Pressable>
                 </View>
             </View>
+            <Pressable
+                className="flex-1"
+                onPress={onCancel} // Close the modal when pressing outside the content
+            >
+
+            </Pressable>
         </Modal>
     );
 };

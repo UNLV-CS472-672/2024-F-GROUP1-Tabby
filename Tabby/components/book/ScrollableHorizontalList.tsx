@@ -1,14 +1,14 @@
 import React from 'react';
 import { View, Text, FlatList } from 'react-native';
 
-type ScrollableGenresProps = {
-    genres: string[],
+type ScrollableHorizontalListProps = {
+    listOfStrings: string[],
 }
 
-const ScrollableGenres: React.FC<ScrollableGenresProps> = ({ genres }) => {
+const ScrollableHorizontalList: React.FC<ScrollableHorizontalListProps> = ({ listOfStrings }) => {
     return (
         <FlatList
-            data={genres}
+            data={listOfStrings}
             horizontal
             keyExtractor={(item, index) => (index.toString() + item)}
             renderItem={({ item }) => (
@@ -24,4 +24,4 @@ const ScrollableGenres: React.FC<ScrollableGenresProps> = ({ genres }) => {
     );
 };
 
-export default ScrollableGenres;
+export default ScrollableHorizontalList;
