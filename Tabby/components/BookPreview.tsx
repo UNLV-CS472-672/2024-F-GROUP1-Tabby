@@ -70,7 +70,7 @@ const BookPreview: React.FC<BookPreviewProps> = ({
             />
             <View className="flex-1">
                 <Text className="text-lg font-bold text-white" numberOfLines={2}>{book.title}</Text>
-                <Text className="text-sm text-white italic">{book.author}</Text>
+                <Text className="text-sm text-white italic" numberOfLines={1}>{book.author}</Text>
                 <Text className="text-sm text-white" numberOfLines={2}>{book.summary}</Text>
             </View>
             {selectedBooks.length > 0 ? null : button}

@@ -100,7 +100,7 @@ const AddBooksOrMoveBooksToCategoryModal: React.FC<AddBooksOrMoveBooksToCategory
         >
             <Pressable className='flex-1' onPress={onClose}></Pressable>
 
-            <View className="p-4 m-4 bg-white rounded-lg mx-auto w-96">
+            <View className="p-4 m-4 bg-white rounded-lg mx-auto w-72">
                 <View className="">
                     {/* only render switch if possible to move books*/}
                     {isPossibleToMoveBooks && (AddOrMoveSwitch())}
@@ -138,9 +138,9 @@ const AddBooksOrMoveBooksToCategoryModal: React.FC<AddBooksOrMoveBooksToCategory
                     data={booksToAdd}
                     keyExtractor={(item) => item.id.toString()}
                     renderItem={({ item }) => (
-                        <View className="flex-row items-center mb-2">
+                        <View className="flex-row items-center b-2">
                             <Text className="text-sm text-gray-800">
-                                {item.title} by {item.author}
+                                •{item.title} by {item.author}
                             </Text>
                         </View>
                     )}

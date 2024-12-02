@@ -98,7 +98,7 @@ const AddSearchResultsBooksModal: React.FC<AddSearchResultsBooksModalProps> = ({
             animationType="fade"
             onRequestClose={onClose}
         >
-            <View className="p-4 m-4 bg-white rounded-lg mx-auto w-96">
+            <View className="p-4 m-4 bg-white rounded-lg mx-auto w-80">
                 <Text className="text-lg text-black font-semibold mb-4">
                     Select one or more books to add:
                 </Text>

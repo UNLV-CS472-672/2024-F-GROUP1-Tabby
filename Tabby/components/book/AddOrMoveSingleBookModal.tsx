@@ -25,6 +25,7 @@ const AddOrMoveSingleBookModal: React.FC<AddOrMoveSingleBookModalProps> = ({
     // true means will be adding book false means will be moving book by default will set to adding book
     const [addOrMoveBook, setAddOrMoveBook] = useState(true);
     const [loading, setLoading] = useState(false);
+    console.log("is possible to move book", isPossibleToMoveBook)
 
     // Toggle selection of categories
     const toggleCategorySelection = (category: string) => {

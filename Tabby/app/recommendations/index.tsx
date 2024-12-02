@@ -1016,7 +1016,7 @@ const Recommendations = () => {
                 className="p-1"
                 onPress={() => handleShowSearchResultsModal()}
               >
-                <WebIcon height={35} width={35} />
+                <WebIcon height={33} width={35} />
               </Pressable>
             </>
           )}
