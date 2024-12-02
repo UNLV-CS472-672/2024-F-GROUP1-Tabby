@@ -69,31 +69,12 @@ const data: FieldData[] = [
     { key: "Add Notes", placeholder: "Notes", field: "notes", isMultiline: true } // Optional field, no validation required
 ];
 
-
-const defaultBooks: Book[] = [
-    {
-        id: "default",
-        title: "",
-        author: "",
-        summary: "",
-        excerpt: "",
-        image: "",
-        rating: 1,
-        genres: "",
-        isFavorite: false,
-    },
-];
-
-const defaultSelectableBooks: SelectableBook[] = defaultBooks.map(
-    (currentBook) => ({ book: currentBook, isSelected: false })
-);
-
 const size = 36;
 
 const CategoryPage: React.FC = () => {
     const { category } = useLocalSearchParams();
     const [selectableBooks, setSelectableBooks] = useState<SelectableBook[]>(
-        defaultSelectableBooks
+        []
     );
     const [
         isAddingOrMovingBookModalVisible,
@@ -126,25 +107,25 @@ const CategoryPage: React.FC = () => {
 
 
     // function to check if any books are selected
-    const areAnyBooksSelected = () => {
-        return selectableBooks.some((book) => book.isSelected);
+    const areAnyFilteredBooksSelected = () => {
+        return filteredBooksForSearch.some((book) => book.isSelected);
     };
 
     // get all selectable books that are selected
-    const getSelectedSelectableBooks = () => {
-        return selectableBooks.filter(
+    const getSelectedFilteredSelectableBooks = () => {
+        return filteredBooksForSearch.filter(
             (currentSelectableBook) => currentSelectableBook.isSelected
         );
     };
 
     // function to get all selected book ids
-    const getAllSelectedBookIds = () => {
-        return selectableBooks
+    const getAllSelectedFilteredBookIds = () => {
+        return filteredBooksForSearch
             .filter((book) => book.isSelected)
             .map((book) => book.book.id);
     };
 
-    // get all unselected Selectable book objects
+    // get all unselected book objects from selectable books
     const getUnselectedSelectableBooks = () => {
         return selectableBooks.filter(
             (currentSelectableBook) => !currentSelectableBook.isSelected
@@ -179,12 +160,21 @@ const CategoryPage: React.FC = () => {
 
                 // check if initialBooks is an array of books
                 if (Array.isArray(initialBooks)) {
+                    // setting selectable books initially
                     setSelectableBooks(
                         initialBooks.map((currentBook) => ({
                             book: currentBook,
                             isSelected: false,
                         }))
                     );
+                    // will also set filtered books for search
+                    setFilteredBooksForSearch(
+                        initialBooks.map((currentBook) => ({
+                            book: currentBook,
+                            isSelected: false,
+                        }))
+                    )
+
                 }
             } catch (error) {
                 console.error("Failed to load categories:", error);
@@ -196,8 +186,13 @@ const CategoryPage: React.FC = () => {
         fetchingBooksFromCategory();
     }, [category]);
 
-    const [search, setSearch] = useState("");
+
     const [addCustomBookModalVisible, setAddCustomBookModalVisible] = useState(false);
+
+    const [search, setSearch] = useState("");
+    const [filteredBooksForSearch, setFilteredBooksForSearch] = useState(selectableBooks);
+    const [loadingSearch, setLoadingSearch] = useState(false);
+
 
     const handleFavoritePress = async (bookId: string) => {
         // get user book by id
@@ -220,6 +215,7 @@ const CategoryPage: React.FC = () => {
             return { ...tempBookObject, isFavorite: !favoriteStatus };
         };
 
+        // update selectable state of local books
         setSelectableBooks((prevSelectableBooks) =>
             prevSelectableBooks.map((currentSelectableBook) =>
                 currentSelectableBook.book.id === bookId
@@ -232,12 +228,27 @@ const CategoryPage: React.FC = () => {
                     : currentSelectableBook
             )
         );
+
+        // update selectable state of filtered books for search
+        setFilteredBooksForSearch((prevSelectableBooks) =>
+            prevSelectableBooks.map((currentSelectableBook) =>
+                currentSelectableBook.book.id === bookId
+                    ? {
+                        book: getBookObjectWithTogglingFavorite(
+                            currentSelectableBook.book
+                        ),
+                        isSelected: false,
+                    }
+                    : currentSelectableBook
+            )
+        );
+
     };
 
     // handle adding selected books to categories
     const handleAddSelectedBooksToCategories = async (categories: string[]) => {
-        const selectedBookObjects = getBookObjectsFromSelectableBooksPassed(
-            getSelectedSelectableBooks()
+        const selectedBookObjects = getBookObjectsFromSelectableBookArrayPassed(
+            getSelectedFilteredSelectableBooks()
         );
         let wasAbleToAddBooksToAllCategories = true;
 
@@ -267,8 +278,8 @@ const CategoryPage: React.FC = () => {
     const handleMovingSelectedBooksToCategories = async (
         categories: string[]
     ) => {
-        const selectedBookObjects = getBookObjectsFromSelectableBooksPassed(
-            getSelectedSelectableBooks()
+        const selectedBookObjects = getBookObjectsFromSelectableBookArrayPassed(
+            getSelectedFilteredSelectableBooks()
         );
         let wasAbleToAddBooksToAllCategories = true;
         const onlyOneSelectedCategory = categories.length === 1;
@@ -309,7 +320,7 @@ const CategoryPage: React.FC = () => {
             // delete selected books from current category only if there were more than one category
             if (!onlyOneSelectedCategory) {
                 const resultOfDeletingSelectedBooks = await deleteMultipleUserBooksByIds(
-                    getAllSelectedBookIds()
+                    getAllSelectedFilteredBookIds()
                 )
                 if (!resultOfDeletingSelectedBooks) {
                     Alert.alert("Failed to delete selected books in current category");
@@ -321,6 +332,8 @@ const CategoryPage: React.FC = () => {
             // set local state of selectable books to not have the selected book objects as they have been moved from current category
             const unselectedSelectableBooks = getUnselectedSelectableBooks();
             setSelectableBooks(unselectedSelectableBooks);
+            //set local state of filtered books for search to not have the selected book objects as they have been moved from current category
+            setFilteredBooksForSearch(unselectedSelectableBooks);
 
             setIsAddingOrMovingBookModalVisible(false);
             Alert.alert("Successfully moved selected books to all selected categories");
@@ -338,10 +351,10 @@ const CategoryPage: React.FC = () => {
     };
 
     // get book objects array from selectableBooks array
-    const getBookObjectsFromSelectableBooksPassed = (
-        SelectableBooks: SelectableBook[]
+    const getBookObjectsFromSelectableBookArrayPassed = (
+        tempBooks: SelectableBook[]
     ) => {
-        return SelectableBooks.map(
+        return tempBooks.map(
             (currentSelectableBook) => currentSelectableBook.book
         );
     };
@@ -357,37 +370,41 @@ const CategoryPage: React.FC = () => {
         </Pressable>
     );
 
-    const renderItem = ({ item }: { item: SelectableBook }) => {
-        // check if book array has the default book if it does do not render anything meaning category has no books yet
-        if (item.book.id === "default") {
-            return null;
-        }
-
-        const genresAsArray = item.book.genres?.split(",") || [];
-        const searchAsLowerCase = search.toLowerCase();
-        const filteredStringWithOnlyNumbers = search.replace(/\D/g, '');
-        // search by title, author, genre, isbn, or genre
-        if (
-            search === "" ||
-            item.book.title.toLowerCase().includes(searchAsLowerCase) ||
-            item.book.author.toLowerCase().includes(searchAsLowerCase) ||
-            genresAsArray.some((genre) => genre.toLowerCase().includes(searchAsLowerCase)) ||
-            item.book.isbn === filteredStringWithOnlyNumbers
-        ) {
-            return (
-                <BookPreview
-                    book={item.book}
-                    button={renderBookButton(item)}
-                    toggleSelected={toggleSelectedBook}
-                    selectedBooks={getAllSelectedBookIds()}
-                />
-            );
-        }
-        return null;
-    };
-
     const updateSearch = (search: string) => {
+        const trimmedSearch = search.trim();
         setSearch(search);
+        setLoadingSearch(true);
+        deselectAllBooks();
+
+        const filteredBooks = selectableBooks.filter((currentSelectableBook) => {
+            const genresAsArray = currentSelectableBook.book.genres?.split(",") || [];
+            const searchAsLowerCase = trimmedSearch.toLowerCase();
+            const filteredStringWithOnlyNumbers = trimmedSearch.replace(/\D/g, '');
+            // search by title, author, genre, isbn, or genre
+            if (
+                search === "" ||
+                currentSelectableBook.book.title.toLowerCase().includes(searchAsLowerCase) ||
+                currentSelectableBook.book.author.toLowerCase().includes(searchAsLowerCase) ||
+                genresAsArray.some((genre) => genre.toLowerCase().includes(searchAsLowerCase)) ||
+                currentSelectableBook.book.isbn === filteredStringWithOnlyNumbers
+            ) {
+                return true;
+            }
+            return false;
+        });
+
+        const filteredBooksThatAreNotSelected = filteredBooks.map((currentFilteredBook) => {
+            return {
+                ...currentFilteredBook,
+                isSelected: false
+            }
+        }
+        )
+
+        setFilteredBooksForSearch(filteredBooksThatAreNotSelected);
+
+        setLoadingSearch(false);
+
     };
 
     const toggleSelectedBook = (bookId: string) => {
@@ -401,11 +418,30 @@ const CategoryPage: React.FC = () => {
                     : currentSelectableBook
             )
         );
+
+        setFilteredBooksForSearch((prevSelectableBooks) =>
+            prevSelectableBooks.map((currentSelectableBook) =>
+                currentSelectableBook.book.id === bookId
+                    ? {
+                        ...currentSelectableBook,
+                        isSelected: !currentSelectableBook.isSelected,
+                    } // Toggle selected status
+                    : currentSelectableBook
+            )
+        );
+
     };
 
     // set all books to be deselected
     const deselectAllBooks = () => {
+        // set all books to be deselected
         setSelectableBooks((prevSelectableBooks) =>
+            prevSelectableBooks.map((currentSelectableBook) => ({
+                ...currentSelectableBook,
+                isSelected: false,
+            }))
+        );
+        setFilteredBooksForSearch((prevSelectableBooks) =>
             prevSelectableBooks.map((currentSelectableBook) => ({
                 ...currentSelectableBook,
                 isSelected: false,
@@ -415,11 +451,12 @@ const CategoryPage: React.FC = () => {
 
     // delete selected books
     const deleteSelectedBooks = async () => {
-        const selectedBookIds = getAllSelectedBookIds();
+        const selectedBookIds = getAllSelectedFilteredBookIds();
         const unselectedSelectableBooks = getUnselectedSelectableBooks();
         const result = await deleteMultipleUserBooksByIds(selectedBookIds);
         if (result) {
             setSelectableBooks(unselectedSelectableBooks);
+            setFilteredBooksForSearch(unselectedSelectableBooks);
             setIsDeleteModalVisible(false);
             Alert.alert("Successfully deleted selected books");
         } else {
@@ -427,13 +464,30 @@ const CategoryPage: React.FC = () => {
         }
     };
 
-    const selectAllBooks = () => {
+    const selectAllFilteredBooksAndUpdateSelectableBooksToSelectTheFilteredBooks = () => {
         // set all books to selected
-        const updatedSelectableBooks = selectableBooks.map((book) => ({
+        const updatedFilteredBooksForSearch = filteredBooksForSearch.map((book) => ({
             ...book,
             isSelected: true,
         }))
-        setSelectableBooks(updatedSelectableBooks);
+
+        const shouldSelectBook = (tempBook: SelectableBook) => {
+            if (updatedFilteredBooksForSearch.some((filteredBook) => filteredBook.book.id === tempBook.book.id)) {
+                return true;
+            }
+            return false;
+        }
+
+        // update selectable books
+        const selectableBooksWithFilteredBooksSelected = selectableBooks.map((book) => ({
+            ...book,
+            isSelected: shouldSelectBook(book)
+
+        }))
+        console.log("\n \n \n \n filteredBooksForSearch: ", updatedFilteredBooksForSearch, "\n \n \n \n")
+        console.log(selectableBooksWithFilteredBooksSelected)
+        setSelectableBooks(selectableBooksWithFilteredBooksSelected);
+        setFilteredBooksForSearch(updatedFilteredBooksForSearch);
     }
 
     const handleAddCustomBook = async () => {
@@ -462,9 +516,13 @@ const CategoryPage: React.FC = () => {
         }
         // add new book to books has to be done after adding to database as the book object that is returned from database has the proper uuid
         setSelectableBooks([
-            ...selectableBooks,
             { book: resultOfAddingCustomBook, isSelected: false },
+            ...selectableBooks,
         ]);
+        setFilteredBooksForSearch([
+            { book: resultOfAddingCustomBook, isSelected: false },
+            ...filteredBooksForSearch,
+        ])
         // resetting custom book if added 
         setNewCustomBook({ title: '', author: '', summary: '', excerpt: '', pageCount: null, notes: '' });
         Alert.alert("Custom book added successfully!");
@@ -501,22 +559,31 @@ const CategoryPage: React.FC = () => {
                         <Text className="text-white text-xl font-bold text-left">{category}</Text>
                     </ScrollView>
                     <View className="flex-row  ml-auto">
-                        <Pressable className="mr-1" onPress={() => selectAllBooks()}><SelectIcon height={35} width={35} /></Pressable>
+                        <Pressable className="mr-1" onPress={() => selectAllFilteredBooksAndUpdateSelectableBooksToSelectTheFilteredBooks()}><SelectIcon height={35} width={35} /></Pressable>
                     </View>
 
                 </View>
 
-
-
-                <View className="flex-1">
-                    <FlatList
-                        data={selectableBooks}
-                        keyExtractor={(item) => item.book.id}
-                        renderItem={renderItem}
-                    />
+                {/* Book List */}
+                {loadingSearch ? (<View className="w-full">
+                    <LoadingSpinner />
                 </View>
+                ) : (
+                    <FlatList
+                        data={filteredBooksForSearch}
+                        keyExtractor={(item) => item.book.id}
+                        renderItem={({ item }) => (
+                            <BookPreview
+                                book={item.book}
+                                button={renderBookButton(item)}
+                                toggleSelected={toggleSelectedBook}
+                                selectedBooks={getAllSelectedFilteredBookIds()}
+                            />
+                        )}
+                    />
+                )}
 
-                {areAnyBooksSelected() && (
+                {areAnyFilteredBooksSelected() && (
                     <View className="flex-row justify-around bg-[#161f2b] w-full border-t border-blue-500">
                         <View className="">
                             <Pressable
@@ -554,8 +621,8 @@ const CategoryPage: React.FC = () => {
                 <DeleteBooksModal
                     visible={isDeleteModalVisible}
                     onClose={() => setIsDeleteModalVisible(false)}
-                    booksToDelete={getBookObjectsFromSelectableBooksPassed(
-                        getSelectedSelectableBooks()
+                    booksToDelete={getBookObjectsFromSelectableBookArrayPassed(
+                        getSelectedFilteredSelectableBooks()
                     )}
                     onConfirm={deleteSelectedBooks}
                 />
@@ -564,8 +631,8 @@ const CategoryPage: React.FC = () => {
                 <AddBooksOrMoveBooksToCategoryModal
                     visible={isAddingOrMovingBookModalVisible}
                     onClose={() => setIsAddingOrMovingBookModalVisible(false)}
-                    booksToAdd={getBookObjectsFromSelectableBooksPassed(
-                        getSelectedSelectableBooks()
+                    booksToAdd={getBookObjectsFromSelectableBookArrayPassed(
+                        getSelectedFilteredSelectableBooks()
                     )}
                     categories={categories}
                     onConfirmAddBooks={handleAddSelectedBooksToCategories}

@@ -8,10 +8,12 @@ import {
   getAllCategories,
   getAllRecommendedBooks,
   addRecommendedBookIfNotInRecommendationsBasedOnIsbn,
+  addRecommendedBook,
   deleteMultipleRecommendedBooksByIds,
   addMultipleUserBooksWithCategoryName,
   updateMultipleRecommendedBooksToBeAddedToLibrary,
   getAllNonCustomUserBooks,
+  deleteAllRecommendedBooks,
 } from "@/database/databaseOperations";
 import { Book } from "@/types/book";
 import DeleteIcon from "@/assets/menu-icons/delete-icon.svg";
@@ -540,6 +542,8 @@ const Recommendations = () => {
   const [searchResults, setSearchResults] = useState<Book[]>([]);
   const [loadingSearchResults, setLoadingSearchResults] = useState(false);
 
+  const [filteredBooksForSearchInRecommendations, setFilteredBooksForSearchInRecommendations] = useState(selectableBooks);
+  const [loadingSearchInRecommendations, setLoadingSearchInRecommendations] = useState(false);
   // will add books that the user has searched for and selected to their library will be passed into search modal
   const handleAddSearchResultBooksFromApi = async (
     booksSelectedToAdd: Book[],
@@ -614,20 +618,20 @@ const Recommendations = () => {
   };
 
   // function to check if any books are selected
-  const areAnyBooksSelected = () => {
-    return selectableBooks.some((book) => book.isSelected);
+  const areAnyFilteredBooksSelected = () => {
+    return filteredBooksForSearchInRecommendations.some((book) => book.isSelected);
   };
 
   // get all selectable books that are selected
-  const getSelectedSelectableBooks = () => {
-    return selectableBooks.filter(
+  const getSelectedSelectableFilteredBooks = () => {
+    return filteredBooksForSearchInRecommendations.filter(
       (currentSelectableBook) => currentSelectableBook.isSelected
     );
   };
 
   // function to get all selected book ids
-  const getAllSelectedBookIds = () => {
-    return selectableBooks
+  const getAllSelectedFilteredBookIds = () => {
+    return filteredBooksForSearchInRecommendations
       .filter((book) => book.isSelected)
       .map((book) => book.book.id);
   };
@@ -648,27 +652,36 @@ const Recommendations = () => {
       const recommendedBooksFromApi = await getRecommendedBooksFromServerBasedOnBooksPassed(
         nonCustomUserBooks || defaultBooks
       );
-      // keep track of
-      let booksFromApiThatAreActuallyAddedIntoDatabase: Book[] = [];
+
       // checking if the recommended books from api are empty
       if (recommendedBooksFromApi.length !== 0) {
+        // delete all recommendations from database if there are some recommended books already 
+        if (selectableBooks.length > 0) {
+          const resultOfDeletingAllBooks = await deleteAllRecommendedBooks();
+          if (!resultOfDeletingAllBooks) {
+            throw new Error("Failed to delete all recommended books from database");
+          }
+        }
+
+
         // adding recommended books to database if not already in database
         for (const bookFromApi of recommendedBooksFromApi) {
-          const resultOfAddingBook = await addRecommendedBookIfNotInRecommendationsBasedOnIsbn(
+          const resultOfAddingBook = await addRecommendedBook(
             bookFromApi
           );
-          if (resultOfAddingBook) {
-            booksFromApiThatAreActuallyAddedIntoDatabase.push(bookFromApi);
+          if (!resultOfAddingBook) {
+            console.error("Failed to add book to database: ", bookFromApi);
           }
         }
       } else {
         throw new Error("No recommended books from api were found");
       }
-      // add books from api to selectable books
-      const selectableBooksToAdd = booksFromApiThatAreActuallyAddedIntoDatabase.map(
+      // replace old selectable books with new selectable books from api will also replace filtered books
+      const selectableBooksToAdd = recommendedBooksFromApi.map(
         (book) => ({ book, isSelected: false })
       );
-      setSelectableBooks([...selectableBooksToAdd, ...selectableBooks]);
+      setSelectableBooks([...selectableBooksToAdd]);
+      setFilteredBooksForSearchInRecommendations([...selectableBooksToAdd]);
     } catch (error) {
       console.log("Error getting recommended books from api", error);
       Alert.alert("Error occurred while getting new recommended books");
@@ -677,14 +690,30 @@ const Recommendations = () => {
     }
   };
 
-  const selectAllBooks = () => {
+  const selectAllFilteredBooksAndUpdateSelectableBooksToSelectTheFilteredBooks = () => {
     // set all books to selected
-    const updatedSelectableBooks = selectableBooks.map((book) => ({
+    const updatedFilteredBooksForSearch = filteredBooksForSearchInRecommendations.map((book) => ({
       ...book,
       isSelected: true,
-    }));
-    setSelectableBooks(updatedSelectableBooks);
-  };
+    }))
+
+
+    const shouldSelectBook = (tempBook: SelectableBook) => {
+      if (updatedFilteredBooksForSearch.some((filteredBook) => filteredBook.book.id === tempBook.book.id)) {
+        return true;
+      }
+      return false;
+    }
+
+    // update selectable books
+    const selectableBooksWithFilteredBooksSelected = selectableBooks.map((book) => ({
+      ...book,
+      isSelected: shouldSelectBook(book)
+
+    }))
+    setSelectableBooks(selectableBooksWithFilteredBooksSelected);
+    setFilteredBooksForSearchInRecommendations(updatedFilteredBooksForSearch);
+  }
 
   useEffect(() => {
     const addRecommendedBooksFromApiIfNoRecommendedBooks = async () => {
@@ -712,10 +741,10 @@ const Recommendations = () => {
           book,
           isSelected: false,
         }));
-        setSelectableBooks((prevSelectableBooks) => [
+        setSelectableBooks([
           ...selectableBooksToAdd,
-          ...prevSelectableBooks,
         ]);
+        setFilteredBooksForSearchInRecommendations([...selectableBooksToAdd]);
       } catch (error) {
         console.log("Error getting recommended books from api", error);
         Alert.alert("Error occurred while getting new recommended books");
@@ -742,6 +771,9 @@ const Recommendations = () => {
           setSelectableBooks(
             recommendedBooks.map((book) => ({ book, isSelected: false }))
           );
+          setFilteredBooksForSearchInRecommendations(
+            recommendedBooks.map((book) => ({ book, isSelected: false }))
+          )
         }
       } catch (error) {
         // error getting recommended books from api so will just use old recommended books from earlier api calls
@@ -755,7 +787,37 @@ const Recommendations = () => {
   }, []);
 
   const updateSearch = (search: string) => {
+    const trimmedSearch = search.trim();
     setSearch(search);
+    setLoadingSearchInRecommendations(true);
+    const filteredBooks = selectableBooks.filter((currentSelectableBook) => {
+      const genresAsArray = currentSelectableBook.book.genres?.split(",") || [];
+      const searchAsLowerCase = trimmedSearch.toLowerCase();
+      const filteredStringWithOnlyNumbers = trimmedSearch.replace(/\D/g, '');
+      // search by title, author, genre, isbn, or genre
+      if (
+        search === "" ||
+        currentSelectableBook.book.title.toLowerCase().includes(searchAsLowerCase) ||
+        currentSelectableBook.book.author.toLowerCase().includes(searchAsLowerCase) ||
+        genresAsArray.some((genre) => genre.toLowerCase().includes(searchAsLowerCase)) ||
+        currentSelectableBook.book.isbn === filteredStringWithOnlyNumbers
+      ) {
+        return true;
+      }
+      return false;
+    });
+
+    const filteredBooksThatAreNotSelected = filteredBooks.map((currentFilteredBook) => {
+      return {
+        ...currentFilteredBook,
+        isSelected: false
+      }
+    }
+    )
+
+    setFilteredBooksForSearchInRecommendations(filteredBooksThatAreNotSelected);
+
+    setLoadingSearchInRecommendations(false);
   };
 
   // will change the state of the book to add to library
@@ -784,11 +846,30 @@ const Recommendations = () => {
           : currentSelectableBook
       )
     );
+
+    setFilteredBooksForSearchInRecommendations((prevSelectableBooks) =>
+      prevSelectableBooks.map((currentSelectableBook) =>
+        currentSelectableBook.book.id === bookId
+          ? {
+            ...currentSelectableBook,
+            isSelected: !currentSelectableBook.isSelected,
+          } // Toggle selected status
+          : currentSelectableBook
+      )
+    );
+
   };
 
   // set all books to be deselected
   const deselectAllBooks = () => {
     setSelectableBooks((prevSelectableBooks) =>
+      prevSelectableBooks.map((currentSelectableBook) => ({
+        ...currentSelectableBook,
+        isSelected: false,
+      }))
+    );
+
+    setFilteredBooksForSearchInRecommendations((prevSelectableBooks) =>
       prevSelectableBooks.map((currentSelectableBook) => ({
         ...currentSelectableBook,
         isSelected: false,
@@ -808,11 +889,12 @@ const Recommendations = () => {
 
   // delete selected books
   const deleteSelectedBooks = async () => {
-    const selectedBookIds = getAllSelectedBookIds();
+    const selectedBookIds = getAllSelectedFilteredBookIds();
     const unselectedSelectableBooks = getUnselectedSelectableBooks();
     const result = await deleteMultipleRecommendedBooksByIds(selectedBookIds);
     if (result) {
       setSelectableBooks(unselectedSelectableBooks);
+      setFilteredBooksForSearchInRecommendations(unselectedSelectableBooks);
       setIsDeleteModalVisible(false);
       Alert.alert("Successfully deleted selected books");
     } else {
@@ -823,7 +905,7 @@ const Recommendations = () => {
   // handle adding selected books to categories
   const handleAddSelectedBooksToCategories = async (categories: string[]) => {
     const selectedBookObjects = getBookObjectsFromSelectableBooksPassed(
-      getSelectedSelectableBooks()
+      getSelectedSelectableFilteredBooks()
     );
     // change all selectable book objects to have ratings of 0
     selectedBookObjects.forEach((book) => {
@@ -869,6 +951,7 @@ const Recommendations = () => {
         }
       );
       setSelectableBooks(updatedSelectableBooks);
+      setFilteredBooksForSearchInRecommendations(updatedSelectableBooks);
       setIsAddingBookModalVisible(false);
 
       // if add button was pressed reset it to false after adding it
@@ -899,34 +982,6 @@ const Recommendations = () => {
     return SelectableBooks.map(
       (currentSelectableBook) => currentSelectableBook.book
     );
-  };
-
-  // if the string typed in the search bar is a part of a book title, isbn, or author then render the book
-  const renderItem = ({ item }: { item: SelectableBook }) => {
-    const genresAsArray = item.book.genres?.split(",") || [];
-    // search by title, author, genre, isbn, or genre
-    const searchAsLowerCase = search.toLowerCase();
-    const filteredStringWithOnlyNumbers = search.replace(/\D/g, '');
-    if (
-      search === "" ||
-      item.book.title.toLowerCase().includes(searchAsLowerCase) ||
-      item.book.author.toLowerCase().includes(search.toLowerCase()) ||
-      genresAsArray.some((genre) =>
-        genre.toLowerCase().includes(searchAsLowerCase)
-      ) ||
-      item.book.isbn === filteredStringWithOnlyNumbers
-    ) {
-      return (
-        <BookPreview
-          book={item.book}
-          button={renderBookButton(item)}
-          isRecommendation={true}
-          toggleSelected={toggleSelectedBook}
-          selectedBooks={getAllSelectedBookIds()}
-        />
-      );
-    }
-    return null;
   };
 
   const RecommendationsPage = () => {
@@ -974,21 +1029,33 @@ const Recommendations = () => {
             >
               <RefreshIcon height={35} width={35} />
             </Pressable>
-            <Pressable className="mr-1" onPress={() => selectAllBooks()}>
+            <Pressable className="mr-1" onPress={selectAllFilteredBooksAndUpdateSelectableBooksToSelectTheFilteredBooks}>
               <SelectIcon height={35} width={35} />
             </Pressable>
           </View>
         </View>
 
-        <View className="flex-1">
-          <FlatList
-            data={selectableBooks}
-            keyExtractor={(item) => item.book.id}
-            renderItem={renderItem}
-          />
+        {/* Book List */}
+        {loadingSearchInRecommendations ? (<View className="w-full">
+          <LoadingSpinner />
         </View>
+        ) : (
+          <FlatList
+            data={filteredBooksForSearchInRecommendations}
+            keyExtractor={(item) => item.book.id}
+            renderItem={({ item }) => (
+              <BookPreview
+                book={item.book}
+                button={renderBookButton(item)}
+                toggleSelected={toggleSelectedBook}
+                selectedBooks={getAllSelectedFilteredBookIds()}
+                isRecommendation={true}
+              />
+            )}
+          />
+        )}
 
-        {areAnyBooksSelected() &&
+        {areAnyFilteredBooksSelected() &&
           !pressedAddBookToLibraryButtonFromBookPreview && (
             <View className="flex-row justify-around bg-[#161f2b] w-full border-t border-blue-500">
               <View className="">
@@ -1028,7 +1095,7 @@ const Recommendations = () => {
           visible={isDeleteModalVisible}
           onClose={() => setIsDeleteModalVisible(false)}
           booksToDelete={getBookObjectsFromSelectableBooksPassed(
-            getSelectedSelectableBooks()
+            getSelectedSelectableFilteredBooks()
           )}
           onConfirm={deleteSelectedBooks}
         />
@@ -1038,7 +1105,7 @@ const Recommendations = () => {
           visible={isAddingBookModalVisible}
           onClose={() => hideAddBooksModal()}
           booksToAdd={getBookObjectsFromSelectableBooksPassed(
-            getSelectedSelectableBooks()
+            getSelectedSelectableFilteredBooks()
           )}
           categories={categories}
           onConfirmAddBooks={handleAddSelectedBooksToCategories}
