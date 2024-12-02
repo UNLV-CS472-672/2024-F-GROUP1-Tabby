@@ -1,5 +1,6 @@
 import logging
 from pprint import pprint
+import sys
 import cyclopts as cy
 import cv2 as cv
 
@@ -19,13 +20,18 @@ def main(image_path: cy.types.ResolvedExistingFile) -> None:
         image_path: Path to the image to scan.
     """
 
-    logging.basicConfig(filename="logs/scan_shelf.log", level=logging.INFO)
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
     image = cv.imread(str(image_path))
     results = scan_shelf(image)
-    pprint(results)
+    # pprint(results)
 
     pprint([len(result) for result in results])
+    for result in results:
+        if result:
+            book = result[0]
+            print(f"{book.title}")
+            print(f"- {book.authors}")
 
 
 if __name__ == "__main__":

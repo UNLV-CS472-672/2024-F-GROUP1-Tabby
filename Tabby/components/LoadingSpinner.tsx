@@ -3,7 +3,7 @@ import { SafeAreaView, ActivityIndicator } from 'react-native';
 
 const LoadingSpinner = () => {
     return (
-        <SafeAreaView className="flex-1 justify-center items-center bg-[#1E1E1E]">
+        <SafeAreaView className="flex-1 justify-center items-center">
             <ActivityIndicator size="large" />
         </SafeAreaView>
     );

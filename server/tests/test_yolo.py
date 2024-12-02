@@ -19,7 +19,7 @@ def test_find_books():
 
     # Generate Incorrect Tensor Images
 
-    # ai-gen start (ChatGPT-4.0, 2)
+    # ai-gen start (ChatGPT-4o, 2)
 
     # Incorrect Number of Dimensions
     # Omits batch dimension.

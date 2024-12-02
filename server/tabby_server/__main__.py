@@ -6,6 +6,8 @@ PORT = os.getenv("PORT", "8000")
 
 
 if __name__ == "__main__":
+
+    # Adapted from tutorial: https://flask.palletsprojects.com/en/stable/logging/  # noqa: E501
     app.run(debug=False, host="0.0.0.0", port=int(PORT))
 
 # Run by using

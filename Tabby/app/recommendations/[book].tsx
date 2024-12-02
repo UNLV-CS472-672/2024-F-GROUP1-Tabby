@@ -54,9 +54,7 @@ const BookPage = () => {
                 const bookResponse = await getRecommendedBookById(book as string);
                 const categoriesResponse = await getAllCategories();
 
-                // console.log(bookResponse);
-                // console.log(categoriesResponse);
-                // set current book if not empty
+
                 if (bookResponse) {
                     setCurrentBook(bookResponse);
                 }
@@ -86,12 +84,12 @@ const BookPage = () => {
     const handleAddBookToSelectedCategories = async (
         selectedCategories: string[]
     ) => {
-        console.log(`Moving book to this category: ${selectedCategories}`);
 
         let wasAbleToAddBookToAllCategories = true;
         for (const currentCategory of selectedCategories) {
-            const bookToBeAddedToCategory = {
+            const bookToBeAddedToCategory: Book = {
                 ...currentBook,
+                rating: 0,
                 category: currentCategory,
             };
             const result = await addUserBook(bookToBeAddedToCategory);
@@ -125,7 +123,6 @@ const BookPage = () => {
 
     const handleDeleteBook = async () => {
         setIsDeleteModalVisible(false);
-        console.log(`Deleting ${book} from recommendations`);
         // deleting book from db
         const result = await deleteRecommendedBookById(book as string);
         if (!result) {
@@ -179,7 +176,7 @@ const BookPage = () => {
     const BookPage = () => {
         return (
             <>
-                <SafeAreaView>
+                <SafeAreaView className="flex-1">
                     <View className="flex-row justify-end items-center">
                         <Pressable
                             className="p-1 mr-2"
@@ -206,7 +203,6 @@ const BookPage = () => {
                         <AddOrMoveSingleBookModal
                             visible={isAddOrMoveBookModalVisible}
                             onClose={() => setIsAddOrMoveBookModalVisible(false)}
-                            bookToAdd={currentBook}
                             categories={categories}
                             onConfirmAddBook={handleAddBookToSelectedCategories}
                         />
@@ -246,7 +242,7 @@ const BookPage = () => {
 
 
                         <ScrollView className="max-h-40 pl-1">
-                            <Text className="text-sm text-white max-w-sm text-start">
+                            <Text className="text-sm text-white max-w-[90%] p-1 text-start">
                                 {currentBook.notes}
                             </Text>
                         </ScrollView>

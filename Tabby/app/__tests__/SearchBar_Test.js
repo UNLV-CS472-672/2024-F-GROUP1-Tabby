@@ -35,8 +35,14 @@ jest.mock("expo-font", () => ({
     loadAsync: jest.fn(),
 }));
 
+
+
 // Mock SVG imports
 jest.mock("@/assets/menu-icons/plus-icon.svg", () => "MockPlusIcon");
+jest.mock("@/assets/menu-icons/web-icon.svg", () => "MockWebIcon");
+jest.mock("@/assets/menu-icons/refresh-icon.svg", () => "MockRefreshIcon");
+jest.mock("@/assets/menu-icons/select-icon.svg", () => "MockSelectIcon");
+
 
 // Mock vector icons
 jest.mock("@expo/vector-icons", () => ({
@@ -62,6 +68,7 @@ describe("Favorite tab test favorites page", () => {
 // Test suite for search bar functionality
 describe("Favorite tab test everything else", () => {
     test("Correct search bar input for everything else", async () => {
+
         // Render categories page
         const categoriesPage = render(<Categories />);
         const searchBar2 = await categoriesPage.findByPlaceholderText(
@@ -73,15 +80,16 @@ describe("Favorite tab test everything else", () => {
         // Render category page
         const categoryPage = render(<CategoryPage />);
         const searchBar3 = await categoryPage.findByPlaceholderText(
-            "Search by title, ISBN, or author..."
+            "Search by title, author, genre, or isbn"
         );
         fireEvent.changeText(searchBar3, "tempText3");
         expect(searchBar3.props.value).toBe("tempText3");
 
+
         // Render recommendations page
         const recommendationsPage = render(<Recommendations />);
         const searchBar4 = await recommendationsPage.findByPlaceholderText(
-            "Search by title, ISBN, or author..."
+            "Search by title, author, genre, or isbn"
         );
         fireEvent.changeText(searchBar4, "tempText4");
         expect(searchBar4.props.value).toBe("tempText4");
