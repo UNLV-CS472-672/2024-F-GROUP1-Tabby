@@ -905,14 +905,16 @@ const Recommendations = () => {
   const renderItem = ({ item }: { item: SelectableBook }) => {
     const genresAsArray = item.book.genres?.split(",") || [];
     // search by title, author, genre, isbn, or genre
+    const searchAsLowerCase = search.toLowerCase();
+    const filteredStringWithOnlyNumbers = search.replace(/\D/g, '');
     if (
       search === "" ||
-      item.book.title.toLowerCase().includes(search.toLowerCase()) ||
+      item.book.title.toLowerCase().includes(searchAsLowerCase) ||
       item.book.author.toLowerCase().includes(search.toLowerCase()) ||
       genresAsArray.some((genre) =>
-        genre.toLowerCase().includes(search.toLowerCase())
+        genre.toLowerCase().includes(searchAsLowerCase)
       ) ||
-      item.book.isbn?.toLowerCase() === search
+      item.book.isbn === filteredStringWithOnlyNumbers
     ) {
       return (
         <BookPreview

@@ -364,13 +364,15 @@ const CategoryPage: React.FC = () => {
         }
 
         const genresAsArray = item.book.genres?.split(",") || [];
+        const searchAsLowerCase = search.toLowerCase();
+        const filteredStringWithOnlyNumbers = search.replace(/\D/g, '');
         // search by title, author, genre, isbn, or genre
         if (
             search === "" ||
-            item.book.title.toLowerCase().includes(search.toLowerCase()) ||
-            item.book.author.toLowerCase().includes(search.toLowerCase()) ||
-            genresAsArray.some((genre) => genre.toLowerCase().includes(search.toLowerCase())) ||
-            item.book.isbn?.toLowerCase() === search
+            item.book.title.toLowerCase().includes(searchAsLowerCase) ||
+            item.book.author.toLowerCase().includes(searchAsLowerCase) ||
+            genresAsArray.some((genre) => genre.toLowerCase().includes(searchAsLowerCase)) ||
+            item.book.isbn === search
         ) {
             return (
                 <BookPreview
