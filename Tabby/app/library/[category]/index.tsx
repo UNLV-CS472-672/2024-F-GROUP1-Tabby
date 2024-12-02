@@ -372,7 +372,7 @@ const CategoryPage: React.FC = () => {
             item.book.title.toLowerCase().includes(searchAsLowerCase) ||
             item.book.author.toLowerCase().includes(searchAsLowerCase) ||
             genresAsArray.some((genre) => genre.toLowerCase().includes(searchAsLowerCase)) ||
-            item.book.isbn === search
+            item.book.isbn === filteredStringWithOnlyNumbers
         ) {
             return (
                 <BookPreview
