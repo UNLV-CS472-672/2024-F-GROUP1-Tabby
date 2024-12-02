@@ -377,7 +377,7 @@ const Categories = () => {
         <RenameModal
           categoriesBeingRenamed={getAllSelectedCategories()}
           onRename={handleRename}
-          onCancel={() => setIsRenameModalVisible(false)}
+          onCancel={() => { setIsRenameModalVisible(false); }}
           deleteNewCategoryOnCancel={handleDeletingNewCategoryInRenameModal}
           isAddingNewCategory={isAddingCategory}
           handleDeselectingNewCategory={handleDeselectingNewCategory}

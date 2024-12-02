@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Pressable, Text, FlatList, View } from 'react-native';
+import { Modal, Pressable, Text, FlatList, View, Dimensions } from 'react-native';
 import { Book } from '@/types/book';
 import { Checkbox } from 'expo-checkbox';
 import BookSearchPreview from '@/components/BookSearchPreview';
@@ -26,6 +26,19 @@ const AddSearchResultsBooksModal: React.FC<AddSearchResultsBooksModalProps> = ({
     const [bookErrorMessage, setBookErrorMessage] = useState<string>('');
     const [categoryErrorMessage, setCategoryErrorMessage] = useState<string>('');
     const [loading, setLoading] = useState(false);
+
+    // Get screen dimensions
+    const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
+    const isSmallPhone = screenWidth <= 400 && screenHeight <= 890;
+    console.log("isSmallPhone: ", isSmallPhone);
+    console.log("screenWidth: ", screenWidth);
+    console.log("screenHeight: ", screenHeight);
+
+    // Define dynamic styles
+    const dynamicStyles = {
+        FlatListMaxHeight: isSmallPhone ? 176 : 384,
+    };
+
 
     // Toggle selection of categories
     const toggleCategorySelection = (category: string) => {
@@ -91,7 +104,7 @@ const AddSearchResultsBooksModal: React.FC<AddSearchResultsBooksModalProps> = ({
                 </Text>
                 {/* Display the list of books to be added */}
                 <FlatList
-                    className="max-h-96"
+                    style={{ maxHeight: dynamicStyles.FlatListMaxHeight }}
                     data={booksToAdd}
                     keyExtractor={(item) => item.id.toString()}
                     renderItem={({ item }) => {

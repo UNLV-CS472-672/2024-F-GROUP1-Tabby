@@ -212,6 +212,7 @@ const BookPage = () => {
                         <BookCard book={currentBook} />
                     </View>
 
+
                     {genresAsArray.length > 0 && (
                         <View className="pl-1 pt-5">
                             <ScrollableHorizontalList listOfStrings={genresAsArray} />

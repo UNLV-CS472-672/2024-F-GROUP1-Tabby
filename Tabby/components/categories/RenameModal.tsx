@@ -94,12 +94,12 @@ const RenameModal: React.FC<RenameModalProps> = ({
         <Modal
             transparent={true}
             animationType="slide"
-            onRequestClose={onCancel}
+            onRequestClose={handleCancel}
         >
             {/* Backdrop */}
             <Pressable
                 className="flex-1"
-                onPress={onCancel} // Close the modal when clicking outside
+                onPress={handleCancel} // Close the modal when clicking outside
             >
                 {/* Empty Pressable ensures clicks outside are registered */}
             </Pressable>
@@ -156,7 +156,7 @@ const RenameModal: React.FC<RenameModalProps> = ({
             </View>
             <Pressable
                 className="flex-1"
-                onPress={onCancel} // Close the modal when pressing outside the content
+                onPress={handleCancel} // Close the modal when pressing outside the content
             >
 
             </Pressable>
