@@ -27,7 +27,7 @@ const AddSearchResultsBooksModal: React.FC<AddSearchResultsBooksModalProps> = ({
     const [categoryErrorMessage, setCategoryErrorMessage] = useState<string>('');
     const [loading, setLoading] = useState(false);
 
-    // Get screen dimensions
+    // Get screen dimensions making it responsive
     const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
     const isSmallPhone = screenWidth <= 400 && screenHeight <= 890;
     console.log("isSmallPhone: ", isSmallPhone);
