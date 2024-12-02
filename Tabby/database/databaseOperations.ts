@@ -612,7 +612,7 @@ export const addRecommendedBook = async (book: Book): Promise<Book | null> => {
 
   try {
     // all books will have a uuid as their id allows for multiple categories having the same book
-    // also updating book id of book passed so that the id for the book gotten from the api is updated to the one in our database
+    // also updating book id of book passed so that the id for the book gotten from the api is updated to the one in our database since passed by reference (hack to not have to make a copy of book)
     book.id = uuidv4();
     await (await db).runAsync(
       `INSERT INTO recommendedBooks (id, title, author, excerpt, summary, image, rating, genres, addToLibrary, publisher, publishedDate, pageCount, notes, isbn)

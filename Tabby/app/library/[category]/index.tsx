@@ -266,7 +266,6 @@ const CategoryPage: React.FC = () => {
 
         if (wasAbleToAddBooksToAllCategories) {
             //reset local state of selectable books
-            deselectAllBooks();
             setIsAddingOrMovingBookModalVisible(false);
             Alert.alert("Successfully added selected books to all selected categories");
         } else {
@@ -334,6 +333,7 @@ const CategoryPage: React.FC = () => {
             setSelectableBooks(unselectedSelectableBooks);
             //set local state of filtered books for search to not have the selected book objects as they have been moved from current category
             setFilteredBooksForSearch(unselectedSelectableBooks);
+            setSearch("");
 
             setIsAddingOrMovingBookModalVisible(false);
             Alert.alert("Successfully moved selected books to all selected categories");
@@ -458,6 +458,7 @@ const CategoryPage: React.FC = () => {
             setSelectableBooks(unselectedSelectableBooks);
             setFilteredBooksForSearch(unselectedSelectableBooks);
             setIsDeleteModalVisible(false);
+            setSearch("");
             Alert.alert("Successfully deleted selected books");
         } else {
             console.error("Failed to delete user books that were selected");
@@ -484,8 +485,6 @@ const CategoryPage: React.FC = () => {
             isSelected: shouldSelectBook(book)
 
         }))
-        console.log("\n \n \n \n filteredBooksForSearch: ", updatedFilteredBooksForSearch, "\n \n \n \n")
-        console.log(selectableBooksWithFilteredBooksSelected)
         setSelectableBooks(selectableBooksWithFilteredBooksSelected);
         setFilteredBooksForSearch(updatedFilteredBooksForSearch);
     }

@@ -369,15 +369,34 @@ const shuffleArray = (array: any[]): any[] => {
 };
 
 const pickBooksToSendToServer = (books: Book[]): Book[] => {
-  // Return the books directly if not more than the limit of books to send to the server
-  if (books.length <= maxLimitOfBooksToSendToServer) {
-    return books;
+  const uniqueBooksMap = new Map<string, Book>(); // Map to ensure unique books by ISBN
+
+  // get unique books map by isbn to ensure no duplicates
+  // First, process favorite books
+  books.forEach((book) => {
+    if (book.isFavorite && book.isbn && !uniqueBooksMap.has(book.isbn)) {
+      uniqueBooksMap.set(book.isbn, book);
+    }
+  });
+
+  // Then, process non-favorite books, ensuring no duplicates
+  books.forEach((book) => {
+    if (!book.isFavorite && book.isbn && !uniqueBooksMap.has(book.isbn)) {
+      uniqueBooksMap.set(book.isbn, book);
+    }
+  });
+
+  // Convert the map back to an array
+  const uniqueBooks = Array.from(uniqueBooksMap.values());
+
+  // If within the limit, return all unique books
+  if (uniqueBooks.length <= maxLimitOfBooksToSendToServer) {
+    return uniqueBooks;
   }
 
-
-  // Filter books into favorites and non-favorites
-  const favoriteBooks = books.filter((book) => book.isFavorite);
-  const nonFavoriteBooks = books.filter((book) => !book.isFavorite);
+  // Filter books into favorites and non-favorites and only get unique books by isbn if it exists
+  const favoriteBooks = uniqueBooks.filter((book) => book.isFavorite);
+  const nonFavoriteBooks = uniqueBooks.filter((book) => !book.isFavorite);
 
   // Shuffle the books in each category to randomize the selection
   const shuffledFavoriteBooks = shuffleArray(favoriteBooks);
@@ -450,6 +469,8 @@ const getRecommendedBooksFromServerBasedOnBooksPassed = async (
   console.log("titles \n\n\n\n: ", titles, "\n\n\n\n");
 
   console.log("weights \n\n\n\n: ", weights, "\n\n\n\n");
+
+  console.log("LENGTH \n\n\n\n: ", weights.length, "\n\n\n\n");
 
   // Ensure all required parameters are present
   if (!titles || !authors || !weights) {
@@ -680,6 +701,7 @@ const Recommendations = () => {
       const selectableBooksToAdd = recommendedBooksFromApi.map(
         (book) => ({ book, isSelected: false })
       );
+      setSearch("");
       setSelectableBooks([...selectableBooksToAdd]);
       setFilteredBooksForSearchInRecommendations([...selectableBooksToAdd]);
     } catch (error) {
@@ -896,6 +918,8 @@ const Recommendations = () => {
       setSelectableBooks(unselectedSelectableBooks);
       setFilteredBooksForSearchInRecommendations(unselectedSelectableBooks);
       setIsDeleteModalVisible(false);
+      // update search value
+      setSearch("");
       Alert.alert("Successfully deleted selected books");
     } else {
       console.error("Failed to delete recommended books that were selected");
@@ -939,25 +963,14 @@ const Recommendations = () => {
         return;
       }
 
-      //set local state of selectable books
-      const updatedSelectableBooks = selectableBooks.map(
-        (currentSelectableBook) => {
-          const updatedBook = booksSetToAddedToLibrary.find(
-            (book) => book.id === currentSelectableBook.book.id
-          );
-          return updatedBook
-            ? { isSelected: false, book: updatedBook }
-            : currentSelectableBook;
-        }
-      );
-      setSelectableBooks(updatedSelectableBooks);
-      setFilteredBooksForSearchInRecommendations(updatedSelectableBooks);
+
       setIsAddingBookModalVisible(false);
 
       // if add button was pressed reset it to false after adding it
       if (pressedAddBookToLibraryButtonFromBookPreview) {
         setPressedAddBookToLibraryButtonFromBookPreview(false);
       }
+
       Alert.alert("Successfully added selected books to all categories");
     } else {
       console.error("Failed to add selected books to all categories");
