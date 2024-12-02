@@ -1,4 +1,4 @@
-import { View, Text, Pressable, Modal, TouchableWithoutFeedback, ActivityIndicator, FlatList } from "react-native";
+import { View, Text, Pressable, Modal, TouchableWithoutFeedback, ActivityIndicator } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 import { Book } from '@/types/book';

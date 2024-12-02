@@ -12,6 +12,7 @@ jest.setTimeout(10000);
 jest.mock('expo-router', () => ({
     usePathname: jest.fn(() => '/library'),
     Link: ({ children }) => <>{children}</>,
+    useRouter: jest.fn(),
 }));
 
 jest.mock('expo-image-picker', () => {
@@ -24,6 +25,23 @@ jest.mock('expo-image-picker', () => {
         launchImageLibraryAsync: jest.fn(),
     };
 });
+
+// Mock all database operation functions
+jest.mock("@/database/databaseOperations", () => ({
+    getAllCategories: jest.fn(),
+    addCategory: jest.fn(),
+    deleteCategory: jest.fn(),
+    updateCategory: jest.fn(),
+    getAllUserBooksByCategory: jest.fn(),
+    updateMultipleUserBooksToHaveCategoryPassed: jest.fn(),
+    deleteAllUserBooksByCategory: jest.fn(),
+    getAllRecommendedBooks: jest.fn(),
+    addRecommendedBook: jest.fn(),
+    deleteMultipleRecommendedBooksByIds: jest.fn(),
+    addMultipleUserBooksWithCategoryName: jest.fn(),
+    updateMultipleRecommendedBooksToBeAddedToLibrary: jest.fn(),
+
+}));
 
 // tests related to the camera
 describe('Camera tests', () => {

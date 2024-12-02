@@ -25,6 +25,7 @@ jest.mock("@/database/databaseOperations", () => ({
     deleteMultipleRecommendedBooksByIds: jest.fn(() => Promise.resolve()),
     addMultipleUserBooksWithCategoryName: jest.fn(() => Promise.resolve()),
     updateMultipleRecommendedBooksToBeAddedToLibrary: jest.fn(() => Promise.resolve()),
+    getAllFavoriteUserBooks: jest.fn(),
 }));
 
 // Mock expo-font to prevent errors from Expo SDK 52
