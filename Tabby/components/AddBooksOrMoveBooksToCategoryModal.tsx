@@ -47,7 +47,6 @@ const AddBooksOrMoveBooksToCategoryModal: React.FC<AddBooksOrMoveBooksToCategory
 
     // Handle adding books to selected categories and trigger onSuccess with selected categories
     const handleAddBooks = async () => {
-        console.log("length of selected categories: ", selectedCategories.length);
         if (selectedCategories.length === 0) {
             setErrorMessage('Please select at least one category.');
             return;

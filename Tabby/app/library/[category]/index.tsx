@@ -92,7 +92,6 @@ const size = 36;
 
 const CategoryPage: React.FC = () => {
     const { category } = useLocalSearchParams();
-    console.log("Category:", category);
     const [selectableBooks, setSelectableBooks] = useState<SelectableBook[]>(
         defaultSelectableBooks
     );
@@ -114,18 +113,14 @@ const CategoryPage: React.FC = () => {
         notes: ''
     });
 
-    const [touchedInputFieldsForCustomBook, setTouchedInputFieldsForCustomBook] = useState<Record<string, boolean>>({}); // Track touched fields
     const handleInputChange = (field: keyof NewCustomBook, value: string) => {
         setNewCustomBook((prevState) => ({ ...prevState, [field]: value }));
-        setTouchedInputFieldsForCustomBook((prevState) => ({ ...prevState, [field]: true })); // Mark field as touched
     };
 
 
 
     // Confirm Button Press
     const handleConfirmForAddingCustomBook = async () => {
-        console.log("New custom book (submitted):", newCustomBook);
-        console.log("Touched fields:", touchedInputFieldsForCustomBook);
         await handleAddCustomBook();
     };
 
@@ -245,7 +240,6 @@ const CategoryPage: React.FC = () => {
             getSelectedSelectableBooks()
         );
         let wasAbleToAddBooksToAllCategories = true;
-        console.log("selected book objects: ", selectedBookObjects);
 
         // for each category add the selected books
         for (const category of categories) {
@@ -256,14 +250,10 @@ const CategoryPage: React.FC = () => {
             if (!resultOfAddingBooksToCurrentCategory) {
                 console.error("Failed to add books to current category: ", category);
                 wasAbleToAddBooksToAllCategories = false;
-            } else {
-                console.log("Added books to category: ", category);
             }
         }
 
         if (wasAbleToAddBooksToAllCategories) {
-            console.log("Added selected books to all categories successfully");
-
             //reset local state of selectable books
             deselectAllBooks();
             setIsAddingOrMovingBookModalVisible(false);
@@ -282,7 +272,6 @@ const CategoryPage: React.FC = () => {
         );
         let wasAbleToAddBooksToAllCategories = true;
         const onlyOneSelectedCategory = categories.length === 1;
-        console.log("selected book objects: ", selectedBookObjects);
 
         // if there is only one category we can just update the user books to have that one category
         if (onlyOneSelectedCategory) {
@@ -308,8 +297,6 @@ const CategoryPage: React.FC = () => {
                 if (!resultOfAddingBooksToCurrentCategory) {
                     console.error("Failed to add books to current category: ", category);
                     wasAbleToAddBooksToAllCategories = false;
-                } else {
-                    console.log("added books to category: ", category);
                 }
             }
 
@@ -318,7 +305,6 @@ const CategoryPage: React.FC = () => {
 
 
         if (wasAbleToAddBooksToAllCategories) {
-            console.log("added selected books to all categories successfully");
 
             // delete selected books from current category only if there were more than one category
             if (!onlyOneSelectedCategory) {
@@ -334,8 +320,7 @@ const CategoryPage: React.FC = () => {
 
             // set local state of selectable books to not have the selected book objects as they have been moved from current category
             const unselectedSelectableBooks = getUnselectedSelectableBooks();
-            console.log("Unselected books: ", unselectedSelectableBooks);
-            setSelectableBooks(getUnselectedSelectableBooks());
+            setSelectableBooks(unselectedSelectableBooks);
 
             setIsAddingOrMovingBookModalVisible(false);
             Alert.alert("Successfully moved selected books to all selected categories");
@@ -404,7 +389,6 @@ const CategoryPage: React.FC = () => {
     };
 
     const toggleSelectedBook = (bookId: string) => {
-        console.log(`Toggling selected book: ${bookId}`);
         setSelectableBooks((prevSelectableBooks) =>
             prevSelectableBooks.map((currentSelectableBook) =>
                 currentSelectableBook.book.id === bookId
@@ -433,7 +417,6 @@ const CategoryPage: React.FC = () => {
         const unselectedSelectableBooks = getUnselectedSelectableBooks();
         const result = await deleteMultipleUserBooksByIds(selectedBookIds);
         if (result) {
-            console.log("deleted all user books that were selected");
             setSelectableBooks(unselectedSelectableBooks);
             setIsDeleteModalVisible(false);
             Alert.alert("Successfully deleted selected books");
@@ -452,7 +435,6 @@ const CategoryPage: React.FC = () => {
     }
 
     const handleAddCustomBook = async () => {
-        console.log("New custom book (submitted):", newCustomBook);
         const newCustomBookDataThatWillBeAdded: Book = {
             id: (selectableBooks.length + 1).toString() + newCustomBook.title,
             title: newCustomBook.title,
@@ -481,7 +463,6 @@ const CategoryPage: React.FC = () => {
             ...selectableBooks,
             { book: resultOfAddingCustomBook, isSelected: false },
         ]);
-        console.log("Added custom book to local state:", resultOfAddingCustomBook);
         // resetting custom book if added 
         setNewCustomBook({ title: '', author: '', summary: '', excerpt: '', pageCount: null, notes: '' });
         Alert.alert("Custom book added successfully!");

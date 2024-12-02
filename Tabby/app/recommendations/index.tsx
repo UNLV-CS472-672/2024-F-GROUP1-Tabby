@@ -469,10 +469,6 @@ const getRecommendedBooksFromServerBasedOnBooksPassed = async (
     const response = await axios.post(fullUrl, body);
 
     // Construct the full URL manually (without actually sending the request yet)
-    console.log(
-      "\n\n\n\nFull URL manually constructed  for recommendations:\n\n\n\n",
-      fullUrl
-    );
 
     // Check the response and convert results
     if (response.status === 200) {
@@ -506,7 +502,6 @@ const getBooksFromServerBasedOnSearch = async (
 
     // Make the API call
     const fullUrl = `${baseUrl}books/search?${queryParam}`;
-    console.log("Full URL:", fullUrl);
 
     const response = await axios.get(fullUrl);
 
@@ -779,7 +774,6 @@ const Recommendations = () => {
   };
 
   const toggleSelectedBook = (bookId: string) => {
-    console.log(`Toggling selected book: ${bookId}`);
     setSelectableBooks((prevSelectableBooks) =>
       prevSelectableBooks.map((currentSelectableBook) =>
         currentSelectableBook.book.id === bookId
@@ -818,7 +812,6 @@ const Recommendations = () => {
     const unselectedSelectableBooks = getUnselectedSelectableBooks();
     const result = await deleteMultipleRecommendedBooksByIds(selectedBookIds);
     if (result) {
-      console.log("deleted all recommended books that were selected");
       setSelectableBooks(unselectedSelectableBooks);
       setIsDeleteModalVisible(false);
       Alert.alert("Successfully deleted selected books");
@@ -848,12 +841,10 @@ const Recommendations = () => {
         console.error("Failed to add books to current category: ", category);
         wasAbleToAddBooksToAllCategories = false;
       } else {
-        console.log("Added books to category: ", category);
       }
     }
 
     if (wasAbleToAddBooksToAllCategories) {
-      console.log("Added selected books to all categories successfully");
       const booksSetToAddedToLibrary = selectedBookObjects.map((book) => ({
         ...book,
         addToLibrary: true,

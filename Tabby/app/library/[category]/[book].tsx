@@ -80,7 +80,6 @@ const BookPage = () => {
   // Extract both category and book slugs
   const { category, book } = useLocalSearchParams();
 
-  console.log(book, "is from", category);
 
   // get book data from database
   useEffect(() => {
@@ -89,8 +88,6 @@ const BookPage = () => {
         const bookResponse = await getUserBookById(book as string);
         const categoriesResponse = await getAllCategories();
 
-        console.log(bookResponse);
-        console.log(categoriesResponse);
         // set current book if not empty
         if (bookResponse) {
           setCurrentBook(bookResponse);
@@ -127,7 +124,6 @@ const BookPage = () => {
   const handleAddBookToSelectedCategories = async (
     selectedCategories: string[]
   ) => {
-    console.log(`Moving book to this category: ${selectedCategories}`);
 
     let wasAbleToAddBookToAllCategories = true;
     for (const currentCategory of selectedCategories) {
@@ -193,7 +189,6 @@ const BookPage = () => {
 
   const handleDeleteBook = async () => {
     setIsDeleteModalVisible(false);
-    console.log(`Deleting ${book} from ${category}`);
     // deleting book from db
     deleteUserBookById(book as string);
     Alert.alert(
@@ -342,7 +337,7 @@ const BookPage = () => {
             </View>
 
             <ScrollView className="max-h-40 pl-1">
-              <Text className="text-sm text-white max-w-sm text-start">
+              <Text className="text-sm text-white max-w-[90%] p-1 text-start">
                 {currentBook.notes}
               </Text>
             </ScrollView>

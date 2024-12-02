@@ -32,7 +32,7 @@ const BookCard: React.FC<BookCardProps> = ({ book, showBookRatingModal }) => {
         />
 
         <View className="flex-col pl-4">
-          <ScrollView className="max-h-16">
+          <ScrollView className="max-h-10">
             <Text className="text-lg font-bold text-white w-56">
               {book.title}
             </Text>
@@ -40,7 +40,6 @@ const BookCard: React.FC<BookCardProps> = ({ book, showBookRatingModal }) => {
 
           <ScrollView className="max-h-5">
             <Text className="text-md text-white font-semibold italic w-56">
-              {" "}
               By {book.author}
             </Text>
           </ScrollView>

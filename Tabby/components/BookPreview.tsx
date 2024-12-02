@@ -44,7 +44,6 @@ const BookPreview: React.FC<BookPreviewProps> = ({
 
     const handleSelectedPress = () => {
         if (toggleSelected) {
-            console.log(`Toggling selected book: ${book.id}`);
             toggleSelected(book.id);
         }
     };

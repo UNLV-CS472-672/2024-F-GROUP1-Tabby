@@ -12,7 +12,6 @@ const db = SQLite.openDatabaseAsync("bookCollection.db");
 
 // Add a new user book can be custom or not
 export const addUserBook = async (book: Book): Promise<Book | null> => {
-  console.log("Adding user book:", book);
 
   try {
     // all books will have a uuid as their uuid will allows for multiple categories having the same book
@@ -44,7 +43,6 @@ export const addUserBook = async (book: Book): Promise<Book | null> => {
     const result = await (
       await db
     ).getFirstAsync("SELECT * FROM userBooks WHERE id = ?", [book.id]);
-    console.log("User book added successfully:", result);
     return result ? ({ ...result } as Book) : null;
   } catch (error) {
     console.error("Error adding user book:", error);
@@ -85,7 +83,6 @@ export const addMultipleUserBooksWithCategoryName = async (
         ]
       );
     }
-    console.log("User books added successfully with category name:", category);
     return true;
   } catch (error) {
     console.error("Error adding user books with category name:", error);
@@ -103,7 +100,6 @@ export const deleteMultipleUserBooksByIds = async (
       `DELETE FROM userBooks WHERE id IN (${ids.map(() => "?").join(",")})`,
       ids
     );
-    console.log("user books deleted successfully by ids");
     return true;
   } catch (error) {
     console.error("Error deleting user books by ids:", error);
@@ -115,7 +111,6 @@ export const deleteMultipleUserBooksByIds = async (
 export const deleteUserBookById = async (id: string): Promise<boolean> => {
   try {
     await (await db).runAsync(`DELETE FROM userBooks WHERE id = ?`, [id]);
-    console.log("User book deleted successfully");
     return true;
   } catch (error) {
     console.error("Error deleting user book:", error);
@@ -131,7 +126,6 @@ export const deleteAllUserBooksByCategory = async (
     await (await db).runAsync(`DELETE FROM userBooks WHERE category = ?`, [
       category,
     ]);
-    console.log("User books deleted successfully");
     return true;
   } catch (error) {
     console.error("Error deleting user books:", error);
@@ -141,7 +135,6 @@ export const deleteAllUserBooksByCategory = async (
 
 // Update a user book by passing book object
 export const updateUserBook = async (book: Book): Promise<boolean> => {
-  console.log("--- Updating user book with this book:", book, "---");
   try {
     const result = await (
       await db
@@ -165,9 +158,10 @@ export const updateUserBook = async (book: Book): Promise<boolean> => {
         book.id,
       ]
     );
-    console.log(result)
+    if (!result) {
+      console.error("Error updating user book:", result);
+    }
     const getUpdatedResult = await getUserBookById(book.id);
-    console.log("---User book updated successfully:", getUpdatedResult, "---");
     return getUpdatedResult ? true : false;
   } catch (error) {
     console.error("Error updating user book:", error);
@@ -188,10 +182,13 @@ export const updateMultipleUserBooksToHaveCategoryPassed = async (
         category,
         book.id,
       ]);
-      console.log(result);
+
+      if (!result) {
+        console.error("Error updating user book:", result);
+        return false;
+      }
 
     }
-    console.log("User books updated successfully");
     return true;
   } catch (error) {
     console.error("Error updating user books:", error);
@@ -207,7 +204,6 @@ export const getAllUserBooksByCategory = async (
     const result = await (
       await db
     ).getAllAsync("SELECT * FROM userBooks WHERE category = ?", [category]);
-    console.log(`User books in category ${category}:`, result);
     return result.map((item: any) => ({
       ...item,
     })) as Book[];
@@ -228,7 +224,6 @@ export const getAllUserBooksByIsbn = async (
     const result = await (
       await db
     ).getAllAsync("SELECT * FROM userBooks WHERE isbn = ?", [isbn]);
-    console.log(`User books with isbn ${isbn}:`, result);
     return result.map((item: any) => ({
       ...item,
     })) as Book[];
@@ -248,7 +243,6 @@ export const getCategoryNamesWithIsbn = async (
     ).getAllAsync("SELECT DISTINCT category FROM userBooks WHERE isbn = ?", [
       isbn,
     ]);
-    console.log(`Category names with isbn ${isbn}:`, result);
     return result.map((item: any) => item.category) as string[];
   } catch (error) {
     console.error(`Error retrieving category names with isbn ${isbn}:`, error);
@@ -267,7 +261,6 @@ export const getAllCustomUserBooksByCategory = async (
       "SELECT * FROM userBooks WHERE category = ? AND isCustomBook = 1",
       [category]
     );
-    console.log(`User books in category ${category}:`, result);
     return result.map((item: any) => ({
       ...item,
     })) as Book[];
@@ -291,7 +284,6 @@ export const getAllNonCustomUserBooksByCategory = async (
       "SELECT * FROM userBooks WHERE category = ? AND isCustomBook = 0",
       [category]
     );
-    console.log(`User books in category ${category}:`, result);
     return result.map((item: any) => ({
       ...item,
     })) as Book[];
@@ -308,7 +300,6 @@ export const getAllNonCustomUserBooksByCategory = async (
 export const getAllUserBooks = async (): Promise<Book[] | null> => {
   try {
     const result = await (await db).getAllAsync("SELECT * FROM userBooks");
-    console.log("All user books:", result);
     return result.map((item: any) => ({
       ...item,
     })) as Book[];
@@ -324,7 +315,6 @@ export const getAllCustomUserBooks = async (): Promise<Book[] | null> => {
     const result = await (await db).getAllAsync(
       "SELECT * FROM userBooks WHERE isCustomBook = 1"
     );
-    console.log("All custom user books:", result);
     return result.map((item: any) => ({
       ...item,
     })) as Book[];
@@ -340,7 +330,6 @@ export const getAllNonCustomUserBooks = async (): Promise<Book[] | null> => {
     const result = await (await db).getAllAsync(
       "SELECT * FROM userBooks WHERE isCustomBook = 0"
     );
-    console.log("All non-custom user books:", result);
     return result.map((item: any) => ({
       ...item,
     })) as Book[];
@@ -356,7 +345,6 @@ export const getAllFavoriteUserBooks = async (): Promise<Book[] | null> => {
     const result = await (await db).getAllAsync(
       "SELECT * FROM userBooks WHERE isFavorite = 1"
     );
-    console.log("All favorite user books:", result);
     return result.map((item: any) => ({
       ...item,
     })) as Book[];
@@ -374,7 +362,6 @@ export const getAllNonCustomFavoriteUserBooks = async (): Promise<
     const result = await (await db).getAllAsync(
       "SELECT * FROM userBooks WHERE isFavorite = 1 AND isCustomBook = 0"
     );
-    console.log("All non-custom favorite user books:", result);
     return result.map((item: any) => ({
       ...item,
     })) as Book[];
@@ -395,7 +382,6 @@ export const getAllCustomFavoriteUserBooks = async (): Promise<
     const result = await (await db).getAllAsync(
       "SELECT * FROM userBooks WHERE isFavorite = 1 AND isCustomBook = 1"
     );
-    console.log("All custom favorite user books:", result);
     return result.map((item: any) => ({
       ...item,
     })) as Book[];
@@ -411,7 +397,6 @@ export const getAllNonFavoriteUserBooks = async (): Promise<Book[] | null> => {
     const result = await (await db).getAllAsync(
       "SELECT * FROM userBooks WHERE isFavorite = 0"
     );
-    console.log("All non-favorite user books:", result);
     return result.map((item: any) => ({
       ...item,
     })) as Book[];
@@ -429,7 +414,6 @@ export const getAllNonCustomNonFavoriteUserBooks = async (): Promise<
     const result = await (await db).getAllAsync(
       "SELECT * FROM userBooks WHERE isFavorite = 0 AND isCustomBook = 0"
     );
-    console.log("All non-custom non-favorite user books:", result);
     return result.map((item: any) => ({
       ...item,
     })) as Book[];
@@ -450,7 +434,6 @@ export const getAllCustomNonFavoriteUserBooks = async (): Promise<
     const result = await (await db).getAllAsync(
       "SELECT * FROM userBooks WHERE isFavorite = 0 AND isCustomBook = 1"
     );
-    console.log("All custom non-favorite user books:", result);
     return result.map((item: any) => ({
       ...item,
     })) as Book[];
@@ -474,7 +457,6 @@ export const getAllFavoriteUserBooksByCategory = async (
       "SELECT * FROM userBooks WHERE isFavorite = 1 AND category = ?",
       [category]
     );
-    console.log(`All favorite user books in category ${category}:`, result);
     return result.map((item: any) => ({
       ...item,
     })) as Book[];
@@ -498,10 +480,7 @@ export const getAllCustomFavoriteUserBooksByCategory = async (
       "SELECT * FROM userBooks WHERE isFavorite = 1 AND category = ? AND isCustomBook = 1",
       [category]
     );
-    console.log(
-      `All custom favorite user books in category ${category}:`,
-      result
-    );
+
     return result.map((item: any) => ({
       ...item,
     })) as Book[];
@@ -525,10 +504,7 @@ export const getAllNonCustomFavoriteUserBooksByCategory = async (
       "SELECT * FROM userBooks WHERE isFavorite = 1 AND category = ? AND isCustomBook = 0",
       [category]
     );
-    console.log(
-      `All non-custom favorite user books in category ${category}:`,
-      result
-    );
+
     return result.map((item: any) => ({
       ...item,
     })) as Book[];
@@ -552,7 +528,6 @@ export const getAllNonFavoriteUserBooksByCategory = async (
       "SELECT * FROM userBooks WHERE isFavorite = 0 AND category = ?",
       [category]
     );
-    console.log(`All non-favorite user books in category ${category}:`, result);
     return result.map((item: any) => ({
       ...item,
     })) as Book[];
@@ -576,10 +551,7 @@ export const getAllNonCustomNonFavoriteUserBooksByCategory = async (
       "SELECT * FROM userBooks WHERE isFavorite = 0 AND category = ? AND isCustomBook = 0",
       [category]
     );
-    console.log(
-      `All non-custom non-favorite user books in category ${category}:`,
-      result
-    );
+
     return result.map((item: any) => ({
       ...item,
     })) as Book[];
@@ -603,10 +575,6 @@ export const getAllCustomNonFavoriteUserBooksByCategory = async (
       "SELECT * FROM userBooks WHERE isFavorite = 0 AND category = ? AND isCustomBook = 1",
       [category]
     );
-    console.log(
-      `All custom non-favorite user books in category ${category}:`,
-      result
-    );
     return result.map((item: any) => ({
       ...item,
     })) as Book[];
@@ -625,7 +593,6 @@ export const getUserBookById = async (id: string): Promise<Book | null> => {
     const result = await (
       await db
     ).getFirstAsync("SELECT * FROM userBooks WHERE id = ?", [id]);
-    console.log("--- User book by id:", result, "---");
     if (result) {
       return {
         ...result,
@@ -642,7 +609,6 @@ export const getUserBookById = async (id: string): Promise<Book | null> => {
 
 // Add a new recommended book
 export const addRecommendedBook = async (book: Book): Promise<Book | null> => {
-  console.log("Adding recommended book:", book);
 
   try {
     // all books will have a uuid as their id allows for multiple categories having the same book
@@ -673,7 +639,6 @@ export const addRecommendedBook = async (book: Book): Promise<Book | null> => {
     const result = await (
       await db
     ).getFirstAsync("SELECT * FROM recommendedBooks WHERE id = ?", [book.id]);
-    console.log("Recommended book added successfully:", result);
     return result ? ({ ...result } as Book) : null;
   } catch (error) {
     console.error("Error adding recommended book:", error);
@@ -688,7 +653,6 @@ export const addRecommendedBookIfNotInRecommendationsBasedOnIsbn = async (book: 
       await db
     ).getFirstAsync("SELECT * FROM recommendedBooks WHERE isbn = ?", [book.isbn || null]);
     if (result) {
-      console.log("Recommended book already exists:", result);
       return null;
     }
     return await addRecommendedBook(book);
@@ -702,7 +666,6 @@ export const addRecommendedBookIfNotInRecommendationsBasedOnIsbn = async (book: 
 export const deleteAllRecommendedBooks = async (): Promise<boolean> => {
   try {
     await (await db).runAsync("DELETE FROM recommendedBooks");
-    console.log("All recommended books deleted successfully");
     return true;
   } catch (error) {
     console.error("Error deleting all recommended books:", error);
@@ -719,7 +682,6 @@ export const deleteRecommendedBookById = async (
     await (await db).runAsync(`DELETE FROM recommendedBooks WHERE id = ?`, [
       id,
     ]);
-    console.log("Recommended book deleted successfully");
     return true;
   } catch (error) {
     console.error("Error deleting recommended book:", error);
@@ -738,7 +700,6 @@ export const deleteMultipleRecommendedBooksByIds = async (
         .join(",")})`,
       ids
     );
-    console.log("Recommended books deleted successfully by id");
     return true;
   } catch (error) {
     console.error("Error deleting recommended books by id:", error);
@@ -757,7 +718,6 @@ export const deleteRecommendedBooksByIsbns = async (
         .join(",")})`,
       isbns
     );
-    console.log("Recommended books deleted successfully by isbn");
     return true;
   } catch (error) {
     console.error("Error deleting recommended books by isbn:", error);
@@ -767,7 +727,6 @@ export const deleteRecommendedBooksByIsbns = async (
 
 // Update a recommended book by passing book object
 export const updateRecommendedBook = async (book: Book): Promise<boolean> => {
-  console.log("--- Updating recommended book with this book:", book, "---");
 
   try {
     await (
@@ -791,7 +750,6 @@ export const updateRecommendedBook = async (book: Book): Promise<boolean> => {
         book.id,
       ]
     );
-    console.log("Recommended book updated successfully");
     return true;
   } catch (error) {
     console.error("Error updating recommended book:", error);
@@ -810,9 +768,13 @@ export const updateMultipleRecommendedBooksToBeAddedToLibrary = async (
       ).runAsync(`UPDATE recommendedBooks SET addToLibrary = 1 WHERE id = ?`, [
         book.id,
       ]);
-      console.log(result);
+
+      if (!result) {
+        console.error("Error updating recommended books:", result);
+        return false;
+      }
     }
-    console.log("Recommended books updated successfully");
+
     return true;
   } catch (error) {
     console.error("Error updating recommended books:", error);
@@ -826,7 +788,6 @@ export const getAllRecommendedBooks = async (): Promise<Book[] | null> => {
     const result = await (await db).getAllAsync(
       "SELECT * FROM recommendedBooks"
     );
-    console.log("All recommended books:", result);
     return result.map((item: any) => ({
       ...item,
     })) as Book[];
@@ -844,7 +805,6 @@ export const getAllRecommendedBooksAddedToLibrary = async (): Promise<
     const result = await (await db).getAllAsync(
       "SELECT * FROM recommendedBooks WHERE addToLibrary = 1"
     );
-    console.log("All recommended books added to library:", result);
     return result.map((item: any) => ({
       ...item,
     })) as Book[];
@@ -865,7 +825,6 @@ export const getAllRecommendedBooksNotAddedToLibrary = async (): Promise<
     const result = await (await db).getAllAsync(
       "SELECT * FROM recommendedBooks WHERE addToLibrary = 0"
     );
-    console.log("All recommended books not added to library:", result);
     return result.map((item: any) => ({
       ...item,
     })) as Book[];
@@ -886,7 +845,6 @@ export const getRecommendedBookById = async (
     const result = await (
       await db
     ).getFirstAsync("SELECT * FROM recommendedBooks WHERE id = ?", [id]);
-    console.log("Recommended book by id:", result);
     if (result) {
       return {
         ...result,
@@ -916,7 +874,6 @@ export const addCategory = async (
     const result = await (
       await db
     ).getFirstAsync("SELECT * FROM categories WHERE name = ?", [category.name]);
-    console.log("Category added successfully:", result);
     return result as Category;
   } catch (error) {
     console.error("Error adding category:", error);
@@ -928,7 +885,6 @@ export const addCategory = async (
 export const deleteCategory = async (name: string): Promise<boolean> => {
   try {
     await (await db).runAsync(`DELETE FROM categories WHERE name = ?`, [name]);
-    console.log("Category deleted successfully");
     return true;
   } catch (error) {
     console.error("Error deleting category:", error);
@@ -962,10 +918,6 @@ export const updateCategory = async (oldName: string, category: Category) => {
 
     // Execute the update query
     await (await db).runAsync(updateQuery, queryParams);
-
-    console.log(
-      `Category with name "${oldName}" updated successfully to "${category.name}"`
-    );
   } catch (error) {
     console.error("Error updating category:", error);
   }
@@ -975,7 +927,6 @@ export const updateCategory = async (oldName: string, category: Category) => {
 export const getAllCategories = async (): Promise<Category[] | null> => {
   try {
     const result = await (await db).getAllAsync("SELECT * FROM categories");
-    console.log("All categories:", result);
     return result as Category[];
   } catch (error) {
     console.error("Error retrieving all categories:", error);
@@ -989,7 +940,6 @@ export const getAllPinnedCategories = async (): Promise<Category[] | null> => {
     const result = await (await db).getAllAsync(
       "SELECT * FROM categories WHERE isPinned = 1"
     );
-    console.log("All pinned categories:", result);
     return result as Category[];
   } catch (error) {
     console.error("Error retrieving all pinned categories:", error);
@@ -1005,7 +955,6 @@ export const getAllNonPinnedCategories = async (): Promise<
     const result = await (await db).getAllAsync(
       "SELECT * FROM categories WHERE isPinned = 0"
     );
-    console.log("All non-pinned categories:", result);
     return result as Category[];
   } catch (error) {
     console.error("Error retrieving all non-pinned categories:", error);
@@ -1021,7 +970,6 @@ export const getCategoryByName = async (
     const result = await (
       await db
     ).getFirstAsync("SELECT * FROM categories WHERE name = ?", [name]);
-    console.log("Specific category:", result);
     if (result) {
       return result as Category;
     }

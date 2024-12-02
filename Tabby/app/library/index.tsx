@@ -53,10 +53,8 @@ const Categories = () => {
             defaultCategory
           );
           if (!resultOnAddingDefaultCategory) {
-            console.log("Error adding default category");
             return;
           }
-          console.log("Default category added successfully");
           setCategories(sortCategories([defaultCategory]));
         }
       } catch (error) {
@@ -137,15 +135,14 @@ const Categories = () => {
         selectedCategories.map(async (category) => {
           const resultOfDeletingCategory = await deleteCategory(category.name); // Assuming deleteCategory takes category name as parameter
 
-          console.log(resultOfDeletingCategory ? "Category deleted successfully" : "Error deleting category");
           const resultOfDeletingUserBooksWithCategoryName = await deleteAllUserBooksByCategory(
             category.name
           );
 
-          const deletionResult = resultOfDeletingUserBooksWithCategoryName
-            ? "User books deleted successfully with category name"
-            : "Error deleting user books with category name";
-          console.log(deletionResult);
+          if (!resultOfDeletingCategory || !resultOfDeletingUserBooksWithCategoryName) {
+            throw new Error(`Failed to delete category or user books with category name: ${category.name}`);
+          }
+
 
         })
       );
@@ -167,11 +164,6 @@ const Categories = () => {
   const handleRename = async (newName: string) => {
     try {
       const updatedCategories = [...categories];
-
-      if (newName === "New Category") {
-        console.log("New name is New Category");
-      }
-      console.log("Updated categories:", updatedCategories);
 
       for (let index = 0; index < updatedCategories.length; index++) {
         const category = updatedCategories[index];
@@ -216,10 +208,11 @@ const Categories = () => {
                 newUniqueName
               );
 
-              const message = result
-                ? "User books updated successfully with new category name"
-                : "Error updating user books with new category name";
-              console.log(message);
+              if (!result) {
+                console.error(
+                  "Failed to update user books with new category name"
+                );
+              }
             }
           }
         }
