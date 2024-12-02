@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { View, Text, Pressable, FlatList } from "react-native";
+import { View, Text, Pressable, FlatList, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState, useRef } from "react";
 import PinnedIcon from "@/components/categories/PinnedIcon";
@@ -53,10 +53,8 @@ const Categories = () => {
             defaultCategory
           );
           if (!resultOnAddingDefaultCategory) {
-            console.log("Error adding default category");
             return;
           }
-          console.log("Default category added successfully");
           setCategories(sortCategories([defaultCategory]));
         }
       } catch (error) {
@@ -137,15 +135,14 @@ const Categories = () => {
         selectedCategories.map(async (category) => {
           const resultOfDeletingCategory = await deleteCategory(category.name); // Assuming deleteCategory takes category name as parameter
 
-          console.log(resultOfDeletingCategory ? "Category deleted successfully" : "Error deleting category");
           const resultOfDeletingUserBooksWithCategoryName = await deleteAllUserBooksByCategory(
             category.name
           );
 
-          const deletionResult = resultOfDeletingUserBooksWithCategoryName
-            ? "User books deleted successfully with category name"
-            : "Error deleting user books with category name";
-          console.log(deletionResult);
+          if (!resultOfDeletingCategory || !resultOfDeletingUserBooksWithCategoryName) {
+            throw new Error(`Failed to delete category or user books with category name: ${category.name}`);
+          }
+
 
         })
       );
@@ -156,6 +153,7 @@ const Categories = () => {
       );
       setCategories(sortCategories(remainingCategories));
       setIsDeleteModalVisible(false);
+      Alert.alert("Selected categories were deleted successfully");
       return "Categories deleted successfully";
     } catch (error) {
       console.error("Error deleting categories:", error);
@@ -166,11 +164,6 @@ const Categories = () => {
   const handleRename = async (newName: string) => {
     try {
       const updatedCategories = [...categories];
-
-      if (newName === "New Category") {
-        console.log("New name is New Category");
-      }
-      console.log("Updated categories:", updatedCategories);
 
       for (let index = 0; index < updatedCategories.length; index++) {
         const category = updatedCategories[index];
@@ -198,7 +191,6 @@ const Categories = () => {
           // Perform async database operation
           if (isAddingCategory) {
             // Add new category
-            console.log("Adding new category:", currentUpdatedCategory);
             await addCategory(currentUpdatedCategory); // Add new category
           }
           // renaming a category
@@ -215,11 +207,11 @@ const Categories = () => {
                 newUniqueName
               );
 
-              const message = result
-                ? "User books updated successfully with new category name"
-                : "Error updating user books with new category name";
-              console.log(message);
-
+              if (!result) {
+                console.error(
+                  "Failed to update user books with new category name"
+                );
+              }
             }
           }
         }
@@ -228,6 +220,11 @@ const Categories = () => {
       // Update the categories state after renaming
       setCategories(sortCategories(updatedCategories));
       setIsRenameModalVisible(false);
+      if (!isAddingCategory) {
+        Alert.alert("Selected categories were renamed successfully");
+      } else {
+        Alert.alert("Category added successfully");
+      }
     } catch (error) {
       console.error("Error renaming categories:", error);
     }
@@ -317,9 +314,11 @@ const Categories = () => {
               <Text
                 className={`text-xl font-semibold ${index % 2 === 0 ? "text-white" : "text-black"
                   }`}
+                numberOfLines={1}
               >
                 {item.name}
               </Text>
+
             </View>
             <Pressable
               className="p-1"
@@ -340,10 +339,8 @@ const Categories = () => {
       <SafeAreaView className="flex-1">
         {/* Top row for add category icon and search bar */}
 
-        {/* only show search bar if no categories are selected */}
-
         <View className="flex-row items-center justify-between">
-          <View className="w-[85%] mx-auto">
+          <View className="w-[85%] h-16 mx-auto">
             <SearchBar
               placeholder="Search by category name..."
               onChangeText={updateSearch}

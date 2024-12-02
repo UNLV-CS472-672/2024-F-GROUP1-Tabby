@@ -1,7 +1,6 @@
 import React, { Suspense } from 'react';
-import { View } from 'react-native';
-import { Slot } from 'expo-router';
-import { usePathname } from 'expo-router';
+import { View, Pressable, Text } from 'react-native';
+import { Slot, useRouter, usePathname } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { SQLiteProvider } from 'expo-sqlite';
 import FooterNavBar from '@/components/FooterNavBar';
@@ -9,6 +8,7 @@ import { styled } from 'nativewind';
 import { NativeWindStyleSheet } from "nativewind";
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { migrateDbIfNeeded } from '@/database/migration';
+import ArrowBackIcon from '@/assets/menu-icons/arrow-back-icon.svg';
 
 // Configure nativewind for web compatibility
 NativeWindStyleSheet.setOutput({
@@ -17,13 +17,23 @@ NativeWindStyleSheet.setOutput({
 
 // Container styling for full screen
 const Container = styled(View, 'flex-1 bg-[#1E1E1E]');
-// Content container styling to occupy available space
 const ContentContainer = styled(View, 'flex-grow');
 
-// Fallback component displayed while database initializes
 function Fallback() {
     return (
-        <LoadingSpinner />
+        <View testID="LoadingSpinner">
+            <LoadingSpinner />
+        </View>
+    );
+}
+
+function BackButton() {
+    const router = useRouter();
+
+    return (
+        <Pressable onPress={() => router.back()} className='p-2'>
+            <ArrowBackIcon height={36} width={36} />
+        </Pressable>
     );
 }
 
@@ -32,14 +42,23 @@ export default function RootLayout() {
     const isWelcomePage = pathname === '/';
 
     return (
-        <SafeAreaProvider>
-            <Container>
+        <SafeAreaProvider testID="SafeAreaProvider">
+            <Container testID="RootLayoutContainer">
                 <Suspense fallback={<Fallback />}>
-                    <SQLiteProvider databaseName="bookCollection.db" onInit={migrateDbIfNeeded} useSuspense>
-                        <ContentContainer>
+                    <SQLiteProvider databaseName="bookCollection.db" onInit={migrateDbIfNeeded} useSuspense >
+                        <ContentContainer testID="ContentContainer">
+                            {!isWelcomePage && (
+                                <View className='flex-row justify-start items-center space-x-5'>
+                                    <BackButton />
+                                    <Text className="text-white text-2xl font-bold">Tabby</Text>
+                                </View>
+                            )}
                             <Slot />
                         </ContentContainer>
-                        {!isWelcomePage && <FooterNavBar />}
+                        {!isWelcomePage &&
+                            <View testID="FooterNavBar">
+                                <FooterNavBar />
+                            </View>}
                     </SQLiteProvider>
                 </Suspense>
             </Container>

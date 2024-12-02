@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal, Pressable, Text, FlatList, View, Switch } from 'react-native';
 import { Book } from '@/types/book';
 import { Checkbox } from 'expo-checkbox';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 interface AddBooksOrMoveBooksToCategoryModalProps {
     visible: boolean;
@@ -26,6 +27,7 @@ const AddBooksOrMoveBooksToCategoryModal: React.FC<AddBooksOrMoveBooksToCategory
     const isPossibleToMoveBooks = onConfirmMoveBooks !== undefined;
     // true means will be adding books false means will be moving books by default will set to adding books
     const [addOrMoveBooks, setAddOrMoveBooks] = useState(true);
+    const [loading, setLoading] = useState(false);
 
 
     // Toggle selection of categories
@@ -45,13 +47,13 @@ const AddBooksOrMoveBooksToCategoryModal: React.FC<AddBooksOrMoveBooksToCategory
 
     // Handle adding books to selected categories and trigger onSuccess with selected categories
     const handleAddBooks = async () => {
-        console.log("length of selected categories: ", selectedCategories.length);
         if (selectedCategories.length === 0) {
             setErrorMessage('Please select at least one category.');
             return;
         }
 
         try {
+            setLoading(true);
             // Call onConfirm with selected categories and books to add
             if (addOrMoveBooks) {
                 await onConfirmAddBooks(selectedCategories);
@@ -65,6 +67,8 @@ const AddBooksOrMoveBooksToCategoryModal: React.FC<AddBooksOrMoveBooksToCategory
             setSelectedCategories([]); // Reset selections after success
         } catch (error) {
             console.error('Error adding books to categories:', error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -77,9 +81,10 @@ const AddBooksOrMoveBooksToCategoryModal: React.FC<AddBooksOrMoveBooksToCategory
     }
 
     const AddOrMoveSwitch = () => {
-        return (<View className='flex-row mb-3 items-center'>
+        return (<View className='flex-row mb-3 items-center' >
             <Text className='text-black font-bold text-lg'>{addOrMoveBooks ? "Add Books:" : "Move Books:"}</Text>
             <Switch
+                testID='add-or-move-switch'
                 value={addOrMoveBooks}
                 onValueChange={(value) => setAddOrMoveBooks(value)}
             />
@@ -107,7 +112,7 @@ const AddBooksOrMoveBooksToCategoryModal: React.FC<AddBooksOrMoveBooksToCategory
 
                 {/* Category selection */}
                 <FlatList
-                    className="max-h-52"
+                    className="max-h-36"
                     data={categories}
                     keyExtractor={(item) => item}
                     renderItem={({ item }) => (
@@ -129,7 +134,7 @@ const AddBooksOrMoveBooksToCategoryModal: React.FC<AddBooksOrMoveBooksToCategory
                     {(addOrMoveBooks ? "Books to add:" : "Books to move:")}
                 </Text>
                 <FlatList
-                    className="max-h-52"
+                    className="max-h-36"
                     data={booksToAdd}
                     keyExtractor={(item) => item.id.toString()}
                     renderItem={({ item }) => (
@@ -144,21 +149,28 @@ const AddBooksOrMoveBooksToCategoryModal: React.FC<AddBooksOrMoveBooksToCategory
 
                 {errorMessage.length > 0 && <Text className='text-red-500'>{errorMessage}</Text>}
 
-                <View className="flex-row justify-between mt-4">
-
-                    <Pressable
-                        className="px-4 py-2 bg-blue-500 rounded-lg"
-                        onPress={handleAddBooks}
-                    >
-                        <Text className="text-white">Confirm</Text>
-                    </Pressable>
-                    <Pressable
-                        className="px-4 py-2 mr-2 bg-gray-300 rounded-lg"
-                        onPress={onClose}
-                    >
-                        <Text className="text-gray-800">Cancel</Text>
-                    </Pressable>
+                {(loading) ? <View className='w-full h-20' testID='loading-spinner'>
+                    <LoadingSpinner />
                 </View>
+                    : <View className="flex-row justify-between mt-4">
+
+
+                        <Pressable
+                            className="px-4 py-2 bg-blue-500 rounded-lg"
+                            onPress={handleAddBooks}
+                        >
+                            <Text className="text-white">Confirm</Text>
+                        </Pressable>
+                        <Pressable
+                            className="px-4 py-2 mr-2 bg-gray-300 rounded-lg"
+                            onPress={onClose}
+                        >
+                            <Text className="text-gray-800">Cancel</Text>
+                        </Pressable>
+                    </View>}
+
+
+
             </View>
 
             <Pressable className='flex-1' onPress={onClose}></Pressable>

@@ -1,12 +1,11 @@
 import React, { useState } from "react";
 import { Modal, Pressable, Text, FlatList, View, Switch } from "react-native";
-import { Book } from "@/types/book";
 import { Checkbox } from "expo-checkbox";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 interface AddOrMoveSingleBookModalProps {
     visible: boolean;
     onClose: () => void;
-    bookToAdd: Book;
     categories: string[]; // Categories passed as props
     onConfirmAddBook: (categoriesSelected: string[]) => Promise<boolean>; // Async success handler for adding book
     onConfirmMoveBook?: (categoriesSelected: string[]) => Promise<void>; // Async success handler for moving book
@@ -15,7 +14,6 @@ interface AddOrMoveSingleBookModalProps {
 const AddOrMoveSingleBookModal: React.FC<AddOrMoveSingleBookModalProps> = ({
     visible,
     onClose,
-    bookToAdd,
     categories,
     onConfirmAddBook,
     onConfirmMoveBook,
@@ -26,6 +24,7 @@ const AddOrMoveSingleBookModal: React.FC<AddOrMoveSingleBookModalProps> = ({
     const isPossibleToMoveBook = onConfirmMoveBook !== undefined;
     // true means will be adding book false means will be moving book by default will set to adding book
     const [addOrMoveBook, setAddOrMoveBook] = useState(true);
+    const [loading, setLoading] = useState(false);
 
     // Toggle selection of categories
     const toggleCategorySelection = (category: string) => {
@@ -51,6 +50,7 @@ const AddOrMoveSingleBookModal: React.FC<AddOrMoveSingleBookModalProps> = ({
         }
 
         try {
+            setLoading(true);
             // Call onConfirm with selected categories and book to add
             if (addOrMoveBook) {
                 await onConfirmAddBook(selectedCategories);
@@ -65,6 +65,8 @@ const AddOrMoveSingleBookModal: React.FC<AddOrMoveSingleBookModalProps> = ({
             onClose();
         } catch (error) {
             console.error("Error adding book to categories:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -122,9 +124,12 @@ const AddOrMoveSingleBookModal: React.FC<AddOrMoveSingleBookModalProps> = ({
                 />
 
                 {errorMessage.length > 0 && (
-                    <Text className="text-red-500">{errorMessage}</Text>
+                    <Text className="text-red-500 text-center">{errorMessage}</Text>
                 )}
-                <View className="flex-row justify-between mt-2">
+
+                {loading ? <View className="w-full h-10">
+                    <LoadingSpinner />
+                </View> : <View className="flex-row justify-between mt-2">
                     <Pressable
                         className="p-2 bg-blue-500 rounded-lg"
                         onPress={handleAddBook}
@@ -137,7 +142,8 @@ const AddOrMoveSingleBookModal: React.FC<AddOrMoveSingleBookModalProps> = ({
                     >
                         <Text className="text-gray-800">Cancel</Text>
                     </Pressable>
-                </View>
+                </View>}
+
             </View>
         </Modal>
     );
