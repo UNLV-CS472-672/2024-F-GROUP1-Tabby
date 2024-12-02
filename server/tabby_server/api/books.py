@@ -68,6 +68,9 @@ def books_scan_cover():
 
     current_app.logger.info(f"{G}START       /scan_shelf{RESET}")
 
+    # Get param
+    use_google_books: bool = not ("nosearch" in request.args)
+
     # Try scan image
     with logging_duration("Read image"):
         try:
@@ -84,7 +87,9 @@ def books_scan_cover():
     # ai-gen end
 
     # Scan cover
-    books, (title, author) = scan_cover(img_mat)
+    books, (title, author) = scan_cover(
+        img_mat, use_google_books=use_google_books
+    )
 
     # Filter out books without ISBNs
     if _FILTER_ISBN:
@@ -144,10 +149,9 @@ def scan_cover(
         return [], ("", "")
 
     # Make the request to Google Books
+    top_option = extraction_result.options[0]
     if use_google_books:
         with logging_duration("Request info from Google Books"):
-            top_option = extraction_result.options[0]
-
             title = remove_punctuation(top_option.title).lower()
             author = remove_punctuation(top_option.title).lower()
 
@@ -279,6 +283,9 @@ def books_scan_shelf() -> tuple[dict, HTTPStatus]:
     """
     current_app.logger.info(f"{G}START       /scan_shelf{RESET}")
 
+    # Get param
+    use_google_books: bool = not ("nosearch" in request.args)
+
     # Load image
     with logging_duration("Read image"):
         try:
@@ -295,7 +302,9 @@ def books_scan_shelf() -> tuple[dict, HTTPStatus]:
     # ai-gen end
 
     # scan shelf
-    scanned_shelf, titles_authors = scan_shelf(img_mat)
+    scanned_shelf, titles_authors = scan_shelf(
+        img_mat, use_google_books=use_google_books
+    )
 
     # filter out any books without ISBNs
     # and limit each sublist to a maximum number of books
@@ -388,6 +397,9 @@ def scan_shelf(
             )
             shelf.append(books)
             titles_authors.append((title, author))
+
+    if not use_google_books:
+        shelf = []
 
     return shelf, titles_authors
 
