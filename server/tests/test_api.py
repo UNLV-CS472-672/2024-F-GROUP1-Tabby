@@ -209,6 +209,26 @@ class TestAPIEndpoint:
                 == 0
             )
 
+            # Test without searching
+            response = client.post(
+                "/books/scan_cover?nosearch", data=BytesIO(image_bytes)
+            )
+
+            logging.info(response.json)
+            assert response.status_code == HTTPStatus.OK
+            assert response.json is not None
+            assert "message" in response.json
+            assert "results" in response.json
+            assert "title" in response.json
+            assert "author" in response.json
+            assert "results" in response.json
+            assert response.json["results"] == []
+            assert (
+                response.json["title"]
+                == "KICKING AWAY THE LADDER: DEVELOPMENT STRATEGY IN HISTORICAL PERSPECTIVE"  # noqa: E501
+            )
+            assert response.json["author"] == "HA-JOON CHANG"
+
         # Test success
         with requests_mock.Mocker() as m:
             google_books_url = "https://www.googleapis.com/books/v1/volumes"
@@ -391,6 +411,25 @@ class TestAPIEndpoint:
                 == len(response.json["results"])
                 == 0
             )
+
+            # Test without searching
+            response = client.post(
+                "/books/scan_shelf?nosearch", data=BytesIO(image_bytes)
+            )
+
+            kicking_title = "KICKING AWAY THE LADDER: DEVELOPMENT STRATEGY IN HISTORICAL PERSPECTIVE"  # noqa: E501
+
+            logging.info(response.json)
+            assert response.status_code == HTTPStatus.OK
+            assert response.json is not None
+            assert "message" in response.json
+            assert "results" in response.json
+            assert "titles" in response.json
+            assert "authors" in response.json
+            assert "results" in response.json
+            assert response.json["results"] == []
+            assert response.json["titles"] == [kicking_title] * 2
+            assert response.json["authors"] == ["HA-JOON CHANG"] * 2
 
         # Test success
         with requests_mock.Mocker() as m:
