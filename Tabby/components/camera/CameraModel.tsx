@@ -115,7 +115,6 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
             if (response.ok) {
                 console.log('success');
                 const result = await response.json();
-                // console.log("result: ", result.results[0])
                 if (result.results[0]) {
                     const book1 = jsonToBook(result.results[0]);
                     returnedBooks.push(book1);

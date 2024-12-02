@@ -1,8 +1,9 @@
 import React from 'react';
 import FooterNavBar from '@/components/FooterNavBar';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { usePathname, useRouter } from 'expo-router';
 import Favorites from '@/app/favorites';
+import { getAllFavoriteUserBooks, updateUserBook, getAllCategories, addUserBook } from '@/database/databaseOperations';
 
 jest.mock('expo-router', () => {
     const { Pressable } = require('react-native');
@@ -27,10 +28,39 @@ jest.mock('expo-font', () => {
     };
 });
 
+// mock database operations
+jest.mock('@/database/databaseOperations', () => ({
+    getAllFavoriteUserBooks: jest.fn(),
+    updateUserBook: jest.fn(),
+    getAllCategories: jest.fn(),
+    addUserBook: jest.fn(),
+}));
+
+const mockBooks = [
+    { id: '1', title: 'Book One', author: 'Author One', isFavorite: true },
+    { id: '2', title: 'Book Two', author: 'Author Two', isFavorite: true },
+];
+
+const mockCategories = [
+    { name: "fiction" },
+    { name: 'non-fiction' },
+    { name: 'climbing' },
+];
+
 // test relating to the favorites page
 describe('Favorite tab tests', () => {
+    beforeEach(() => {
+        getAllFavoriteUserBooks.mockResolvedValue(mockBooks);
+        updateUserBook.mockResolvedValue(null); // Simulate a successful database update
+        getAllCategories.mockResolvedValue(mockCategories);
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
     // make sure the favorites page opens 
-    test('Favorites page opens', () => {
+    test('Favorites page opens', async () => {
         // setup mock implementations
         const push = jest.fn();
         const pathname = '/library';
@@ -39,6 +69,7 @@ describe('Favorite tab tests', () => {
 
         // render footer
         const page = render(<FooterNavBar />);
+
         // get favorites button
         const favoritesButton = page.getByTestId('favoritesButton');
 
@@ -50,19 +81,34 @@ describe('Favorite tab tests', () => {
     });
 
     // test heart button
-    test('Test unfavoriting book', () => {
+    test('Test unfavoriting book', async () => {
         // render favorites page
         const page = render(<Favorites />);
+
+        // wait for books to load
+        await waitFor(() => expect(getAllFavoriteUserBooks).toHaveBeenCalledTimes(1));
+
         // get all heart buttons
         const heartButtons = page.getAllByTestId('heartButton');
 
+        // make sure that first book is rendered
+        expect(page.queryByText('Book One')).not.toBeNull();
+
         // press heart button
-        fireEvent.press(heartButtons[0]);
+        await act(async () => {
+            fireEvent.press(heartButtons[0]);
+        });
 
-        // gets all favorited books after removing one
-        const newBookCount = page.getAllByTestId('heartButton');
 
-        // make sure that the book was removed from favorites
-        expect(newBookCount < heartButtons);
+        // wait to update user book
+        await waitFor(() => expect(updateUserBook).toHaveBeenCalledWith({
+            id: '1',
+            title: 'Book One',
+            author: 'Author One',
+            isFavorite: false, // Expecting the book's favorite status to toggle
+        }));
+
+        // make sure that books are rerendered after removing one
+        await waitFor(() => expect(getAllFavoriteUserBooks).toHaveBeenCalledTimes(2));
     });
 });
