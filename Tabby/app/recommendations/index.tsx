@@ -320,10 +320,12 @@ const defaultBooks: Book[] = [
 const size = 36;
 const maxLimitOfBooksToSendToServer = 100;
 const maxLimitOfCharactersForSearch = 100;
-
-const baseAPIUrlCpuForSearchAndRecommendations =
-  "https://uneven-wrennie-tabby-cpu-f1a3409f.koyeb.app/";
-
+const defaultUrl = "default-base-api-url";
+// will initialize the base API URL with expo if not undefined otherwise use tests
+const baseAPIUrlCpuForSearchAndRecommendationsInUS = process.env.EXPO_PUBLIC_CPU_US_API_URL || defaultUrl;
+if (baseAPIUrlCpuForSearchAndRecommendationsInUS === defaultUrl) {
+  console.error("baseAPIUrlCpuForSearchAndRecommendationsInUS is not set by env");
+}
 const convertApiResponseToBooks = (apiResponse: any): Book[] => {
   if (
     !apiResponse ||
@@ -402,7 +404,7 @@ const pickBooksToSendToServer = (books: Book[]): Book[] => {
 const getRecommendedBooksFromServerBasedOnBooksPassed = async (
   booksToUseForRecommendations: Book[]
 ): Promise<Book[]> => {
-  const baseUrl = baseAPIUrlCpuForSearchAndRecommendations; // Ensure baseAPIUrlKoyeb is properly defined
+  const baseUrl = baseAPIUrlCpuForSearchAndRecommendationsInUS; // Ensure baseAPIUrlKoyeb is properly defined
 
   // if the booksToUseForRecommendations is empty send default books
   if (booksToUseForRecommendations.length === 0) {
@@ -489,7 +491,7 @@ const getRecommendedBooksFromServerBasedOnBooksPassed = async (
 const getBooksFromServerBasedOnSearch = async (
   search: string
 ): Promise<Book[]> => {
-  const baseUrl = baseAPIUrlCpuForSearchAndRecommendations; // Ensure baseAPIUrlKoyeb is properly defined
+  const baseUrl = baseAPIUrlCpuForSearchAndRecommendationsInUS; // Ensure baseAPIUrlKoyeb is properly defined
 
   // Normalize the search string by removing dashes
   const normalizedSearch = search.replace(/-/g, "");

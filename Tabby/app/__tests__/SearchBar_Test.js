@@ -67,6 +67,7 @@ describe("Favorite tab test favorites page", () => {
 // Test suite for search bar functionality
 describe("Favorite tab test everything else", () => {
     test("Correct search bar input for everything else", async () => {
+
         // Render categories page
         const categoriesPage = render(<Categories />);
         const searchBar2 = await categoriesPage.findByPlaceholderText(
@@ -82,6 +83,7 @@ describe("Favorite tab test everything else", () => {
         );
         fireEvent.changeText(searchBar3, "tempText3");
         expect(searchBar3.props.value).toBe("tempText3");
+
 
         // Render recommendations page
         const recommendationsPage = render(<Recommendations />);
