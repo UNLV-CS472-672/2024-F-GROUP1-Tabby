@@ -84,7 +84,7 @@ def books_scan_cover():
     # ai-gen end
 
     # Scan cover
-    books = scan_cover(img_mat)
+    books, (title, author) = scan_cover(img_mat)
 
     # Filter out books without ISBNs
     if _FILTER_ISBN:
@@ -92,19 +92,24 @@ def books_scan_cover():
 
     # Wrap it up in another dictionary and send!
     result = _get_result_dict(books)
+    result["title"] = title
+    result["author"] = author
     return result, HTTPStatus.OK
 
 
 def scan_cover(
-    image_matrix: MatLike, angles: tuple[Literal[0, 90, 180, 270], ...] = (0,)
-) -> list[google_books.Book]:
+    image_matrix: MatLike,
+    angles: tuple[Literal[0, 90, 180, 270], ...] = (0,),
+    use_google_books: bool = True,
+) -> tuple[list[google_books.Book], tuple[str, str]]:
     """Takes in an image of a cover and returns a list of results.
 
     Args:
         image_matrix: Image to scan.
     Returns:
-        List of book information scanned. Empty if there is a failure at any
+        (1) List of book information scanned. Empty if there is a failure at any
         part.
+        (2) Title and author tuple. Empty strings if failure.
     """
 
     # Find text
@@ -128,7 +133,7 @@ def scan_cover(
             logging.info(f"  ({r.confidence * 100:5.2f}%) {r.text}")
     else:  # None found
         logging.info("Found NO text")
-        return []
+        return [], ("", "")
 
     # Extract Title and Author
     with logging_duration("Extract title and author using ChatGPT"):
@@ -136,19 +141,23 @@ def scan_cover(
             recognized_texts
         )
     if extraction_result is None:
-        return []
+        return [], ("", "")
 
     # Make the request to Google Books
-    with logging_duration("Request info from Google Books"):
-        top_option = extraction_result.options[0]
+    if use_google_books:
+        with logging_duration("Request info from Google Books"):
+            top_option = extraction_result.options[0]
 
-        title = remove_punctuation(top_option.title).lower()
-        author = remove_punctuation(top_option.title).lower()
+            title = remove_punctuation(top_option.title).lower()
+            author = remove_punctuation(top_option.title).lower()
 
-        books = google_books.request_volumes_get(f"{title} {author}")
-        logging.info(f"Got {len(books)} from Google Books")
+            books = google_books.request_volumes_get(f"{title} {author}")
+            logging.info(f"Got {len(books)} from Google Books")
+    else:
+        logging.info("Not using Google Books")
+        books = []
 
-    return books
+    return books, (top_option.title, top_option.author)
 
 
 # ai-gen start (ChatGPT-4o, 0)
@@ -286,7 +295,7 @@ def books_scan_shelf() -> tuple[dict, HTTPStatus]:
     # ai-gen end
 
     # scan shelf
-    scanned_shelf = scan_shelf(img_mat)
+    scanned_shelf, titles_authors = scan_shelf(img_mat)
 
     # filter out any books without ISBNs
     # and limit each sublist to a maximum number of books
@@ -298,23 +307,37 @@ def books_scan_shelf() -> tuple[dict, HTTPStatus]:
         if len(books) >= 1:  # if not empty, append it
             new_shelf.append(books)
 
+    titles = []
+    authors = []
+    for title, author in titles_authors:
+        titles.append(title)
+        authors.append(author)
+
     # Select first book in each row
     results = []
     for books in new_shelf:
         if len(books) >= 1:
             results.append(books[0])
 
-    return _get_result_dict(results), HTTPStatus.OK
+    result_dict = _get_result_dict(results)
+    result_dict["titles"] = titles
+    result_dict["authors"] = authors
+
+    return result_dict, HTTPStatus.OK
 
 
-def scan_shelf(image: MatLike) -> list[list[google_books.Book]]:
+def scan_shelf(
+    image: MatLike,
+    use_google_books: bool = True,
+) -> tuple[list[list[google_books.Book]], list[tuple[str, str]]]:
     """Takes in an image of a shelf and returns a list of list of results.
 
     Args:
         image: Image to scan.
     Returns:
-        List of lists of book information scanned. Each sublist corresponds to
-        a subimage. Empty if there is a failure at any part.
+        (1) List of lists of book information scanned. Each sublist corresponds
+        to a subimage. Empty if there is a failure at any part.
+        (2) Title and author tuple. Empty strings if failure.
     """
 
     w, h, _ = image.shape
@@ -354,13 +377,19 @@ def scan_shelf(image: MatLike) -> list[list[google_books.Book]]:
     logging.info(f"Found {len(subimages)} books in shelf image.")
 
     # Scan each subimage
+    titles_authors: list[tuple[str, str]] = []
     with logging_duration("Use OCR on each image."):
-        shelf = []
+        shelf: list[list[google_books.Book]] = []
         for subimage in subimages:
-            books = scan_cover(subimage, angles=(0, 90, 270))
+            books, (title, author) = scan_cover(
+                subimage,
+                angles=(0, 90, 270),
+                use_google_books=use_google_books,
+            )
             shelf.append(books)
+            titles_authors.append((title, author))
 
-    return shelf
+    return shelf, titles_authors
 
 
 @subapp.route("/recommendations", methods=["POST"])

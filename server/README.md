@@ -125,7 +125,8 @@ bad requests result in a `400: BAD REQUEST` status.
 
 The body of both `200` and `400` responses are in JSON.
 
-A successful (`200`) response is in the following format:
+A successful (`200`) response is in the format below. Additional fields might
+be added to the body of the request, but these fields are guaranteed.
 
 ```
 {
@@ -204,6 +205,13 @@ be.
 Expects a request with a body that is in *binary*, which represents an image.
 The image can either be JPG or PNG.
 
+The response JSON will contain two additional fields:
+
+- `"title"`: Title recognized from the image.
+- `"author"`: Author recognized from the image.
+
+These two fields are strings.
+
 ## POST /books/scan_shelf
 
 Scans the given image of a bookshelf and returns the books it thinks are in
@@ -211,6 +219,13 @@ the image.
 
 Expects a request with a body that is in *binary*, which represents an image.
 The image can either be JPG or PNG.
+
+The response JSON will contain two additional fields:
+
+- `"titles"`: Titles recognized from the image.
+- `"authors"`: Authors recognized from the image.
+
+These two fields are parallel arrays of strings.
 
 ## GET /books/search
 
