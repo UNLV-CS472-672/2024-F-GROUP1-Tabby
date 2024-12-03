@@ -23,7 +23,8 @@ const FooterNavBar = () => {
   const [isBookSelectionModalVisible, setBookSelectionModalVisible] = useState(false);
   const [chosenCategory, setChosenCategory] = useState('')
   const [categories, setCategories] = useState<String[]>([]);
-  const [selectedIsbn, setSelectedIsbn] = useState<String | undefined>(undefined);
+  const [selectedIsbn, setSelectedIsbn] = useState<String | String[] | undefined>(undefined);
+  const [isShelf, setIsShelf] = useState(false);
   const pathname = usePathname();
   const size = 40;
 
@@ -55,14 +56,40 @@ const FooterNavBar = () => {
     setSelectedIsbn(isbn);
   };
 
+  const handleShelfPress = (isbn: string | undefined) => {
+    if (!isbn) return;
+    setSelectedIsbn((prev) => {
+      if (prev?.includes(isbn) && Array.isArray(prev)) {
+        return prev.filter((item) => item !== isbn);
+      } else {
+        if (Array.isArray(prev))
+          return [...prev, isbn];
+      }
+    })
+  }
+
   const renderItem = ({ item }: { item: Book }) => {
-    const isSelected = item.isbn === selectedIsbn;
+    let isSelected = false;
+    if (isShelf && item.isbn && selectedIsbn) {
+      isSelected = selectedIsbn.includes(item.isbn);
+    } else {
+      isSelected = item.isbn === selectedIsbn;
+    }
 
     return (
       <Pressable
         onPress={() => {
-          console.log("Book selected:", item);
-          handlePress(item.isbn);
+          if (!isShelf) {
+            console.log("Book selected:", item);
+            handlePress(item.isbn);
+          } else {
+            if (!selectedIsbn) {
+              const temp: String[] = [];
+              setSelectedIsbn(temp);
+            }
+            handleShelfPress(item.isbn);
+          }
+
         }}
         className={`p-2 border rounded-lg mb-2 h-32 flex-row truncate ${isSelected ? "bg-blue-500" : "bg-white"}`}
       >
@@ -77,7 +104,7 @@ const FooterNavBar = () => {
   }
 
   // add book to a category
-  const addBookToCategory = () => {
+  const addBookToCategory = async () => {
     if (chosenCategory === '') {
       Alert.alert("Please Select a category to add this book");
       return;
@@ -96,18 +123,27 @@ const FooterNavBar = () => {
       image: "tempimage",
       isFavorite: false,
     };
+
     for (const item of tempBooks) {
-      if (item.isbn === selectedIsbn) {
-        returnBook = item;
+      if (Array.isArray(selectedIsbn)) {
+        if (item.isbn && selectedIsbn.includes(item.isbn)) {
+          returnBook = item;
+          returnBook.category = chosenCategory;
+          await addUserBook(returnBook);
+        }
+      } else {
+        if (item.isbn === selectedIsbn) {
+          returnBook = item;
+          returnBook.category = chosenCategory;
+          await addUserBook(returnBook);
+        }
       }
     }
-    returnBook.category = chosenCategory;
 
     if (pathname.includes(`/library/${chosenCategory}`)) {
       router.push(`/library/${chosenCategory}`);
     }
 
-    addUserBook(returnBook);
     setBookSelectionModalVisible(false);
     setChosenCategory('');
     setSelectedIsbn(undefined);
@@ -165,29 +201,33 @@ const FooterNavBar = () => {
       {/* Camera Modal */}
       {isCameraModalVisible && (
         <CameraModal closeModal={() => setCameraModalVisible(false)}
-          onBookSelectionStart={(returnedBooks: Book[]) => {
+          onBookSelectionStart={(returnedBooks: Book[], isShelf: boolean) => {
             tempBooks = returnedBooks;
             fetchCategories();
             setCameraModalVisible(false);
             setBookSelectionModalVisible(true);
+            setIsShelf(isShelf)
           }} />
       )}
       {isBookSelectionModalVisible && (
         <Modal animationType="slide" transparent visible>
-          <View className="flex-1 justify-center items-center  bg-opacity-50">
+          <View className="flex-1 justify-center items-center bg-opacity-50">
             <View className="bg-white rounded-lg w-80 p-4 space-y-4 truncate">
-              <Text className="text-lg font-bold text-center">Select the correct book</Text>
-              <FlatList
-                data={tempBooks}
-                keyExtractor={(item) => item.id}
-                renderItem={renderItem}
-              />
+              {isShelf ? <Text className="text-lg font-bold text-center">Select the correct books</Text> : <Text className="text-lg font-bold text-center">Select the correct book</Text>}
+
+              <View className='max-h-96'>
+                <FlatList
+                  data={tempBooks}
+                  keyExtractor={(item) => item.id}
+                  renderItem={renderItem}
+                />
+              </View>
               <SelectList
                 setSelected={(val: string) => setChosenCategory(val)}
                 data={categories}
                 search={false}
                 onSelect={() => console.log('user chose: ', chosenCategory)}
-                placeholder={'Select which category to add this book'}
+                placeholder={isShelf ? 'Select which category to add these books' : 'Select which category to add this book'}
               />
               <Pressable
                 onPress={() => addBookToCategory()}

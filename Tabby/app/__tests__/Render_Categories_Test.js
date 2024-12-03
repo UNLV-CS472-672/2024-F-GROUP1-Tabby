@@ -3,6 +3,8 @@ import { render, screen } from "@testing-library/react-native";
 import { getAllCategories } from "@/database/databaseOperations";
 import CategoriesPage from "@/app/library"; // Adjust this import path to your CategoriesPage component
 
+jest.setTimeout(10000);
+
 // Mocking expo-font to prevent errors in tests
 jest.mock("expo-font", () => {
   return {

@@ -6,7 +6,7 @@ import { useSearchParams } from "expo-router/build/hooks";
 
 interface CameraModalProps {
     closeModal: () => void;
-    onBookSelectionStart: (tempBooks: Book[]) => void;
+    onBookSelectionStart: (tempBooks: Book[], isShelf: boolean) => void;
 }
 
 type apiReturn = {
@@ -50,7 +50,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
         if (!result.canceled) {
             const returnedBooks = await uploadImage(result.assets[0].uri);
             if (returnedBooks)
-                await userPickBook(returnedBooks);
+                await userPickBook(returnedBooks, false);
         }
         setIsProcessing(false);
     };
@@ -73,10 +73,112 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
         if (!result.canceled) {
             const returnedBooks = await uploadImage(result.assets[0].uri);
             if (returnedBooks)
-                await userPickBook(returnedBooks);
+                await userPickBook(returnedBooks, false);
         }
         setIsProcessing(false);
     };
+
+    // handle user sending in shelf image from camera roll
+    const handlePickShelfImage = async () => {
+        setIsProcessing(true);
+        const { granted } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!granted) {
+            setIsProcessing(false);
+            return;
+        }
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsEditing: true,
+            quality: .4,
+        });
+
+        if (!result.canceled) {
+            const returnedBooks = await uploadShelfImage(result.assets[0].uri);
+            if (returnedBooks)
+                await userPickBook(returnedBooks, true);
+        }
+        setIsProcessing(false);
+    };
+    // handle user sending in a shelf image
+    const handleTakeShelfPicture = async () => {
+        setIsProcessing(true);
+        const { granted } = await ImagePicker.requestCameraPermissionsAsync();
+        if (!granted) {
+            setIsProcessing(false);
+            return;
+        }
+
+        const result = await ImagePicker.launchCameraAsync({
+            mediaTypes: ['images'],
+            allowsEditing: true,
+            quality: .4,
+        });
+
+        if (!result.canceled) {
+            const returnedBooks = await uploadShelfImage(result.assets[0].uri);
+            if (returnedBooks)
+                await userPickBook(returnedBooks, true);
+        }
+        setIsProcessing(false);
+    };
+
+    // uploads image to scan_shelf endpoint
+    const uploadShelfImage = async (imageUri: string) => {
+        try {
+            console.log("Sending koyeb image");
+            // convert image to blob raw data
+            const res = await fetch(imageUri);
+            const blob = await res.blob();
+            // fetch titles and authors from scan_cover
+            const books = await fetch(`${gpuUrl}/books/scan_shelf?nosearch=false`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/octet-stream',
+                },
+                body: blob,
+            });
+
+            // show user books that were found from shelf
+            let returnedBooks: Book[] = [];
+            if (books.ok) {
+                console.log('success');
+                const result = await books.json();
+                console.log(result);
+                for (let i = 0; i < result.titles.length; i++) {
+                    const url = new URL(`${cpuUrl}books/search`);
+
+                    url.searchParams.append('author', result.authors[i]);
+                    url.searchParams.append('title', result.titles[i]);
+
+                    // fetch books from US server
+                    const response = await fetch(url);
+
+                    if (response.ok) {
+                        const temp = await response.json();
+                        // add first 3 returned books
+                        if (temp.results[0])
+                            returnedBooks.push(jsonToBook(temp.results[0]));
+                        if (temp.results[1] && returnedBooks.findIndex(c => c.isbn === temp.results[1].isbn))
+                            returnedBooks.push(jsonToBook(temp.results[1]));
+                        if (temp.results[2] && returnedBooks.findIndex(c => c.isbn === temp.results[2].isbn))
+                            returnedBooks.push(jsonToBook(temp.results[2]));
+                    } else {
+                        console.error("error with searches: ", response.status);
+                        const errorText = await response.text();
+                        console.error("error details: ", errorText);
+                    }
+                }
+            } else {
+                console.error("error uploading image: ", books.status);
+                const errorText = await books.text();
+                console.error("Error details: ", errorText);
+            }
+            return returnedBooks;
+        } catch (error) {
+            console.error("Catch Error uploading image:", error);
+        }
+    }
 
     // for testing activity indicator
     async function sleep(ms: number): Promise<void> {
@@ -84,7 +186,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
     }
 
     // Opens modal for user to select correct book
-    const userPickBook = async (bookArr: Book[]) => {
+    const userPickBook = async (bookArr: Book[], isShelf: boolean) => {
         await setUserChoosing(true);
 
         // DONT REMOVE THIS SLEEP
@@ -92,7 +194,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
         await sleep(1000);
 
         if (onBookSelectionStart) {
-            onBookSelectionStart(bookArr);
+            onBookSelectionStart(bookArr, isShelf);
         }
     }
 
@@ -129,26 +231,11 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
                 if (response.ok) {
                     console.log('success');
                     const result = await response.json();
-                    if (result.results[0]) {
-                        const book1 = jsonToBook(result.results[0]);
-                        returnedBooks.push(book1);
-                    }
-                    if (result.results[1]) {
-                        const book2 = jsonToBook(result.results[1]);
-                        if (returnedBooks.findIndex(c => c.isbn === book2.isbn)) {
-                            returnedBooks.push(book2);
-                        }
-                    }
-                    if (result.results[2]) {
-                        const book3 = jsonToBook(result.results[2]);
-                        if (returnedBooks.findIndex(c => c.isbn === book3.isbn)) {
-                            returnedBooks.push(book3);
-                        }
-                    }
-                    if (result.results[3]) {
-                        const book4 = jsonToBook(result.results[3]);
-                        if (returnedBooks.findIndex(c => c.isbn === book4.isbn)) {
-                            returnedBooks.push(book4);
+                    for (let i = 0; i < result.results.length; i++) {
+                        const book = jsonToBook(result.results[i]);
+                        // ensure no duplicate isbn
+                        if (returnedBooks.findIndex(c => c.isbn === book.isbn)) {
+                            returnedBooks.push(book);
                         }
                     }
                 } else {
@@ -199,7 +286,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
                                 className={`p-2 rounded items-center bg-blue-500`}
                                 testID="takePictureButton"
                             >
-                                <Text className="text-white">Take Picture</Text>
+                                <Text className="text-white">Take Picture of a single book</Text>
                             </Pressable>
                             <Pressable
                                 onPress={handlePickImage}
@@ -207,7 +294,21 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
                                 className={`p-2 rounded items-center bg-blue-500`}
                                 testID="pickPhotoButton"
                             >
-                                <Text className="text-white">Pick from Camera Roll</Text>
+                                <Text className="text-white">Upload image of a single book</Text>
+                            </Pressable>
+                            <Pressable
+                                onPress={handleTakeShelfPicture}
+                                disabled={isProcessing}
+                                className={`p-2 rounded items-center bg-blue-500`}
+                            >
+                                <Text className="text-white">Take Picture of a book shelf</Text>
+                            </Pressable>
+                            <Pressable
+                                onPress={handlePickShelfImage}
+                                disabled={isProcessing}
+                                className={`p-2 rounded items-center bg-blue-500`}
+                            >
+                                <Text className="text-white">Upload image of a book shelf</Text>
                             </Pressable>
                             <Pressable
                                 onPress={closeModal}
