@@ -57,7 +57,7 @@ describe("Favorite tab test favorites page", () => {
         const favoritesPage = render(<Favorites />);
 
         const searchBar = await favoritesPage.findByPlaceholderText(
-            "Search by title, ISBN, or author..."
+            "Search by title, author, genre, or isbn"
         );
 
         fireEvent.changeText(searchBar, "tempText");

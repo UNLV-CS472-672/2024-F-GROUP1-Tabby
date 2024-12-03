@@ -246,7 +246,7 @@ const BookPage = () => {
         <SafeAreaView className="flex-1">
           <View className="flex-row justify-end items-center">
             <Text className="flex-1 text-white text-2xl font-semibold ml-8 mt-2">
-              {category}
+              {currentBook.category}
             </Text>
 
             <Pressable
