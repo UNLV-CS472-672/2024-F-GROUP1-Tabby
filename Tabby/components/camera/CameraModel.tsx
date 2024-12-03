@@ -156,7 +156,13 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
 
                     if (response.ok) {
                         const temp = await response.json();
-                        returnedBooks.push(jsonToBook(temp.results[0]));
+                        // add first 3 returned books
+                        if (temp.results[0])
+                            returnedBooks.push(jsonToBook(temp.results[0]));
+                        if (temp.results[1])
+                            returnedBooks.push(jsonToBook(temp.results[1]));
+                        if (temp.results[2])
+                            returnedBooks.push(jsonToBook(temp.results[2]));
                     } else {
                         console.error("error with searches: ", response.status);
                         const errorText = await response.text();
