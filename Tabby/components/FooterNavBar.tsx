@@ -1,4 +1,4 @@
-import { View, Pressable, Text, Modal, FlatList, Image, Alert } from "react-native";
+import { View, Pressable, Text, Modal, FlatList, Alert, ScrollView } from "react-native";
 import { Link, usePathname, useRouter } from "expo-router";
 import React, { useState, useEffect } from "react";
 import { SelectList } from 'react-native-dropdown-select-list'
@@ -14,6 +14,7 @@ import CameraModal from "@/components/camera/CameraModel";
 import { Book } from '@/types/book';
 import { Category } from '@/types/category';
 import { getAllCategories, addUserBook } from '@/database/databaseOperations';
+import BookSearchPreview from "@/components/BookSearchPreview";
 
 let tempBooks: Book[] = [];
 
@@ -26,6 +27,7 @@ const FooterNavBar = () => {
   const [selectedIsbn, setSelectedIsbn] = useState<String | String[] | undefined>(undefined);
   const [isShelf, setIsShelf] = useState(false);
   const pathname = usePathname();
+
   const size = 40;
 
   const router = useRouter();
@@ -91,14 +93,9 @@ const FooterNavBar = () => {
           }
 
         }}
-        className={`p-2 border rounded-lg mb-2 h-32 flex-row truncate ${isSelected ? "bg-blue-500" : "bg-white"}`}
+        className={`flex-row items-center p-4 rounded-lg my-1 ${isSelected ? 'bg-blue-500 opacity-80' : ''}`}
       >
-        <Image source={item.image ? { uri: item.image } : require('@/assets/book/default-book-cover.jpg')} className='w-1/4 h-full' />
-        <View className="flex-col h-32 flex-1 truncate">
-          <Text className="text-center">{item.title}</Text>
-          <Text className='text-center'>{item.author}</Text>
-          <Text className='text-center truncate'>{item.summary}</Text>
-        </View>
+        <BookSearchPreview book={item} />
       </Pressable>
     )
   }
@@ -209,26 +206,29 @@ const FooterNavBar = () => {
             setIsShelf(isShelf)
           }} />
       )}
-      {isBookSelectionModalVisible && (
+      {isBookSelectionModalVisible && tempBooks.length > 0 && (
         <Modal animationType="slide" transparent visible>
           <View className="flex-1 justify-center items-center bg-opacity-50">
             <View className="bg-white rounded-lg w-80 p-4 space-y-4 truncate">
               {isShelf ? <Text className="text-lg font-bold text-center">Select the correct books</Text> : <Text className="text-lg font-bold text-center">Select the correct book</Text>}
 
-              <View className='max-h-96'>
-                <FlatList
-                  data={tempBooks}
-                  keyExtractor={(item) => item.id}
-                  renderItem={renderItem}
-                />
-              </View>
-              <SelectList
-                setSelected={(val: string) => setChosenCategory(val)}
-                data={categories}
-                search={false}
-                onSelect={() => console.log('user chose: ', chosenCategory)}
-                placeholder={isShelf ? 'Select which category to add these books' : 'Select which category to add this book'}
+              <FlatList
+                className="max-h-56"
+                data={tempBooks}
+                keyExtractor={(item) => item.id + item.isbn}
+                renderItem={renderItem}
               />
+
+              <ScrollView className="max-h-56">
+                <SelectList
+                  setSelected={(val: string) => setChosenCategory(val)}
+                  data={categories}
+                  search={false}
+                  onSelect={() => console.log('user chose: ', chosenCategory)}
+                  placeholder={isShelf ? 'Select which category to add these books' : 'Select which category to add this book'}
+                />
+              </ScrollView>
+
               <Pressable
                 onPress={() => addBookToCategory()}
                 className="p-2 bg-blue-500 rounded items-center"
