@@ -286,7 +286,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
                                 className={`p-2 rounded items-center bg-blue-500`}
                                 testID="takePictureButton"
                             >
-                                <Text className="text-white">Take Picture of single book</Text>
+                                <Text className="text-white">Take Picture of a single book</Text>
                             </Pressable>
                             <Pressable
                                 onPress={handlePickImage}
