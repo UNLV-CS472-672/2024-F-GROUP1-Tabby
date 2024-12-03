@@ -200,10 +200,14 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
             });
 
             if (titles.ok) {
-                const titles2 = await titles.json();
+                const book = await titles.json();
+                const url = new URL(`${cpuUrl}books/search`);
+
+                url.searchParams.append('author', book.author);
+                url.searchParams.append('title', book.title);
+
                 // fetch books from US server
-                const params = `?title=${titles2.title}&author=${titles2.author}`;
-                const response = await fetch(`${cpuUrl}books/search` + params);
+                const response = await fetch(url);
 
                 // add first 4 returned books to an array which are the books that the user can choose from
                 let returnedBooks: Book[] = [];
