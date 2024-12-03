@@ -3,18 +3,8 @@
 App capable of reading text off of an image of a book and provide recomendations,
 and user compatability for that particular book.
 
-`app/` is for the front-end mobile application, and `server/` is for the
+`Tabby/` is for the front-end mobile application, and `server/` is for the
 back-end server.
 
-## Installing App
-
-TODO write documentation
-
-## Installing Server
-
-```
-cd server
-python -m venv venv  # Must be with Python 3.12
-./venv/scripts/activate  # Activate environment
-poetry install
-```
+Please refer to `Tabby/README.md` for documentation on the front-end and
+`server/README.md` for documentation on the backend.
