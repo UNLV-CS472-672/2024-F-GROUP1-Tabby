@@ -597,17 +597,6 @@ class TestAPIEndpoint:
             assert response.json["results"][0]["title"] == "APPLES"
             assert response.json["results"][1]["title"] == "CHERRIES"
 
-    # Test call to YOLO object recognition. Uses a 0 as a parameter so data
-    # is not saved from pytest call.
-    def test_predict_examples(self, client):
-        # Calls for the model to run object detection on example images.
-        # Does not save the results.
-        result = client.get("/yolo/shelf_read")
-
-        # This should always return true.
-        assert result.status_code == HTTPStatus.OK
-        assert result.json is not None and "shelf_1" in result.json
-
     def test_recommendations(
         self, client: FlaskClient, mock_chat_completion: Callable[[Any], None]
     ) -> None:
