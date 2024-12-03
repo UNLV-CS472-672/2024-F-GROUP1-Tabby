@@ -99,7 +99,6 @@ const CategoryPage: React.FC = () => {
     };
 
 
-
     // Confirm Button Press
     const handleConfirmForAddingCustomBook = async () => {
         await handleAddCustomBook();
@@ -192,7 +191,6 @@ const CategoryPage: React.FC = () => {
     const [search, setSearch] = useState("");
     const [filteredBooksForSearch, setFilteredBooksForSearch] = useState(selectableBooks);
     const [loadingSearch, setLoadingSearch] = useState(false);
-
 
     const handleFavoritePress = async (bookId: string) => {
         // get user book by id
