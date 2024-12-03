@@ -66,7 +66,7 @@ describe("AddBooksOrMoveBooksToCategoryModal", () => {
     });
     booksToAdd.forEach((book) => {
       expect(
-        screen.getByText(`• ${book.title} by ${book.author}`)
+        screen.getByText(`•${book.title} by ${book.author}`)
       ).toBeTruthy();
     });
   });
