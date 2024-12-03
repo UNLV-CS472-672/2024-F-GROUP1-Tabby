@@ -24,6 +24,7 @@ const FooterNavBar = () => {
   const [chosenCategory, setChosenCategory] = useState('')
   const [categories, setCategories] = useState<String[]>([]);
   const [selectedIsbn, setSelectedIsbn] = useState<String | undefined>(undefined);
+  const [isShelf, setIsShelf] = useState(false);
   const pathname = usePathname();
   const size = 40;
 
@@ -165,23 +166,26 @@ const FooterNavBar = () => {
       {/* Camera Modal */}
       {isCameraModalVisible && (
         <CameraModal closeModal={() => setCameraModalVisible(false)}
-          onBookSelectionStart={(returnedBooks: Book[]) => {
+          onBookSelectionStart={(returnedBooks: Book[], isShelf: boolean) => {
             tempBooks = returnedBooks;
             fetchCategories();
             setCameraModalVisible(false);
             setBookSelectionModalVisible(true);
+            setIsShelf(isShelf)
           }} />
       )}
       {isBookSelectionModalVisible && (
         <Modal animationType="slide" transparent visible>
-          <View className="flex-1 justify-center items-center  bg-opacity-50">
+          <View className="flex-1 justify-center items-center bg-opacity-50">
             <View className="bg-white rounded-lg w-80 p-4 space-y-4 truncate">
               <Text className="text-lg font-bold text-center">Select the correct book</Text>
-              <FlatList
-                data={tempBooks}
-                keyExtractor={(item) => item.id}
-                renderItem={renderItem}
-              />
+              <View className='max-h-96'>
+                <FlatList
+                  data={tempBooks}
+                  keyExtractor={(item) => item.id}
+                  renderItem={renderItem}
+                />
+              </View>
               <SelectList
                 setSelected={(val: string) => setChosenCategory(val)}
                 data={categories}

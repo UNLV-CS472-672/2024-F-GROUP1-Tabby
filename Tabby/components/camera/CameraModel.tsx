@@ -6,7 +6,7 @@ import { useSearchParams } from "expo-router/build/hooks";
 
 interface CameraModalProps {
     closeModal: () => void;
-    onBookSelectionStart: (tempBooks: Book[]) => void;
+    onBookSelectionStart: (tempBooks: Book[], isShelf: boolean) => void;
 }
 
 type apiReturn = {
@@ -50,7 +50,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
         if (!result.canceled) {
             const returnedBooks = await uploadImage(result.assets[0].uri);
             if (returnedBooks)
-                await userPickBook(returnedBooks);
+                await userPickBook(returnedBooks, false);
         }
         setIsProcessing(false);
     };
@@ -73,7 +73,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
         if (!result.canceled) {
             const returnedBooks = await uploadImage(result.assets[0].uri);
             if (returnedBooks)
-                await userPickBook(returnedBooks);
+                await userPickBook(returnedBooks, false);
         }
         setIsProcessing(false);
     };
@@ -96,7 +96,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
         if (!result.canceled) {
             const returnedBooks = await uploadShelfImage(result.assets[0].uri);
             if (returnedBooks)
-                await userPickBook(returnedBooks);
+                await userPickBook(returnedBooks, true);
         }
         setIsProcessing(false);
     };
@@ -118,7 +118,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
         if (!result.canceled) {
             const returnedBooks = await uploadShelfImage(result.assets[0].uri);
             if (returnedBooks)
-                await userPickBook(returnedBooks);
+                await userPickBook(returnedBooks, true);
         }
         setIsProcessing(false);
     };
@@ -143,13 +143,23 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
             if (books.ok) {
                 console.log('success');
                 const result = await books.json();
-                console.log("result: ", result)
+                console.log(result);
                 for (let i = 0; i < result.titles.length; i++) {
-                    const params = `?title=${result.titles[i]}&author=${result.authors[i]}`;
-                    const response = await fetch(`${cpuUrl}books/search` + params);
+                    const url = new URL(`${cpuUrl}books/search`);
+
+                    url.searchParams.append('author', result.authors[i]);
+                    url.searchParams.append('title', result.titles[i]);
+
+                    // fetch books from US server
+                    const response = await fetch(url);
+
                     if (response.ok) {
                         const temp = await response.json();
                         returnedBooks.push(jsonToBook(temp.results[0]));
+                    } else {
+                        console.error("error with searches: ", response.status);
+                        const errorText = await response.text();
+                        console.error("error details: ", errorText);
                     }
                 }
             } else {
@@ -169,7 +179,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
     }
 
     // Opens modal for user to select correct book
-    const userPickBook = async (bookArr: Book[]) => {
+    const userPickBook = async (bookArr: Book[], isShelf: boolean) => {
         await setUserChoosing(true);
 
         // DONT REMOVE THIS SLEEP
@@ -177,7 +187,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
         await sleep(1000);
 
         if (onBookSelectionStart) {
-            onBookSelectionStart(bookArr);
+            onBookSelectionStart(bookArr, isShelf);
         }
     }
 
