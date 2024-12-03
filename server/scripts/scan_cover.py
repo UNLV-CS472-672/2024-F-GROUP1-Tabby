@@ -18,7 +18,7 @@ def main(
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
     image = cv.imread(str(image_path))
-    books = scan_cover(image)
+    books, _ = scan_cover(image)
     for book in books:
         print(f"{book.title}")
         print(f"- {book.authors}")
