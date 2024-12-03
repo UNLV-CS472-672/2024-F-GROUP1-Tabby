@@ -3,7 +3,7 @@ import FooterNavBar from '@/components/FooterNavBar';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { usePathname, useRouter } from 'expo-router';
 import Favorites from '@/app/favorites';
-import { getAllFavoriteUserBooks, updateUserBook, getAllCategories, addUserBook } from '@/database/databaseOperations';
+import { getAllFavoriteUserBooks, updateUserBook, getAllCategories } from '@/database/databaseOperations';
 
 jest.mock('expo-router', () => {
     const { Pressable } = require('react-native');

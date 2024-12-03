@@ -1,6 +1,6 @@
 import BookPreview from '@/components/BookPreview';
 import React, { useState, useEffect } from 'react';
-import { FlatList, Pressable } from 'react-native';
+import { FlatList, Pressable, View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FavoriteButtonIcon from '@/components/FavoriteButtonIcon';
 import { SearchBar } from '@rneui/themed';
@@ -38,12 +38,23 @@ const Favorites = () => {
     }
 
     const renderItem = ({ item }: { item: Book }) => {
-        if (item.isFavorite && (search === "" || item.title.toLowerCase().includes(search.toLowerCase()) || item.author.toLowerCase().includes(search.toLowerCase()) || item.isbn?.toLowerCase().includes(search))) {
+        const trimmedSearch = search.trim();
+        const genresAsArray = item.genres?.split(",") || [];
+        const searchAsLowerCase = trimmedSearch.toLowerCase();
+        const filteredStringWithOnlyNumbers = trimmedSearch.replace(/\D/g, '');
+
+        if (item.isFavorite && (search === "" || item.title.toLowerCase().includes(searchAsLowerCase) || item.author.toLowerCase().includes(searchAsLowerCase) || genresAsArray.some((genre) => genre.toLowerCase().includes(searchAsLowerCase)
+            || item.isbn === filteredStringWithOnlyNumbers))) {
             return (
-                <BookPreview
-                    book={item}
-                    button={renderBookButton(item)}
-                />
+
+                <View>
+                    <Text className='text-left text-white font-bold text-lg pl-5 -mb-2'>{item.category}</Text>
+                    <BookPreview
+                        book={item}
+                        button={renderBookButton(item)}
+                    />
+                </View>
+
             )
         }
         return (null);
@@ -55,8 +66,9 @@ const Favorites = () => {
 
     return (
         <SafeAreaView className="flex-1">
-            <SearchBar placeholder="Search by title, ISBN, or author..." onChangeText={updateSearch} value={search} />
+            <SearchBar placeholder="Search by title, author, genre, or isbn" onChangeText={updateSearch} value={search} />
             <FlatList
+                className="pt-1"
                 data={books}
                 keyExtractor={(item) => item.id}
                 renderItem={renderItem}
