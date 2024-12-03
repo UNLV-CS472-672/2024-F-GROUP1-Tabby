@@ -122,6 +122,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
         }
         setIsProcessing(false);
     };
+
     // uploads image to scan_shelf endpoint
     const uploadShelfImage = async (imageUri: string) => {
         try {
