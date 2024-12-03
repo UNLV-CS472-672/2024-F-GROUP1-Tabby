@@ -212,6 +212,7 @@ const BookPage = () => {
                         <BookCard book={currentBook} />
                     </View>
 
+
                     {genresAsArray.length > 0 && (
                         <View className="pl-1 pt-5">
                             <ScrollableHorizontalList listOfStrings={genresAsArray} />
@@ -241,7 +242,7 @@ const BookPage = () => {
                         </View>
 
 
-                        <ScrollView className="max-h-40 pl-1">
+                        <ScrollView className="max-h-24 pl-1">
                             <Text className="text-sm text-white max-w-[90%] p-1 text-start">
                                 {currentBook.notes}
                             </Text>
