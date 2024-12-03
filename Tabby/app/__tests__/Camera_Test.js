@@ -60,7 +60,7 @@ describe('Camera tests', () => {
         });
 
         // makes sure modal shows up by checking if some of the text from the modal appears
-        const modalTest = await screen.findByText('Take Picture of a single book');
+        const modalTest = await screen.findByText('Take picture of a single book');
 
         // if the text does appear then the test passes
         expect(modalTest).toBeTruthy();
