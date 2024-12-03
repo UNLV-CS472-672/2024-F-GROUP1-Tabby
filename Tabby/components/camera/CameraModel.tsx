@@ -159,9 +159,9 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
                         // add first 3 returned books
                         if (temp.results[0])
                             returnedBooks.push(jsonToBook(temp.results[0]));
-                        if (temp.results[1])
+                        if (temp.results[1] && returnedBooks.findIndex(c => c.isbn === temp.results[1].isbn))
                             returnedBooks.push(jsonToBook(temp.results[1]));
-                        if (temp.results[2])
+                        if (temp.results[2] && returnedBooks.findIndex(c => c.isbn === temp.results[2].isbn))
                             returnedBooks.push(jsonToBook(temp.results[2]));
                     } else {
                         console.error("error with searches: ", response.status);
@@ -233,7 +233,10 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
                     const result = await response.json();
                     for (let i = 0; i < result.results.length; i++) {
                         const book = jsonToBook(result.results[i]);
-                        returnedBooks.push(book);
+                        // ensure no duplicate isbn
+                        if (returnedBooks.findIndex(c => c.isbn === book.isbn)) {
+                            returnedBooks.push(book);
+                        }
                     }
                 } else {
                     console.error("error uploading author and title: ", response.status);
