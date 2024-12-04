@@ -9,7 +9,7 @@ import SelectedFavorite from "@/components/navbar/selectedFavorite";
 import NotSelectedFavorite from "@/components/navbar/notSelectedFavorite";
 import Settings from "@/components/navbar/settings";
 import CameraIcon from "@/components/navbar/camera";
-import CameraModal from "@/components/camera/CameraModel";
+import CameraModal from "@/components/camera/CameraModal";
 import { Book } from '@/types/book';
 import { Checkbox } from 'expo-checkbox';
 import { Category } from '@/types/category';
@@ -167,7 +167,7 @@ const FooterNavBar = () => {
       router.replace(`/library/${currentNestedSlug}`);
     }
 
-    setBookSelectionModalVisible(false);
+    // do not close book modal when adding to categories as maybe user wants to select different books to add to different categories later they can close it themselves
     // reset local state of selected categories
     setSelectedCategories([]);
     setSelectedBooksByIsbn([]);
