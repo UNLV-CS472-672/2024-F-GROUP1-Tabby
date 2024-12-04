@@ -239,9 +239,23 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
                 const book = await titles.json();
                 const url = new URL(`${cpuUrl}books/search`);
 
-                url.searchParams.append('author', book.author);
-                url.searchParams.append('title', book.title);
+                // check if title is empty if it is do not append
+                const bookTitleIsEmpty = book.title === "" || null || undefined;
+                const bookAuthorIsEmpty = book.author === "" || null || undefined;
+                if (!bookTitleIsEmpty) {
+                    url.searchParams.append('title', book.title);
+                }
+                // check if author is empty if it is do not append
+                if (!bookAuthorIsEmpty) {
+                    url.searchParams.append('author', book.author);
+                }
 
+                // check if both title and author are empty if so skip making search and just return empty array 
+                if (bookTitleIsEmpty && bookAuthorIsEmpty) {
+                    Alert.alert("No books found. Please try again");
+                    const emptyBooksArray: Book[] = [];
+                    return emptyBooksArray;
+                }
                 // fetch books from US server
                 const response = await fetch(url);
 
@@ -264,7 +278,6 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
                 }
                 if (returnedBooks.length === 0) {
                     Alert.alert("No books found. Please try again");
-
                 }
                 return returnedBooks;
             } else {
