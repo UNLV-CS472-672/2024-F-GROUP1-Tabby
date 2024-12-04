@@ -1,7 +1,7 @@
 import React from 'react';
 import FooterNavBar from '@/components/FooterNavBar';
 import * as ImagePicker from "expo-image-picker";
-import CameraModal from "@/components/camera/CameraModel";
+import CameraModal from "@/components/camera/CameraModal";
 import { render, fireEvent, act, screen, waitFor } from '@testing-library/react-native';
 
 
