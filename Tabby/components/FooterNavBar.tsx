@@ -158,9 +158,9 @@ const FooterNavBar = () => {
       console.error("Failed to add selected books to all categories");
     }
 
-    // refresh current category page
+    // refresh current category page if selected books will be added to current category and are in that category page
     console.log("if there is category: ", currentNestedSlug);
-    if (currentNestedSlug && selectedCategories.includes(currentNestedSlug) && pathname.includes(`/library/${currentNestedSlug}`)) {
+    if (currentNestedSlug && selectedCategories.includes(currentNestedSlug) && pathname === `/library/${currentNestedSlug}`) {
       // reset local state of selected categories
       setSelectedCategories([]);
       setSelectedBooksByIsbn([]);
