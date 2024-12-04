@@ -160,7 +160,7 @@ const FooterNavBar = () => {
 
     // refresh current category page
     console.log("if there is category: ", currentNestedSlug);
-    if (pathname.includes(`/library/${currentNestedSlug}`)) {
+    if (currentNestedSlug && selectedCategories.includes(currentNestedSlug) && pathname.includes(`/library/${currentNestedSlug}`)) {
       // reset local state of selected categories
       setSelectedCategories([]);
       setSelectedBooksByIsbn([]);
