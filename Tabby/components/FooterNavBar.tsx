@@ -1,7 +1,6 @@
-import { View, Pressable, Text, Modal, FlatList, Alert, ScrollView } from "react-native";
+import { View, Pressable, Text, Modal, FlatList, Alert } from "react-native";
 import { Link, usePathname, useRouter } from "expo-router";
 import React, { useState, useEffect } from "react";
-import { SelectList } from 'react-native-dropdown-select-list'
 import SelectedLibrary from "@/components/navbar/selectedLibrary";
 import NotSelectedLibrary from "@/components/navbar/notSelectedLibrary";
 import SelectedExplore from "@/components/navbar/selectedExplore";
@@ -12,8 +11,9 @@ import Settings from "@/components/navbar/settings";
 import CameraIcon from "@/components/navbar/camera";
 import CameraModal from "@/components/camera/CameraModel";
 import { Book } from '@/types/book';
+import { Checkbox } from 'expo-checkbox';
 import { Category } from '@/types/category';
-import { getAllCategories, addUserBook } from '@/database/databaseOperations';
+import { getAllCategories, addMultipleUserBooksWithCategoryName } from '@/database/databaseOperations';
 import BookSearchPreview from "@/components/BookSearchPreview";
 
 let tempBooks: Book[] = [];
@@ -22,18 +22,36 @@ const FooterNavBar = () => {
   // set to true to show camera modal
   const [isCameraModalVisible, setCameraModalVisible] = useState(false);
   const [isBookSelectionModalVisible, setBookSelectionModalVisible] = useState(false);
-  const [chosenCategory, setChosenCategory] = useState('')
-  const [categories, setCategories] = useState<String[]>([]);
-  const [selectedIsbn, setSelectedIsbn] = useState<String | String[] | undefined>(undefined);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [selectedBooksByIsbn, setSelectedBooksByIsbn] = useState<string[]>([]);
   const [isShelf, setIsShelf] = useState(false);
   const pathname = usePathname();
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const currentNestedSlug = pathname.split("/").pop();
+  console.log("current nested slug: ", currentNestedSlug);
+  const [bookErrorMessage, setBookErrorMessage] = useState<string>('');
+  const [categoryErrorMessage, setCategoryErrorMessage] = useState<string>('');
+  // Toggle selection of categories
+  const toggleCategorySelection = (category: string) => {
+    // reset error messages
+    if (categoryErrorMessage.length > 0) setCategoryErrorMessage('');
+    setSelectedCategories((prev) =>
+      prev.includes(category) ? prev.filter((item) => item !== category) : [...prev, category]
+    );
+  };
+
 
   const size = 40;
 
   const router = useRouter();
 
   useEffect(() => {
-    fetchCategories();
+    const fetchCategoriesOnMount = async () => {
+      const fetchedCategories = await getCategories();
+      setCategories(fetchedCategories);
+    }
+
+    fetchCategoriesOnMount();
   }, [])
 
   const fetchCategories = async () => {
@@ -43,7 +61,7 @@ const FooterNavBar = () => {
 
   // returns names of all categories
   const getCategories = async () => {
-    let categoryNames: String[] = [];
+    let categoryNames: string[] = [];
     const givenCategories: Category[] | null = await getAllCategories();
     if (givenCategories) {
       for (const item of givenCategories) {
@@ -53,45 +71,35 @@ const FooterNavBar = () => {
     return categoryNames;
   }
 
-  // when a book is selected as correct book mark selected isbn as its isbn
-  const handlePress = (isbn: string | undefined) => {
-    setSelectedIsbn(isbn);
-  };
 
-  const handleShelfPress = (isbn: string | undefined) => {
-    if (!isbn) return;
-    setSelectedIsbn((prev) => {
-      if (prev?.includes(isbn) && Array.isArray(prev)) {
+  const handleShelfPressToSelectBooks = (isbn: string | undefined) => {
+    if (!isbn) {
+      console.log("no isbn");
+      return;
+    };
+    // reset error messages
+    setBookErrorMessage('');
+
+    setSelectedBooksByIsbn((prev) => {
+      if (prev?.includes(isbn)) {
         return prev.filter((item) => item !== isbn);
       } else {
-        if (Array.isArray(prev))
-          return [...prev, isbn];
+        return [...prev, isbn];
       }
     })
+
+
   }
 
   const renderItem = ({ item }: { item: Book }) => {
-    let isSelected = false;
-    if (isShelf && item.isbn && selectedIsbn) {
-      isSelected = selectedIsbn.includes(item.isbn);
-    } else {
-      isSelected = item.isbn === selectedIsbn;
-    }
+
+    const isSelected = selectedBooksByIsbn?.includes(item.isbn || "default-isbn");
 
     return (
       <Pressable
         onPress={() => {
-          if (!isShelf) {
-            console.log("Book selected:", item);
-            handlePress(item.isbn);
-          } else {
-            if (!selectedIsbn) {
-              const temp: String[] = [];
-              setSelectedIsbn(temp);
-            }
-            handleShelfPress(item.isbn);
-          }
-
+          console.log("Book selected:", item.title);
+          handleShelfPressToSelectBooks(item.isbn);
         }}
         className={`flex-row items-center p-4 rounded-lg my-1 ${isSelected ? 'bg-blue-500 opacity-80' : ''}`}
       >
@@ -100,50 +108,69 @@ const FooterNavBar = () => {
     )
   }
 
-  // add book to a category
-  const addBookToCategory = async () => {
-    if (chosenCategory === '') {
-      Alert.alert("Please Select a category to add this book");
-      return;
+  // add selected books to a categories
+  const addSelectedBooksToCategories = async () => {
+    const areNoCategoriesSelected = selectedCategories.length === 0;
+    const areNoBooksSelected = selectedBooksByIsbn.length === 0;
+    if (areNoCategoriesSelected) {
+      setCategoryErrorMessage('Please select at least one category.');
     }
-    if (selectedIsbn === undefined) {
-      Alert.alert('Please Select a book to add');
+
+    if (areNoBooksSelected) {
+      setBookErrorMessage('Please select at least one book.');
+    }
+    console.log("is shelf: ", isShelf);
+    // no categories or books selected so return
+    if (areNoCategoriesSelected || areNoBooksSelected) {
       return;
     }
 
-    let returnBook: Book = {
-      id: "tempID",
-      title: "temptitle",
-      author: "tempauthor",
-      excerpt: "tempexcerpt",
-      summary: "tempsummary",
-      image: "tempimage",
-      isFavorite: false,
-    };
 
-    for (const item of tempBooks) {
-      if (Array.isArray(selectedIsbn)) {
-        if (item.isbn && selectedIsbn.includes(item.isbn)) {
-          returnBook = item;
-          returnBook.category = chosenCategory;
-          await addUserBook(returnBook);
-        }
+    let wasAbleToAddBooksToAllCategories = true;
+    // filter selected books
+    const selectedBookObjects = tempBooks.filter((item) => {
+      if (item.isbn && selectedBooksByIsbn.includes(item.isbn)) {
+        return true;
       } else {
-        if (item.isbn === selectedIsbn) {
-          returnBook = item;
-          returnBook.category = chosenCategory;
-          await addUserBook(returnBook);
-        }
+        return false;
+      }
+    })
+    console.log("\n\n \n\n \n selected book objects: ", selectedBookObjects, "\n \n\n \n\n \n\n \n");
+
+    console.log("\n\n \n\n \n selected categories: ", selectedCategories, "\n \n\n \n\n \n\n \n");
+
+    // for each category add the selected books
+    for (const category of selectedCategories) {
+      const resultOfAddingBooksToCurrentCategory = await addMultipleUserBooksWithCategoryName(
+        selectedBookObjects,
+        category
+      );
+      if (!resultOfAddingBooksToCurrentCategory) {
+        console.error("Failed to add books to current category: ", category);
+        wasAbleToAddBooksToAllCategories = false;
       }
     }
 
-    if (pathname.includes(`/library/${chosenCategory}`)) {
-      router.push(`/library/${chosenCategory}`);
+    if (wasAbleToAddBooksToAllCategories) {
+      //reset local state of selectable books
+      Alert.alert("Successfully added selected books to all selected categories");
+    } else {
+      console.error("Failed to add selected books to all categories");
+    }
+
+    // refresh current category page
+    console.log("if there is category: ", currentNestedSlug);
+    if (pathname.includes(`/library/${currentNestedSlug}`)) {
+      // reset local state of selected categories
+      setSelectedCategories([]);
+      setSelectedBooksByIsbn([]);
+      router.replace(`/library/${currentNestedSlug}`);
     }
 
     setBookSelectionModalVisible(false);
-    setChosenCategory('');
-    setSelectedIsbn(undefined);
+    // reset local state of selected categories
+    setSelectedCategories([]);
+    setSelectedBooksByIsbn([]);
   }
 
   return (
@@ -199,7 +226,12 @@ const FooterNavBar = () => {
       {isCameraModalVisible && (
         <CameraModal closeModal={() => setCameraModalVisible(false)}
           onBookSelectionStart={(returnedBooks: Book[], isShelf: boolean) => {
-            tempBooks = returnedBooks;
+            // filter returned books by isbn only unique ISBNS
+            const uniqueReturnedBooks = returnedBooks.filter((item, index, array) => {
+              return array.findIndex(book => book.isbn === item.isbn) === index;
+            });
+
+            tempBooks = uniqueReturnedBooks;
             fetchCategories();
             setCameraModalVisible(false);
             setBookSelectionModalVisible(true);
@@ -210,8 +242,10 @@ const FooterNavBar = () => {
         <Modal animationType="slide" transparent visible>
           <View className="flex-1 justify-center items-center bg-opacity-50">
             <View className="bg-white rounded-lg w-80 p-4 space-y-4 truncate">
-              {isShelf ? <Text className="text-lg font-bold text-center">Select the correct books</Text> : <Text className="text-lg font-bold text-center">Select the correct book</Text>}
+              <Text className="text-xl font-bold text-center">Select The Correct Books</Text>
 
+
+              {/* Book selection */}
               <FlatList
                 className="max-h-56"
                 data={tempBooks}
@@ -219,18 +253,34 @@ const FooterNavBar = () => {
                 renderItem={renderItem}
               />
 
-              <ScrollView className="max-h-56">
-                <SelectList
-                  setSelected={(val: string) => setChosenCategory(val)}
-                  data={categories}
-                  search={false}
-                  onSelect={() => console.log('user chose: ', chosenCategory)}
-                  placeholder={isShelf ? 'Select which category to add these books' : 'Select which category to add this book'}
-                />
-              </ScrollView>
+
+              {/* Category selection */}
+              <FlatList
+                className="max-h-36"
+                data={categories}
+                keyExtractor={(item) => item}
+                renderItem={({ item }) => (
+                  <Pressable
+                    onPress={() => toggleCategorySelection(item)}
+                    className="flex-row items-center mb-2 p-1"
+                  >
+                    <Checkbox
+                      value={selectedCategories.includes(item)}
+                      onValueChange={() => toggleCategorySelection(item)}
+                    />
+                    <Text className="ml-2 text-sm text-gray-800">{item}</Text>
+                  </Pressable>
+                )}
+              />
+
+              <View>
+                {bookErrorMessage.length > 0 && <Text className="text-red-500 mb-1">{bookErrorMessage}</Text>}
+                {categoryErrorMessage.length > 0 && <Text className="text-red-500 mb-1">{categoryErrorMessage}</Text>}
+              </View>
+
 
               <Pressable
-                onPress={() => addBookToCategory()}
+                onPress={() => addSelectedBooksToCategories()}
                 className="p-2 bg-blue-500 rounded items-center"
               >
                 <Text className="text-white">Confirm</Text>
@@ -238,8 +288,11 @@ const FooterNavBar = () => {
               <Pressable
                 onPress={() => {
                   setBookSelectionModalVisible(false);
-                  setChosenCategory('');
-                  setSelectedIsbn(undefined);
+                  setSelectedCategories([]);
+                  setSelectedBooksByIsbn([]);
+                  // reset error messages
+                  setBookErrorMessage('');
+                  setCategoryErrorMessage('');
                 }}
                 className="p-2 bg-red-500 rounded items-center"
               >

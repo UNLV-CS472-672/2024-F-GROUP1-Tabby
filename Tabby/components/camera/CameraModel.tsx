@@ -148,14 +148,26 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
             if (books.ok) {
                 console.log('success');
                 const result = await books.json();
-                console.log(result);
+                console.log("books from shelf: \n\n\n", result, "\n\n\n");
                 for (let i = 0; i < result.titles.length; i++) {
-                    const url = new URL(`${cpuUrl}books/search`);
 
-                    url.searchParams.append('author', result.authors[i]);
-                    url.searchParams.append('title', result.titles[i]);
+
+                    const url = new URL(`${cpuUrl}books/search`);
+                    // check if title is empty if it do not append
+                    if (result.titles[i] !== "") {
+                        url.searchParams.append('author', result.authors[i]);
+                    }
+                    // check if title is empty if it do not append
+                    if (result.titles[i] !== "") {
+                        url.searchParams.append('title', result.titles[i]);
+                    }
 
                     // fetch books from US server
+                    console.log(url);
+                    // check if both title and author are empty if so skip making search
+                    if (result.titles[i] === "" && result.authors[i] === "") {
+                        continue;
+                    }
                     const response = await fetch(url);
 
                     if (response.ok) {
@@ -168,15 +180,18 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
                         if (temp.results[2] && returnedBooks.findIndex(c => c.isbn === temp.results[2].isbn))
                             returnedBooks.push(jsonToBook(temp.results[2]));
                     } else {
-                        console.error("error with searches: ", response.status);
+                        console.log("error with searches: ", response.status);
                         const errorText = await response.text();
-                        console.error("error details: ", errorText);
+                        console.log("error details: ", errorText);
                     }
                 }
             } else {
                 console.error("error uploading image: ", books.status);
                 const errorText = await books.text();
                 console.error("Error details: ", errorText);
+            }
+            if (returnedBooks.length === 0) {
+                Alert.alert("No books found. Please try again");
             }
             return returnedBooks;
         } catch (error) {
