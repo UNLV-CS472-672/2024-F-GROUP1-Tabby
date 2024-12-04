@@ -255,6 +255,7 @@ const FooterNavBar = () => {
 
 
               {/* Category selection */}
+              <Text className="text-xl font-bold text-center">Select Categories</Text>
               <FlatList
                 className="max-h-36"
                 data={categories}
