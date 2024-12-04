@@ -9,6 +9,7 @@ import { NativeWindStyleSheet } from "nativewind";
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { migrateDbIfNeeded } from '@/database/migration';
 import ArrowBackIcon from '@/assets/menu-icons/arrow-back-icon.svg';
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // Configure nativewind for web compatibility
 NativeWindStyleSheet.setOutput({
@@ -31,10 +32,12 @@ function BackButton() {
     const router = useRouter();
 
     return (
+
         <Pressable onPress={() => router.back()} className='p-2'>
             <ArrowBackIcon height={36} width={36} />
         </Pressable>
     );
+
 }
 
 export default function RootLayout() {
@@ -48,10 +51,10 @@ export default function RootLayout() {
                     <SQLiteProvider databaseName="bookCollection.db" onInit={migrateDbIfNeeded} useSuspense >
                         <ContentContainer testID="ContentContainer">
                             {!isWelcomePage && (
-                                <View className='flex-row justify-start items-center space-x-5'>
+                                <SafeAreaView className='flex-row justify-start items-center space-x-5'>
                                     <BackButton />
                                     <Text className="text-white text-2xl font-bold">Tabby</Text>
-                                </View>
+                                </SafeAreaView>
                             )}
                             <Slot />
                         </ContentContainer>
