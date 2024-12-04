@@ -67,6 +67,12 @@ const Favorites = () => {
     return (
         <SafeAreaView className="flex-1">
             <SearchBar placeholder="Search by title, author, genre, or isbn" onChangeText={updateSearch} value={search} />
+            {(books && books.length === 0) &&
+                (<View className='flex-1 justify-center items-center'>
+                    <Text className="text-white text-center text-xl">No Favorite Books ...</Text>
+                </View>)
+            }
+
             <FlatList
                 className="pt-1"
                 data={books}

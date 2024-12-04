@@ -132,7 +132,7 @@ const AddSearchResultsBooksModal: React.FC<AddSearchResultsBooksModalProps> = ({
                     renderItem={({ item }) => (
                         <Pressable
                             onPress={() => toggleCategorySelection(item)}
-                            className="flex-row items-center mb-2"
+                            className="flex-row items-center mb-2 p-1"
                         >
                             <Checkbox
                                 value={selectedCategories.includes(item)}

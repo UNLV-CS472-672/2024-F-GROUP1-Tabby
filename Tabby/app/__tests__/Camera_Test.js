@@ -1,7 +1,7 @@
 import React from 'react';
 import FooterNavBar from '@/components/FooterNavBar';
 import * as ImagePicker from "expo-image-picker";
-import CameraModal from "@/components/camera/CameraModel";
+import CameraModal from "@/components/camera/CameraModal";
 import { render, fireEvent, act, screen, waitFor } from '@testing-library/react-native';
 
 
@@ -60,7 +60,7 @@ describe('Camera tests', () => {
         });
 
         // makes sure modal shows up by checking if some of the text from the modal appears
-        const modalTest = await screen.findByText('Take Picture of a single book');
+        const modalTest = await screen.findByText('Take picture of a single book');
 
         // if the text does appear then the test passes
         expect(modalTest).toBeTruthy();

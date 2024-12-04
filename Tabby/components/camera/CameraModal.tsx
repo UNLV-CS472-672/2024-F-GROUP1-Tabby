@@ -1,8 +1,7 @@
-import { View, Text, Pressable, Modal, TouchableWithoutFeedback, ActivityIndicator } from "react-native";
+import { View, Text, Pressable, Modal, TouchableWithoutFeedback, ActivityIndicator, Alert } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 import { Book } from '@/types/book';
-import { useSearchParams } from "expo-router/build/hooks";
 
 interface CameraModalProps {
     closeModal: () => void;
@@ -50,7 +49,10 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
         if (!result.canceled) {
             const returnedBooks = await uploadImage(result.assets[0].uri);
             if (returnedBooks)
-                await userPickBook(returnedBooks, false);
+                // if returned books is not empty
+                if (returnedBooks.length > 0) {
+                    await userPickBook(returnedBooks, false);
+                }
         }
         setIsProcessing(false);
     };
@@ -74,6 +76,8 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
             const returnedBooks = await uploadImage(result.assets[0].uri);
             if (returnedBooks)
                 await userPickBook(returnedBooks, false);
+
+
         }
         setIsProcessing(false);
     };
@@ -144,14 +148,26 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
             if (books.ok) {
                 console.log('success');
                 const result = await books.json();
-                console.log(result);
+                console.log("books from shelf: \n\n\n", result, "\n\n\n");
                 for (let i = 0; i < result.titles.length; i++) {
-                    const url = new URL(`${cpuUrl}books/search`);
 
-                    url.searchParams.append('author', result.authors[i]);
-                    url.searchParams.append('title', result.titles[i]);
+
+                    const url = new URL(`${cpuUrl}books/search`);
+                    // check if title is empty if it do not append
+                    if (result.titles[i] !== "") {
+                        url.searchParams.append('author', result.authors[i]);
+                    }
+                    // check if title is empty if it do not append
+                    if (result.titles[i] !== "") {
+                        url.searchParams.append('title', result.titles[i]);
+                    }
 
                     // fetch books from US server
+                    console.log(url);
+                    // check if both title and author are empty if so skip making search
+                    if (result.titles[i] === "" && result.authors[i] === "") {
+                        continue;
+                    }
                     const response = await fetch(url);
 
                     if (response.ok) {
@@ -164,15 +180,18 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
                         if (temp.results[2] && returnedBooks.findIndex(c => c.isbn === temp.results[2].isbn))
                             returnedBooks.push(jsonToBook(temp.results[2]));
                     } else {
-                        console.error("error with searches: ", response.status);
+                        console.log("error with searches: ", response.status);
                         const errorText = await response.text();
-                        console.error("error details: ", errorText);
+                        console.log("error details: ", errorText);
                     }
                 }
             } else {
                 console.error("error uploading image: ", books.status);
                 const errorText = await books.text();
                 console.error("Error details: ", errorText);
+            }
+            if (returnedBooks.length === 0) {
+                Alert.alert("No books found. Please try again");
             }
             return returnedBooks;
         } catch (error) {
@@ -187,7 +206,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
 
     // Opens modal for user to select correct book
     const userPickBook = async (bookArr: Book[], isShelf: boolean) => {
-        await setUserChoosing(true);
+        setUserChoosing(true);
 
         // DONT REMOVE THIS SLEEP
         // idk why but if you remove it then shit breaks
@@ -220,9 +239,23 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
                 const book = await titles.json();
                 const url = new URL(`${cpuUrl}books/search`);
 
-                url.searchParams.append('author', book.author);
-                url.searchParams.append('title', book.title);
+                // check if title is empty if it is do not append
+                const bookTitleIsEmpty = book.title === "" || null || undefined;
+                const bookAuthorIsEmpty = book.author === "" || null || undefined;
+                if (!bookTitleIsEmpty) {
+                    url.searchParams.append('title', book.title);
+                }
+                // check if author is empty if it is do not append
+                if (!bookAuthorIsEmpty) {
+                    url.searchParams.append('author', book.author);
+                }
 
+                // check if both title and author are empty if so skip making search and just return empty array 
+                if (bookTitleIsEmpty && bookAuthorIsEmpty) {
+                    Alert.alert("No books found. Please try again");
+                    const emptyBooksArray: Book[] = [];
+                    return emptyBooksArray;
+                }
                 // fetch books from US server
                 const response = await fetch(url);
 
@@ -243,6 +276,9 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
                     const errorText = await response.text();
                     console.error("Error details: ", errorText);
                 }
+                if (returnedBooks.length === 0) {
+                    Alert.alert("No books found. Please try again");
+                }
                 return returnedBooks;
             } else {
                 console.error("error uploading image: ", titles.status);
@@ -254,10 +290,12 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
         }
     };
 
+    let counter = 0;
+
     // returns a Book object from json given by google books
     const jsonToBook = (bookjson: apiReturn) => {
         const returnBook: Book = {
-            id: `tempid${Math.floor(Math.random() * 1000)}`,
+            id: `tempid${counter++}`,
             isbn: bookjson.isbn,
             title: bookjson.title,
             author: bookjson.authors,
@@ -286,7 +324,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
                                 className={`p-2 rounded items-center bg-blue-500`}
                                 testID="takePictureButton"
                             >
-                                <Text className="text-white">Take Picture of a single book</Text>
+                                <Text className="text-white">Take picture of a single book</Text>
                             </Pressable>
                             <Pressable
                                 onPress={handlePickImage}
@@ -301,7 +339,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ closeModal, onBookSelectionSt
                                 disabled={isProcessing}
                                 className={`p-2 rounded items-center bg-blue-500`}
                             >
-                                <Text className="text-white">Take Picture of a book shelf</Text>
+                                <Text className="text-white">Take picture of a book shelf</Text>
                             </Pressable>
                             <Pressable
                                 onPress={handlePickShelfImage}
